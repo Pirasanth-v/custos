@@ -1,0 +1,18 @@
+# Environment variables
+frontend/.env
+backend/.env
+
+# Frontend 
+frontend/node_modules
+frontend/dist/
+frontend/.vite/
+
+# Backend
+backend/bin/
+backend/tmp/
+
+# Docker
+docker-volumes/
+
+# Research
+Research/
