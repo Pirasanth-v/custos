@@ -1,4 +1,5 @@
 **Project structure**
+```
 custos/
 ├── frontend/          # React + Tailwind + Bun
 ├── backend/           # Go
@@ -8,9 +9,9 @@ custos/
 ├── docker-compose.yml
 ├── .gitignore
 └── README.md
-
+```
 **Frontend folder structure (feature-based, not type-based):**
-
+```
 frontend/src/
 ├── features/
 |   ├── auth/
@@ -25,9 +26,9 @@ frontend/src/
 ├── store/             # Zustand stores
 ├── types/             # Global TypeScript types
 └── main.tsx
-
+```
 **Backend folder structure (Clean Architecture):**
-
+```
 backend/
 ├── cmd/
 │   └── server/
@@ -44,7 +45,7 @@ backend/
 ├── pkg/                   # Reusable packages (response helpers, errors)
 ├── .env.example
 └── go.mod
-
+```
 **Commands**
 
 ```
