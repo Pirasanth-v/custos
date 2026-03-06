@@ -42,7 +42,14 @@
 #       runner: go run
 pre-commit:
   commands:
-    lint:
+    frontend-lint:
+      root: "frontend/"
       run: bun run lint
-    format-check:
-      run: bun run format:check
+
+    frontend-format:
+      root: "frontend/"
+      run: bunx prettier --check "src/**/*.{ts,tsx}" 
+
+    backend-lint:
+      root: "backend/"
+      run: golangci-lint run ./...
