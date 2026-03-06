@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS approvals CASCADE;
+DROP TYPE IF EXISTS approval_status;
