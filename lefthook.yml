@@ -46,9 +46,9 @@ pre-commit:
       root: "frontend/"
       run: bun run lint
 
-    frontend-format:
+    frontend-format-check:
       root: "frontend/"
-      run: bunx prettier --check "src/**/*.{ts,tsx}" 
+      run: bun run format-check 
 
     backend-lint:
       root: "backend/"
