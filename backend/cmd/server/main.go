@@ -4,9 +4,11 @@ import (
 	"log"
 	"log/slog"
 	"context"
+	"net/http"
 
 	config "github.com/pirasanth-v/custos/internal/config"
 	db "github.com/pirasanth-v/custos/internal/database"
+	server "github.com/pirasanth-v/custos/internal/server"
 )
 
 func main() {
@@ -31,4 +33,9 @@ func main() {
 		log.Fatalf("Unable to ping database: %v", err)
 	}
 
+	router := server.New()
+	if err := http.ListenAndServe(":"+cfg.App.Port, router); err != nil {
+		log.Fatalf("Server failed :%v", err)
+	}
+	
 }
