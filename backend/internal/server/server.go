@@ -1,4 +1,4 @@
-package internal
+package server
 
 import (
 	"net/http"
@@ -6,10 +6,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/pirasanth-v/custos/internal/handler"
 
 )
 
-func New() http.Handler {
+func New(authHandler *handler.AuthHandler) http.Handler {
 	r := chi.NewRouter()
 
 	// runs in every request
@@ -26,6 +27,10 @@ func New() http.Handler {
 		}
 		
 	})
+
+	r.Route("/api/v1", func(r chi.Router) {
+        r.Post("/auth/register", authHandler.Register)
+    })
 
 	return r
 }
