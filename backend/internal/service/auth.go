@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 	"fmt"
+	"crypto/sha256"
+	"encoding/hex"
 
 	"github.com/pirasanth-v/custos/internal/repository"
 	"github.com/pirasanth-v/custos/internal/dto"
@@ -83,11 +85,8 @@ func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest) (string,
 	sessionExpiry := time.Now().Add(time.Duration(s.cfg.SessionExpiryHours) * time.Hour)
 
 	// 4. Hash Token
-	hashedSessionTokenBytes, err := bcrypt.GenerateFromPassword([]byte(sessionToken), s.cfg.BcryptCost)
-	if err != nil {
-		return "", fmt.Errorf("failed to hash the session token: %w", err)
-	}
-	hashedSessionToken := string(hashedSessionTokenBytes)
+	hash := sha256.Sum256([]byte(sessionToken))
+	hashedSessionToken := hex.EncodeToString(hash[:])
 
 	// Build session model
 	session := &model.Session{
