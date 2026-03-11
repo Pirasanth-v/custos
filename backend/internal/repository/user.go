@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"fmt"
+	"errors"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 	"github.com/pirasanth-v/custos/internal/model"
 )
 
@@ -51,4 +53,35 @@ func (r *UserRepository) IsEmailExists(ctx context.Context, email string) (bool,
 	}
 
 	return exists, nil
+}
+
+func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (model.User, error) {
+	query := `
+		SELECT id, first_name, last_name, email, password_hash, current_status, avatar_url, created_at, updated_at, deleted_at
+		FROM users
+		WHERE email = $1
+	`
+
+	var user model.User
+	err := r.db.QueryRow(ctx, query, email).Scan(
+		&user.Id,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.PasswordHash,
+		&user.CurrentStatus,
+		&user.AvatarUrl,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.DeletedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.User{}, errors.New("user not found")
+		}
+		return model.User{}, fmt.Errorf("failed to get user by email: %w", err)
+	}
+
+	return user, nil
 }

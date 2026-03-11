@@ -37,8 +37,9 @@ func main() {
 	}
 
 	userRepo := repository.NewUserRepository(db)
-	authService := service.NewAuthService(userRepo, cfg.Security)
-	authHandler := handler.NewAuthHandler(authService)
+	sessionRepo := repository.NewSessionRepository(db)
+	authService := service.NewAuthService(userRepo, sessionRepo, cfg.Security)
+	authHandler := handler.NewAuthHandler(authService, cfg.Security)
 
 	router := server.New(authHandler)
 	if err := http.ListenAndServe(":"+cfg.App.Port, router); err != nil {

@@ -30,6 +30,7 @@ func New(authHandler *handler.AuthHandler) http.Handler {
 
 	r.Route("/api/v1", func(r chi.Router) {
         r.Post("/auth/register", authHandler.Register)
+		r.Post("/auth/login", authHandler.Login)
     })
 
 	return r
