@@ -12,6 +12,7 @@ import (
 	"github.com/pirasanth-v/custos/internal/handler"
 	"github.com/pirasanth-v/custos/internal/service"
 	"github.com/pirasanth-v/custos/internal/repository"
+	"github.com/pirasanth-v/custos/internal/middleware"
 )
 
 func main() {
@@ -41,7 +42,9 @@ func main() {
 	authService := service.NewAuthService(userRepo, sessionRepo, cfg.Security)
 	authHandler := handler.NewAuthHandler(authService, cfg.Security)
 
-	router := server.New(authHandler)
+	authMiddleware := middleware.NewAuthMiddleware(sessionRepo)
+
+	router := server.New(authMiddleware, authHandler)
 	if err := http.ListenAndServe(":"+cfg.App.Port, router); err != nil {
 		log.Fatalf("Server failed :%v", err)
 	}
