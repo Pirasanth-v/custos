@@ -103,3 +103,25 @@ func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest) (string,
 
 	return sessionToken, nil
 }
+
+func (s *AuthService) Logout(ctx context.Context, token string) error {
+	// Hash the provided token
+	hash := sha256.Sum256([]byte(token))
+	tokenHash := hex.EncodeToString(hash[:])
+
+	// Attempt to revoke the session in the repository
+	if err := s.sessionRepo.RevokeSession(ctx, tokenHash); err != nil {
+		return fmt.Errorf("failed to revoke session: %w", err)
+	}
+
+	return nil
+}
+
+func (s *AuthService) Me(ctx context.Context, userID string) (*dto.UserResponse, error) {
+	user, err := s.userRepo.GetUserById(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by id: %w", err)
+	}
+
+	return user, nil
+}

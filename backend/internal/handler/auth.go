@@ -9,6 +9,7 @@ import (
 	"github.com/pirasanth-v/custos/internal/service"
 	"github.com/pirasanth-v/custos/internal/dto"
 	"github.com/pirasanth-v/custos/internal/config"
+	"github.com/pirasanth-v/custos/internal/middleware"
 )
 
 type AuthHandler struct {
@@ -142,4 +143,94 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		slog.Error("failed to write error response", "error", err)
 	}
 
+}
+
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	// get cookie
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		if err := json.NewEncoder(w).Encode(
+			map[string]string{
+				"error" : "unauthorized",
+			},
+		); err != nil {
+			slog.Error("failed to write response", "error", err)
+		}
+		return
+	}
+
+	// call service
+	token := cookie.Value
+
+	if err := h.authService.Logout(r.Context(), token); err != nil {
+		slog.Error("logout failed", "error", err)
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		if err := json.NewEncoder(w).Encode(
+			map[string]string{
+				"error" : "internal server error",
+			},
+		); err != nil {
+			slog.Error("failed to write response", "error", err)
+		}
+		return
+	}
+
+	// clear the cookie
+	http.SetCookie(w, &http.Cookie {
+		Name:     "session_token",
+        Value:    "",
+        HttpOnly: true,
+        Secure:   true,
+        SameSite: http.SameSiteLaxMode,
+        Path:     "/",
+        MaxAge:   -1, // tells browser to delete the cookie immediately
+	})
+
+	// success response
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(
+		map[string]string{
+			"message" : "logged out successfully",
+		},
+	); err != nil {
+		slog.Error("failed to write response", "error", err)
+	}
+}
+
+func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
+	// get userID from context
+	userID, ok := r.Context().Value(middleware.UserIDKey).(string)
+	if !ok {
+		slog.Error("failed to read a value from cookie")
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		if err := json.NewEncoder(w).Encode(map[string]string{"error" : "unauthorized"}); err != nil {
+			slog.Error("failed to write response", "error", err)
+		}
+
+	}
+
+
+	// get user details
+	userResponse, err := h.authService.Me(r.Context(), userID)
+	if err != nil {
+		slog.Error("get user by id failed", "error", err)
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		if err := json.NewEncoder(w).Encode(map[string]string{"error" : "internal server error"}); err != nil {
+			slog.Error("failed to write response", "error", err)
+		}
+		return
+	}
+
+	// success response
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(userResponse); err != nil {
+		slog.Error("failed to write response", "error", err)
+	}
 }

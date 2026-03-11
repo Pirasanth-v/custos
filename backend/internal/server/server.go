@@ -3,7 +3,6 @@ package server
 import (
 	"net/http"
 	"log/slog"
-	"encoding/json"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -38,14 +37,8 @@ func New(AuthMiddleware *m.AuthMiddleware, authHandler *handler.AuthHandler) htt
 		// protected routes
 		r.Group(func(r chi.Router) {
 			r.Use(AuthMiddleware.Authenticate)
-			//r.Post("auth/logout", authHandler.Logout)
-			r.Get("/users/me", func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Set("content-type", "application-json")
-				w.WriteHeader(http.StatusOK)
-				if err := json.NewEncoder(w).Encode(map[string]string{"msg" : "okkk"}); err != nil {
-					slog.Error("failed to write response", "error", err)
-				}
-			})
+			r.Post("/auth/logout", authHandler.Logout)
+			r.Get("/users/me", authHandler.Me)
 		})
     })
 

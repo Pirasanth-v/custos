@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5"
 	"github.com/pirasanth-v/custos/internal/model"
+	"github.com/pirasanth-v/custos/internal/dto"
 )
 
 // UserRepository provides methods for DB operations related to users.
@@ -81,6 +82,35 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (mode
 			return model.User{}, errors.New("user not found")
 		}
 		return model.User{}, fmt.Errorf("failed to get user by email: %w", err)
+	}
+
+	return user, nil
+}
+
+func (r *UserRepository) GetUserById(ctx context.Context, userID string) (*dto.UserResponse, error) {
+	query := `
+		SELECT id, first_name, last_name, email, current_status, avatar_url, created_at
+		FROM users
+		WHERE id = $1
+		AND deleted_at IS NULL
+	`
+
+	user := &dto.UserResponse{}
+	err := r.db.QueryRow(ctx, query, userID).Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Status,
+		&user.AvatarURL,
+		&user.CreatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errors.New("user not found")
+		}
+		return nil, fmt.Errorf("failed to get user by id: %w", err)
 	}
 
 	return user, nil
