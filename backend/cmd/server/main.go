@@ -6,9 +6,13 @@ import (
 	"context"
 	"net/http"
 
-	config "github.com/pirasanth-v/custos/internal/config"
+	"github.com/pirasanth-v/custos/internal/config"
 	db "github.com/pirasanth-v/custos/internal/database"
-	server "github.com/pirasanth-v/custos/internal/server"
+	"github.com/pirasanth-v/custos/internal/server"
+	"github.com/pirasanth-v/custos/internal/handler"
+	"github.com/pirasanth-v/custos/internal/service"
+	"github.com/pirasanth-v/custos/internal/repository"
+	"github.com/pirasanth-v/custos/internal/middleware"
 )
 
 func main() {
@@ -33,7 +37,14 @@ func main() {
 		log.Fatalf("Unable to ping database: %v", err)
 	}
 
-	router := server.New()
+	userRepo := repository.NewUserRepository(db)
+	sessionRepo := repository.NewSessionRepository(db)
+	authService := service.NewAuthService(userRepo, sessionRepo, cfg.Security)
+	authHandler := handler.NewAuthHandler(authService, cfg.Security)
+
+	authMiddleware := middleware.NewAuthMiddleware(sessionRepo)
+
+	router := server.New(authMiddleware, authHandler)
 	if err := http.ListenAndServe(":"+cfg.App.Port, router); err != nil {
 		log.Fatalf("Server failed :%v", err)
 	}

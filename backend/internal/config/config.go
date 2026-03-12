@@ -1,4 +1,4 @@
-package internal
+package config
 
 import (
 	"fmt"
@@ -40,6 +40,7 @@ type StorageConfig struct {
 type SecurityConfig struct {
 	TokenSecret string	// secret key for signing tokens
 	BcryptCost int	// difficulty level for password hashing
+	SessionExpiryHours int
 }
 
 func Load() (*Config, error) {
@@ -95,6 +96,7 @@ func Load() (*Config, error) {
 	cfg.Security = SecurityConfig {
 		TokenSecret: require("TOKEN_SECRET"),
 		BcryptCost: 12,	// default value
+		SessionExpiryHours: 48,
 	}
 	
 	// override the default if it sets in .env
@@ -103,6 +105,15 @@ func Load() (*Config, error) {
 		cost_int, err := strconv.Atoi(cost)
 		if err == nil {
 			cfg.Security.BcryptCost = cost_int
+		}
+	}
+	
+	// overrides the default if it sets in .env
+	expiry := os.Getenv("SESSION_EXPIRY_HOURS")
+	if expiry != "" {
+		expiry_int, err := strconv.Atoi(expiry)
+		if err == nil {
+			cfg.Security.SessionExpiryHours = expiry_int
 		}
 	}
 	

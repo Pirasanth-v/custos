@@ -1,4 +1,4 @@
-package internal
+package server
 
 import (
 	"net/http"
@@ -6,10 +6,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/pirasanth-v/custos/internal/handler"
+	m "github.com/pirasanth-v/custos/internal/middleware"
 
 )
 
-func New() http.Handler {
+func New(AuthMiddleware *m.AuthMiddleware, authHandler *handler.AuthHandler) http.Handler {
 	r := chi.NewRouter()
 
 	// runs in every request
@@ -26,6 +28,19 @@ func New() http.Handler {
 		}
 		
 	})
+
+	r.Route("/api/v1", func(r chi.Router) {
+		// public routes, no auth needed
+		r.Post("/auth/register", authHandler.Register)
+		r.Post("/auth/login", authHandler.Login)
+
+		// protected routes
+		r.Group(func(r chi.Router) {
+			r.Use(AuthMiddleware.Authenticate)
+			r.Post("/auth/logout", authHandler.Logout)
+			r.Get("/users/me", authHandler.Me)
+		})
+    })
 
 	return r
 }
