@@ -36,7 +36,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left side */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#6366F1] to-[#4F46E5] p-8">
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-primary to-[#4F46E5] p-8">
         <div className="flex flex-col justify-between">
           <div className="text-white/80 flex items-center">
             <img src={logo} alt="logo" className="h-auto w-30" />
@@ -89,63 +89,69 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="flex-1 space-y-5">
             <div className="flex gap-4">
               <div className="space-y-2 flex-1">
-                <h2 className="text-foreground">First Name</h2>
+                <h2 className="text-foreground text-sm font-medium">
+                  First Name
+                </h2>
                 <input
                   type="text"
                   value={firstname}
                   onChange={(e) => setFirstname(e.target.value)}
                   placeholder="James"
                   autoComplete="given-name"
-                  className="border text-muted-foreground rounded-lg h-11 w-full p-3 focus:outline-none focus:border-primary"
+                  className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
                   required
                 />
               </div>
               <div className="space-y-2 flex-1">
-                <h2 className="text-foreground">Last Name</h2>
+                <h2 className="text-foreground text-sm font-medium">
+                  Last Name
+                </h2>
                 <input
                   type="text"
                   value={lastname}
                   onChange={(e) => setLastname(e.target.value)}
                   placeholder="Bond"
                   autoComplete="family-name"
-                  className="border text-muted-foreground rounded-lg h-11 w-full p-3 focus:outline-none focus:border-primary"
+                  className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
                   required
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <h2 className="text-foreground">Email</h2>
+              <h2 className="text-foreground text-sm font-medium">Email</h2>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
                 autoComplete="email"
-                className="border text-muted-foreground rounded-lg h-11 w-full p-3 focus:outline-none focus:border-primary"
+                className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
                 required
               />
             </div>
             <div className="space-y-2">
-              <h2 className="text-foreground">Password</h2>
+              <h2 className="text-foreground text-sm font-medium">Password</h2>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create a strong password"
                 autoComplete="new-password"
-                className="border text-muted-foreground rounded-lg h-11 w-full p-3 focus:outline-none focus:border-primary"
+                className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
                 required
               />
             </div>
             <div className="space-y-2">
-              <h2 className="text-foreground">Confirm Password</h2>
+              <h2 className="text-foreground text-sm font-medium">
+                Re-enter password
+              </h2>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter your password"
                 autoComplete="new-password"
-                className="border text-muted-foreground rounded-lg h-11 w-full p-3 focus:outline-none focus:border-primary"
+                className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
                 required
               />
             </div>

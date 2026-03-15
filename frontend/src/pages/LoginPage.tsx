@@ -28,7 +28,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex">
       {/*Left side*/}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#6366F1] to-[#4F46E5] p-8">
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-primary to-[#4F46E5] p-8">
         <div className="flex flex-col justify-between">
           {/* Header: Logo */}
           <div className="text-white/80 flex items-center">
@@ -88,9 +88,11 @@ export default function LoginPage() {
             className="flex-1 flex flex-col justify-center space-y-5"
           >
             <div className="space-y-2">
-              <h2 className="text-foreground">Email address</h2>
+              <h2 className="text-foreground text-sm font-medium">
+                Email address
+              </h2>
               <input
-                className="border text-muted-foreground rounded-lg h-11 w-full p-3 focus:outline-none focus:border-primary"
+                className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -98,9 +100,9 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <h2 className="text-foreground">Password</h2>
+              <h2 className="text-foreground text-sm font-medium">Password</h2>
               <input
-                className="border text-muted-foreground rounded-lg h-11 w-full p-3 focus:outline-none focus:border-primary"
+                className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

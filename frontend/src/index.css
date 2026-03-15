@@ -11,6 +11,8 @@
   --color-danger: #ef4444;
   --color-muted: #F1F5F9;
   --color-destructive: #F43F5E;
+  --color-input: #E2E8F0;
+  --color-ring: #6366F1;
 
   /* Surface colors */
   --color-background: #F8FAFC;
@@ -34,6 +36,8 @@
     --color-danger: #ef4444;
     --color-muted: #1E293B;
     --color-destructive: #F43F5E;
+    --color-input: #E2E8F0;
+    --color-ring: #6366F1;
 
     /* Surface colors */
     --color-background: #0F172A;
