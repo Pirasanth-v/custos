@@ -1,43 +1,71 @@
-import { register } from "@/features/auth/api";
+import { register as registerUser } from "@/features/auth/api";
 import { Copyright, ArrowRight } from "lucide-react";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo_crop.png";
 import google_icon from "@/assets/google-icon.svg";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { PasswordStrength } from "@/components/PasswordStrength";
+import axios from "axios";
+
+const registerSchema = z
+  .object({
+    first_name: z.string().min(2, "First name must be at least 2 characters"),
+    last_name: z.string().min(2, "Last name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Must contain at least one number"),
+    confirm_password: z.string().min(8, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirm_password, {
+    message: "Passwords do not match",
+    path: ["confirm_password"],
+  });
+
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [serverError, setServerError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const password = watch("password");
+  const onSubmit = async (data: RegisterFormData) => {
+    setServerError("");
     try {
-      await register({
-        first_name: firstname,
-        last_name: lastname,
-        email,
-        password,
-      });
+      const { confirm_password: _confirm_password, ...userData } = data;
+      await registerUser(userData);
       navigate("/login");
-    } catch {
-      setError("Registration failed");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        if (status == 409) {
+          setServerError("Email already in use");
+        } else {
+          setServerError("Registration failed. Please try again.");
+        }
+      }
     }
   };
 
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left side */}
-      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-primary to-[#4F46E5] p-8">
-        <div className="flex flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-[#11162c] to-[#6366F1] p-8">
+        <div className="flex flex-col justify-between h-full">
           <div className="text-white/80 flex items-center">
             <img src={logo} alt="logo" className="h-auto w-30" />
             <div>
@@ -85,83 +113,124 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {error && <p className="text-red-500 text-xs">{error}</p>}
-          <form onSubmit={handleSubmit} className="flex-1 space-y-5">
+          {/* Form */}
+          <form
+            noValidate
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex-1 space-y-5"
+          >
+            {/* First name & Last name */}
             <div className="flex gap-4">
               <div className="space-y-2 flex-1">
                 <h2 className="text-foreground text-sm font-medium">
                   First Name
                 </h2>
                 <input
+                  {...register("first_name")}
                   type="text"
-                  value={firstname}
-                  onChange={(e) => setFirstname(e.target.value)}
-                  placeholder="James"
-                  autoComplete="given-name"
+                  placeholder="Nico"
                   className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
-                  required
                 />
+                {errors.first_name && (
+                  <p className="text-danger text-sm mt-1">
+                    {errors.first_name.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2 flex-1">
                 <h2 className="text-foreground text-sm font-medium">
                   Last Name
                 </h2>
                 <input
+                  {...register("last_name")}
                   type="text"
-                  value={lastname}
-                  onChange={(e) => setLastname(e.target.value)}
-                  placeholder="Bond"
-                  autoComplete="family-name"
+                  placeholder="Robin"
                   className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
-                  required
                 />
+                {errors.last_name && (
+                  <p className="text-danger text-sm mt-1">
+                    {errors.last_name.message}
+                  </p>
+                )}
               </div>
             </div>
+
+            {/* Email */}
             <div className="space-y-2">
-              <h2 className="text-foreground text-sm font-medium">Email</h2>
+              <h2 className="text-foreground text-sm font-medium">
+                Email address
+              </h2>
               <input
+                {...register("email")}
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
-                autoComplete="email"
                 className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
-                required
               />
+              {errors.email && (
+                <p className="text-danger text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
+
+            {/* Password */}
             <div className="space-y-2">
               <h2 className="text-foreground text-sm font-medium">Password</h2>
               <input
+                {...register("password")}
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create a strong password"
-                autoComplete="new-password"
                 className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
-                required
               />
+              <PasswordStrength password={password} />
+              {errors.password && (
+                <p className="text-danger text-sm mt-1">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
+
+            {/* Confirm Password */}
             <div className="space-y-2">
               <h2 className="text-foreground text-sm font-medium">
                 Re-enter password
               </h2>
               <input
+                {...register("confirm_password")}
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter your password"
-                autoComplete="new-password"
                 className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
-                required
               />
+              {errors.confirm_password && (
+                <p className="text-danger text-sm mt-1">
+                  {errors.confirm_password.message}
+                </p>
+              )}
             </div>
+
+            {/* Display server-side error */}
+            {serverError && (
+              <div className="bg-danger/10 border border-danger/20 text-danger text-sm px-4 py-3 rounded-lg">
+                {serverError}
+              </div>
+            )}
+
+            {/* Register button */}
             <button
               type="submit"
+              disabled={isSubmitting}
               className="flex justify-center items-center gap-1 rounded-lg bg-primary hover:bg-[#5558E3] w-full h-11 text-base font-medium shadow-sm text-white"
             >
-              Create account
-              <ArrowRight size={20} className="mt-0.5" />
+              {isSubmitting ? (
+                "Registering..."
+              ) : (
+                <>
+                  Register
+                  <ArrowRight size={20} className="mt-0.5" />
+                </>
+              )}
             </button>
+
             <p className="text-xs text-center text-muted-foreground">
               By creating an account, you agree to our{" "}
               <a

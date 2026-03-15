@@ -1,34 +1,62 @@
-import { useState } from "react";
-import logo from "@/assets/logo_crop.png";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { login, me } from "@/features/auth/api";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, Copyright } from "lucide-react";
-import google_icon from "@/assets/google-icon.svg";
 import useAuthStore from "@/store/authStore";
+import { useNavigate } from "react-router-dom";
+import logo from "@/assets/logo_crop.png";
+import google_icon from "@/assets/google-icon.svg";
+import { Copyright, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import axios from "axios";
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [serverError, setServerError] = useState("");
+
   const { setUser } = useAuthStore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      await login({ email, password });
+      setServerError("");
+      await login(data);
       const user = await me();
       setUser(user);
-      navigate("/Dashboard");
-    } catch {
-      setError("Error occured");
+      navigate("/dashboard");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+
+        if (status) {
+          if (status === 401) {
+            setServerError("Invalid email or password");
+          } else {
+            setServerError("Something went wrong, try again");
+          }
+        }
+      }
     }
   };
 
   return (
     <div className="min-h-screen bg-background flex">
       {/*Left side*/}
-      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-primary to-[#4F46E5] p-8">
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-[#11162c] to-[#6366F1] p-8">
         <div className="flex flex-col justify-between">
           {/* Header: Logo */}
           <div className="text-white/80 flex items-center">
@@ -62,8 +90,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/*Right side*/}
-      <div className="flex-1 flex items-center justify-center p-8">
+      {/* Right side */}
+      <div className="flex-1 flex justify-center items-center p-8">
         <div className="w-full max-w-md space-y-8">
           {/* Mobile logo */}
           <div className="lg:hidden flex flex-col justify-center items-center">
@@ -81,40 +109,66 @@ export default function LoginPage() {
               Enter your credentials to access your account
             </p>
           </div>
+
           {/* Form */}
-          {error && <p>{error}</p>}
           <form
-            onSubmit={handleSubmit}
-            className="flex-1 flex flex-col justify-center space-y-5"
+            noValidate
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col space-y-5"
           >
+            {/* Email */}
             <div className="space-y-2">
               <h2 className="text-foreground text-sm font-medium">
                 Email address
               </h2>
               <input
-                className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
+                {...register("email")}
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
+                className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
               />
+              {errors.email && (
+                <p className="text-danger text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
+
+            {/* Password */}
             <div className="space-y-2">
               <h2 className="text-foreground text-sm font-medium">Password</h2>
               <input
-                className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
+                {...register("password")}
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
+                className="border text-muted-foreground rounded-lg h-11 w-full px-3 focus-visible:outline-none focus-visible:ring-1 focus:ring-ring focus:border-primary/50"
               />
+              {errors.password && (
+                <p className="text-danger text-sm mt-1">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
+
+            {/* Submit */}
+            {serverError && (
+              <div className="bg-danger/10 border border-danger/20 text-danger text-sm px-4 py-3 rounded-lg">
+                {serverError}
+              </div>
+            )}
             <button
               type="submit"
-              className="flex justify-center items-center gap-1 rounded-lg bg-primary hover:bg-[#5558E3] w-full h-11 text-base font-medium shadow-sm text-white"
+              disabled={isSubmitting}
+              className="flex justify-center items-center gap-1 rounded-lg bg-primary  hover:bg-[#5558E3] w-full h-11 text-base font-medium shadow-sm text-white"
             >
-              Login
-              <ArrowRight size={20} className="mt-0.5" />
+              {isSubmitting ? (
+                "Logging in..."
+              ) : (
+                <>
+                  Login
+                  <ArrowRight size={20} className="mt-0.5" />
+                </>
+              )}
             </button>
           </form>
 
