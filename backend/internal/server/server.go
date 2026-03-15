@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/pirasanth-v/custos/internal/handler"
 	m "github.com/pirasanth-v/custos/internal/middleware"
+	"github.com/go-chi/cors"
 
 )
 
@@ -17,6 +18,13 @@ func New(AuthMiddleware *m.AuthMiddleware, authHandler *handler.AuthHandler) htt
 	// runs in every request
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type"},
+		AllowCredentials: true,  // ← critical for cookies
+		MaxAge:           300,
+	}))
 
 	// routes
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
