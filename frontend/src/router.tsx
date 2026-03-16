@@ -3,6 +3,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import RegisterPage from "@/pages/RegisterPage"
 import DashboardPage from "@/pages/DashboardPage"
 import LoginPage from "./pages/LoginPage"
+import AppLayout from "./components/layout/AppLayout"
 
 export const router = createBrowserRouter ([
     {
@@ -18,11 +19,16 @@ export const router = createBrowserRouter ([
         element: <RegisterPage />
     },
     {
-        path: '/dashboard',
         element: (
             <ProtectedRoute>
-                <DashboardPage />
+                <AppLayout />
             </ProtectedRoute>
-        )
+        ),
+        children: [
+            {
+                path: '/dashboard',
+                element: <DashboardPage />
+            }
+        ]
     }
 ])

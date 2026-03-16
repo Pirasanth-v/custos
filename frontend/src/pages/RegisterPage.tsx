@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo_crop.png";
 import google_icon from "@/assets/google-icon.svg";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { PasswordStrength } from "@/components/PasswordStrength";
@@ -36,13 +36,16 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
-  const password = watch("password");
+  const password = useWatch({
+    control,
+    name: "password",
+  });
   const onSubmit = async (data: RegisterFormData) => {
     setServerError("");
     try {
