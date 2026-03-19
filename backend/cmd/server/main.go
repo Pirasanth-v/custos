@@ -37,14 +37,26 @@ func main() {
 		log.Fatalf("Unable to ping database: %v", err)
 	}
 
+	// Repositories
 	userRepo := repository.NewUserRepository(db)
 	sessionRepo := repository.NewSessionRepository(db)
+	orgRepo := repository.NewOrganizationRepository(db)
+	memberRepo := repository.NewOrganizationMemberRepository(db)
+
+	// Services
 	authService := service.NewAuthService(userRepo, sessionRepo, cfg.Security)
+	orgService := service.NewOrgService(db, orgRepo, memberRepo)
+
+	// Handlers
 	authHandler := handler.NewAuthHandler(authService, cfg.Security)
+	OrgHandler := handler.NewOrgHandler(orgService)
 
+	// Middlewares
 	authMiddleware := middleware.NewAuthMiddleware(sessionRepo)
+	//OrgMiddleware := middleware.NewOrgMiddleware(memberRepo)
 
-	router := server.New(authMiddleware, authHandler)
+	// Server
+	router := server.New(authMiddleware, authHandler, OrgHandler)
 	if err := http.ListenAndServe(":"+cfg.App.Port, router); err != nil {
 		log.Fatalf("Server failed :%v", err)
 	}

@@ -211,7 +211,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(map[string]string{"error" : "unauthorized"}); err != nil {
 			slog.Error("failed to write response", "error", err)
 		}
-
+		return
 	}
 
 

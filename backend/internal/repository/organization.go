@@ -6,16 +6,21 @@ import (
 	"context"
 
 	"github.com/pirasanth-v/custos/internal/model"
+	db "github.com/pirasanth-v/custos/internal/database"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5"
 )
 
 type OrganizationRepository struct {
-	db *pgxpool.Pool
+	db db.DBTX
 }
 
 func NewOrganizationRepository(db *pgxpool.Pool) *OrganizationRepository {
 	return &OrganizationRepository {db: db}
+}
+
+func (r *OrganizationRepository) WithTx(tx pgx.Tx) *OrganizationRepository {
+	return &OrganizationRepository{db: tx}
 }
 
 func (r *OrganizationRepository) CreateOrganization(ctx context.Context, org model.Organization) error {
@@ -160,6 +165,10 @@ func (r *OrganizationRepository) GetOrgsByUserID(ctx context.Context, userID str
         }
         organizations = append(organizations, org)
     }
+
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("iteration error: %w", rows.Err())
+	}
 
     return organizations, nil
 }

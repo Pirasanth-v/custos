@@ -12,7 +12,7 @@ import (
 
 )
 
-func New(AuthMiddleware *m.AuthMiddleware, authHandler *handler.AuthHandler) http.Handler {
+func New(AuthMiddleware *m.AuthMiddleware, authHandler *handler.AuthHandler, orgHandler *handler.OrgHandler) http.Handler {
 	r := chi.NewRouter()
 
 	// runs in every request
@@ -45,8 +45,13 @@ func New(AuthMiddleware *m.AuthMiddleware, authHandler *handler.AuthHandler) htt
 		// protected routes
 		r.Group(func(r chi.Router) {
 			r.Use(AuthMiddleware.Authenticate)
+
+			// user
 			r.Post("/auth/logout", authHandler.Logout)
 			r.Get("/users/me", authHandler.Me)
+
+			// organization
+			r.Post("/orgs", orgHandler.CreateOrganization)
 		})
     })
 

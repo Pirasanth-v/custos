@@ -6,16 +6,21 @@ import (
 	"errors"
 
 	"github.com/pirasanth-v/custos/internal/model"
+	db "github.com/pirasanth-v/custos/internal/database"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5"
 )
 
 type OrganizationMemberRepository struct {
-	db *pgxpool.Pool
+	db db.DBTX
 }
 
 func NewOrganizationMemberRepository(db *pgxpool.Pool) *OrganizationMemberRepository {
 	return &OrganizationMemberRepository {db: db}
+}
+
+func (r *OrganizationMemberRepository) WithTx(tx pgx.Tx) *OrganizationMemberRepository {
+	return &OrganizationMemberRepository {db: tx}
 }
 
 func (r *OrganizationMemberRepository) AddMember(ctx context.Context, member model.OrganizationMember) error {
