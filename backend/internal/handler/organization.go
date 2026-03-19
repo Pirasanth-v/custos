@@ -4,10 +4,13 @@ import (
 	"net/http"
 	"log/slog"
 	"encoding/json"
+	//"time"
 
 	"github.com/pirasanth-v/custos/internal/service"
 	"github.com/pirasanth-v/custos/internal/dto"
 	"github.com/pirasanth-v/custos/internal/middleware"
+	"github.com/pirasanth-v/custos/internal/model"
+	response "github.com/pirasanth-v/custos/pkg"
 )
 
 type OrgHandler struct {
@@ -16,6 +19,25 @@ type OrgHandler struct {
 
 func NewOrgHandler(s *service.OrgService) *OrgHandler {
 	return &OrgHandler{orgService: s}
+}
+
+func toOrgResponse(org model.Organization) dto.OrganizationResponse {
+	return dto.OrganizationResponse{
+		ID:         org.Id,
+        Name:       org.Name,
+        Email:      org.Email,
+        Address:    org.Address,
+        IsPersonal: org.IsPersonal,
+        CreatedAt:  org.CreatedAt,
+	}
+}
+
+func toOrgResponses(orgs []model.Organization) []dto.OrganizationResponse {
+	var result = make([]dto.OrganizationResponse, len(orgs))
+	for i, org := range orgs {
+		result[i] = toOrgResponse(org)
+	}
+	return result
 }
 
 func (h *OrgHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
@@ -64,4 +86,20 @@ func (h *OrgHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) 
 	}); err !=nil {
 		slog.Error("Failed to write error response", "error", err)
 	}
+}
+
+func (h *OrgHandler) GetUserOrgs(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(string)
+	if !ok {
+		response.Error(w, http.StatusUnauthorized, "unauthorized")
+	}
+
+	orgs, err := h.orgService.ViewOrgsByUserID(r.Context(), userID)
+	if err != nil {
+		slog.Error("get user orgs failed", "error", err)
+		response.Error(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	response.JSON(w, http.StatusOK, toOrgResponses(orgs))
 }

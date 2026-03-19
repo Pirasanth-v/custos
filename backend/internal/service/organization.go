@@ -73,3 +73,12 @@ func (s *OrgService) CreateOrganization(ctx context.Context, userID string, req 
 	}
 	return nil
 }
+
+func (s *OrgService) ViewOrgsByUserID(ctx context.Context, userID string) ([]model.Organization, error) {
+	orgs, err := s.orgRepo.GetOrgsByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get organizations by user id: %w", err)
+	}
+
+	return orgs, nil
+}

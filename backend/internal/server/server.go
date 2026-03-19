@@ -52,6 +52,7 @@ func New(AuthMiddleware *m.AuthMiddleware, authHandler *handler.AuthHandler, org
 
 			// organization
 			r.Post("/orgs", orgHandler.CreateOrganization)
+			r.Get("/orgs", orgHandler.GetUserOrgs)
 		})
     })
 
