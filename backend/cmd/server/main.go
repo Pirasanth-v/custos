@@ -44,7 +44,7 @@ func main() {
 	memberRepo := repository.NewOrganizationMemberRepository(db)
 
 	// Services
-	authService := service.NewAuthService(userRepo, sessionRepo, cfg.Security)
+	authService := service.NewAuthService(userRepo, sessionRepo, orgRepo, memberRepo, cfg.Security, db)
 	orgService := service.NewOrgService(db, orgRepo, memberRepo)
 
 	// Handlers

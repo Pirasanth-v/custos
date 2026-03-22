@@ -4,6 +4,7 @@ import RegisterPage from "@/pages/RegisterPage"
 import DashboardPage from "@/pages/DashboardPage"
 import LoginPage from "./pages/LoginPage"
 import AppLayout from "./components/layout/AppLayout"
+import CreateOrganizationPage from "./pages/createOrgPage"
 
 export const router = createBrowserRouter ([
     {
@@ -15,8 +16,16 @@ export const router = createBrowserRouter ([
         element: <LoginPage />
     },
     {
-        path: 'register',
+        path: '/register',
         element: <RegisterPage />
+    },
+    {
+        path: '/createOrg',
+        element: (
+            <ProtectedRoute>
+                <CreateOrganizationPage />
+            </ProtectedRoute>
+        )
     },
     {
         element: (
