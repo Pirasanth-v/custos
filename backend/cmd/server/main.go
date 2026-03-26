@@ -42,10 +42,11 @@ func main() {
 	sessionRepo := repository.NewSessionRepository(db)
 	orgRepo := repository.NewOrganizationRepository(db)
 	memberRepo := repository.NewOrganizationMemberRepository(db)
+	roleRepo := repository.NewRoleRepository(db)
 
 	// Services
 	authService := service.NewAuthService(userRepo, sessionRepo, orgRepo, memberRepo, cfg.Security, db)
-	orgService := service.NewOrgService(db, orgRepo, memberRepo)
+	orgService := service.NewOrgService(db, orgRepo, memberRepo, userRepo)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService, cfg.Security)
@@ -53,10 +54,10 @@ func main() {
 
 	// Middlewares
 	authMiddleware := middleware.NewAuthMiddleware(sessionRepo)
-	//OrgMiddleware := middleware.NewOrgMiddleware(memberRepo)
+	orgMiddleware := middleware.NewOrgMiddleware(memberRepo, roleRepo)
 
 	// Server
-	router := server.New(authMiddleware, authHandler, OrgHandler)
+	router := server.New(authMiddleware, orgMiddleware, authHandler, OrgHandler)
 	if err := http.ListenAndServe(":"+cfg.App.Port, router); err != nil {
 		log.Fatalf("Server failed :%v", err)
 	}

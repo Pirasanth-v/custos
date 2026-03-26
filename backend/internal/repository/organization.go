@@ -172,3 +172,21 @@ func (r *OrganizationRepository) GetOrgsByUserID(ctx context.Context, userID str
 
     return organizations, nil
 }
+
+func (r *OrganizationRepository) IsPersonal(ctx context.Context, orgID string) (bool, error) {
+	query := `
+		SELECT is_personal 
+		FROM organizations
+		WHERE id = $1
+		AND deleted_at IS NULL
+	`
+
+	var isPersonal bool
+	err := r.db.QueryRow(ctx, query, orgID).Scan(&isPersonal)
+	if err != nil {
+		return false, fmt.Errorf("failed to check is_personal in db: %w", err)
+	}
+
+	return isPersonal, nil
+}
+

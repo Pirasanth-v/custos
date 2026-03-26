@@ -4,6 +4,7 @@ package model
 const (
     PermAll                = "all"
     PermDeleteOrg          = "delete_org"
+    PermEditOrg            = "edit_org"
     PermManageMembers      = "manage_members"
     PermManageAccounts     = "manage_accounts"
     PermCreateTransaction  = "create_transactions"
@@ -15,7 +16,7 @@ const (
 const (
     RoleOwnerID      = "11111111-1111-1111-1111-111111111111"
     RoleAdminID      = "22222222-2222-2222-2222-222222222222"
-    RoleMemberID = "33333333-3333-3333-3333-333333333333"
+    RoleMemberID     = "33333333-3333-3333-3333-333333333333"
     RoleViewerID     = "44444444-4444-4444-4444-444444444444"
 )
 

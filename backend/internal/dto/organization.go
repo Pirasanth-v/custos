@@ -20,3 +20,8 @@ type OrganizationResponse struct {
 	CreatedAt  time.Time  `json:"created_at"`
 }
 
+type UpdateOrgReq struct {
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Address string `json:"address"`
+}
