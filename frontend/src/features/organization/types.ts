@@ -12,3 +12,9 @@ export type Organization = {
     is_personal: boolean
     created_at: string
 }
+
+export type updateOrganizationRequest = {
+    name: string
+    email: string
+    address?: string
+}

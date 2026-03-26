@@ -110,7 +110,7 @@ func (r *OrganizationMemberRepository) GetMember(ctx context.Context, orgID, use
 		FROM organization_members
 		WHERE org_id = $1
 		AND user_id = $2
-		AND status != 'active'
+		AND status = 'active'
 	`
 
 	var member model.OrganizationMember

@@ -55,13 +55,14 @@ func New(AuthMiddleware *m.AuthMiddleware, OrgMiddleware *m.OrgMiddleware, authH
 			r.Post("/invitations/{orgId}/accept", orgHandler.AcceptInvitation)
 			r.Post("/invitations/{orgId}/decline", orgHandler.DeclineInvitation)
 
-			// Organization and member management (require both auth and org access)
+			r.Post("/orgs", orgHandler.CreateOrganization)
+			r.Get("/orgs", orgHandler.GetUserOrgs)
+			
+			// require both auth and org access
 			r.Group(func(r chi.Router) {
 				r.Use(OrgMiddleware.ValidateOrgAccess)
 
 				// Organization endpoints
-				r.Post("/orgs", orgHandler.CreateOrganization)
-				r.Get("/orgs", orgHandler.GetUserOrgs)
 				r.Get("/orgs/{orgId}", orgHandler.GetOrgByID)
 				r.Put("/orgs/{orgId}", orgHandler.UpdateOrg)
 				r.Delete("/orgs/{orgId}", orgHandler.DeleteOrg)
