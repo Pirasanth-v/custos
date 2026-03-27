@@ -205,6 +205,33 @@ func (h *OrgHandler) GetMembers(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, members)
 }
 
+func (h *OrgHandler) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
+	orgID, ok := r.Context().Value(middleware.OrgIDKey).(string)
+	if !ok || orgID == "" {
+		response.Error(w, http.StatusBadRequest, "missing org id")
+		return
+	}
+
+	var req dto.UpdateMemberRoleRequest
+	if !response.Decode(w, r, &req) {
+		return
+	}
+
+	err := h.orgService.UpdateMemberRole(r.Context(), orgID, &req)
+	if err != nil {
+		switch err.Error() {
+		case "user is not an active member of the organization":
+			response.Error(w, http.StatusUnprocessableEntity, "user is not an active member of the organization")
+		default:
+			slog.Error("failed to update member role", "error", err)
+			response.Error(w, http.StatusInternalServerError, "internal server error")
+		}
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]string{"message": "user role updated successfully"})
+}
+
 func (h *OrgHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 	orgID, ok := r.Context().Value(middleware.OrgIDKey).(string)
 	if !ok || orgID == "" {
@@ -244,57 +271,63 @@ func (h *OrgHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *OrgHandler) InviteMember(w http.ResponseWriter, r *http.Request) {
-	// Get inviter ID from context
+	// Extract inviter ID from context
 	inviterID, ok := r.Context().Value(middleware.UserIDKey).(string)
 	if !ok || inviterID == "" {
 		response.Error(w, http.StatusBadRequest, "missing inviter ID")
 		return
 	}
 
-	// Get organization ID from context
+	// Extract org ID from context
 	orgID, ok := r.Context().Value(middleware.OrgIDKey).(string)
 	if !ok || orgID == "" {
 		response.Error(w, http.StatusBadRequest, "missing org id")
 		return
 	}
 
-	// Get role from context
+	// Extract role from context
 	role, ok := r.Context().Value(middleware.RoleKey).(*model.Role)
 	if !ok || role == nil {
 		response.Error(w, http.StatusBadRequest, "missing role")
 		return
 	}
 
-	// Decode request
+	// Parse and validate request body
 	var req dto.InviteMemberRequest
 	if !response.Decode(w, r, &req) {
 		return
 	}
+	// Defensive validation for request fields
+	if req.Email == "" {
+		response.Error(w, http.StatusBadRequest, "missing member email")
+		return
+	}
+	if req.RoleID == "" {
+		response.Error(w, http.StatusBadRequest, "missing role id")
+		return
+	}
 
-	// Call service
+	// Delegate to service
 	err := h.orgService.InviteMember(r.Context(), req, *role, orgID, inviterID)
 	if err != nil {
 		switch err.Error() {
 		case "insufficient permissions":
 			response.Error(w, http.StatusForbidden, "insufficient permissions")
-			return
+		case "cannot invite members to a personal organization":
+			response.Error(w, http.StatusUnprocessableEntity, "cannot invite members to a personal organization")
 		case "cannot invite user as owner":
 			response.Error(w, http.StatusUnprocessableEntity, "cannot invite user as owner")
-			return
 		case "user not found":
 			response.Error(w, http.StatusUnprocessableEntity, "user not found")
-			return
 		case "user already a member":
 			response.Error(w, http.StatusUnprocessableEntity, "user already a member")
-			return
 		default:
 			slog.Error("failed to invite member", "error", err)
 			response.Error(w, http.StatusInternalServerError, "internal server error")
-			return
 		}
+		return
 	}
 
-	// Success response
 	response.JSON(w, http.StatusCreated, map[string]string{"message": "success"})
 }
 

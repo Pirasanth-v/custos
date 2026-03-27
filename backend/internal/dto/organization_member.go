@@ -11,6 +11,11 @@ type MemberResponse struct {
     JoinedAt  *string `json:"joined_at"`
 }
 
+type UpdateMemberRoleRequest struct {
+    MemberID string `json:"member_id"`
+    RoleID   string `json:"role_id"`
+}
+
 type InvitationResponse struct {
     OrgID     string `json:"org_id"`
     OrgName   string `json:"org_name"`

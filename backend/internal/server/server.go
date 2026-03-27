@@ -69,6 +69,7 @@ func New(AuthMiddleware *m.AuthMiddleware, OrgMiddleware *m.OrgMiddleware, authH
 
 				// Organization members endpoints
 				r.Get("/orgs/{orgId}/members", orgHandler.GetMembers)
+				r.Put("/orgs/{orgId}/members/{userId}", orgHandler.UpdateMemberRole)
 				r.Delete("/orgs/{orgId}/members/{userId}", orgHandler.RemoveMember)
 				r.Post("/orgs/{orgId}/members/invite", orgHandler.InviteMember)
 			})

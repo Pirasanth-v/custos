@@ -67,7 +67,7 @@ func (r *OrganizationMemberRepository) RemoveMember(ctx context.Context, orgID s
 	return nil
 }
 
-func (r *OrganizationMemberRepository) UpdateMemberRole(ctx context.Context, orgID, userID, roleID string) error {
+func (r *OrganizationMemberRepository) UpdateMemberRole(ctx context.Context, orgID, memberID, roleID string) error {
 	query := `
 		UPDATE organization_members
 		SET role_id = $1
@@ -76,13 +76,9 @@ func (r *OrganizationMemberRepository) UpdateMemberRole(ctx context.Context, org
 		AND status = 'active'
 	`
 
-	result, err := r.db.Exec(ctx, query, roleID, orgID, userID)
+	_, err := r.db.Exec(ctx, query, roleID, orgID, memberID)
 	if err != nil {
 		return fmt.Errorf("failed to update member role in db: %w", err)
-	}
-
-	if result.RowsAffected() == 0 {
-		return errors.New("active member not found to update")
 	}
 
 	return nil
@@ -175,13 +171,13 @@ func (r *OrganizationMemberRepository) GetMembers(ctx context.Context, orgID str
 	return members, nil
 }
 
-func (r *OrganizationMemberRepository) InviteMember(ctx context.Context, orgID, inviterID, roleID, inviteeID string) error {
+func (r *OrganizationMemberRepository) InviteMember(ctx context.Context, orgID, inviteeID, roleID, inviterID string) error {
 	query := `
-		INSERT INTO organization_members (org_id, user_id, role_id, invited_by, status)
+		INSERT INTO organization_members (org_id, user_id, role_id, added_by, status)
 		VALUES ($1, $2, $3, $4, 'invited')
 	`
 
-	result, err := r.db.Exec(ctx, query, orgID, inviterID, roleID, inviteeID)
+	result, err := r.db.Exec(ctx, query, orgID, inviteeID, roleID, inviterID)
 	if err != nil {
 		return fmt.Errorf("failed to invite member in db: %w", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"context"
 	"time"
+	"errors"
 
 	"github.com/pirasanth-v/custos/internal/dto"
 	"github.com/pirasanth-v/custos/internal/repository"
@@ -134,6 +135,24 @@ func (s *OrgService) GetMembers(ctx context.Context, orgID string) ([]dto.Member
 	return members, nil
 }
 
+func (s *OrgService) UpdateMemberRole(ctx context.Context, orgID string, req *dto.UpdateMemberRoleRequest) error {
+	// Check if user is an active member of the organization
+	isMember, err := s.memberRepo.IsMember(ctx, orgID, req.MemberID)
+	if err != nil {
+		return fmt.Errorf("failed to check if user is an active member: %w", err)
+	}
+	if !isMember {
+		return errors.New("user is not an active member of the organization")
+	}
+
+	// Update the member's role in the repository
+	if err := s.memberRepo.UpdateMemberRole(ctx, orgID, req.MemberID, req.RoleID); err != nil {
+		return fmt.Errorf("failed to update member role: %w", err)
+	}
+
+	return nil
+}
+
 func (s *OrgService) RemoveMember(ctx context.Context, role *model.Role, orgID, userID string) error {
 	// Check permission
 	if !role.HasPermission(model.PermManageMembers) {
@@ -161,6 +180,14 @@ func (s *OrgService) InviteMember(ctx context.Context, req dto.InviteMemberReque
 	// Check permissions
 	if !role.HasPermission(model.PermManageMembers) {
 		return fmt.Errorf("insufficient permissions")
+	}
+
+	isPersonal, err := s.orgRepo.IsPersonal(ctx, orgID)
+	if err != nil {
+		return fmt.Errorf("failed to check personal organization: %w", err)
+	}
+	if isPersonal {
+		return errors.New("cannot invite members to a personal organization")
 	}
 
 	if req.RoleID == model.RoleOwnerID {
