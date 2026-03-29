@@ -1,5 +1,4 @@
-//import logo from "@/assets/logo_crop.png";
-import { Sun, Moon, BellDot } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import UserMenu from "../dropdown/UserMenu";
 import useAuthStore from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
@@ -8,15 +7,21 @@ import { useState } from "react";
 import useThemeStore from "@/store/themeStore";
 import { CurrencyDropdown } from "../dropdown/CurrencyDropdown";
 import { OrganizationDropdown } from "../dropdown/OrganizationDropdown";
+import Notifications from "../notification/NotificationDropDown";
 
 export function Navbar() {
   const user = useAuthStore((s) => s.user);
+
   const navigate = useNavigate();
+
   const [error, setError] = useState("");
+
   const { isDark, toggle } = useThemeStore();
+
   const [currency, setCurrency] = useState("USD");
   const [orgId, setOrgId] = useState(1);
 
+  // Handle sign-out logic
   const handleSignOut = async () => {
     try {
       await logout();
@@ -40,12 +45,6 @@ export function Navbar() {
         </button>
       </div>}
       <nav className="h-16 flex justify-between items-center bg-card text-foreground border-b border-border px-5">
-        {/* Left Section: App Name */}
-        {/* Uncomment for logo: */}
-        {/* <div className="flex items-center gap-1">
-          <img src={logo} alt="logo" className="h-12 w-auto" />
-          <h1 className="text-lg font-medium">Custos</h1>
-        </div> */}
         <h1 className="text-lg font-medium">Custos</h1>
 
         {/* Middle Section: Organization Dropdown */}
@@ -54,6 +53,7 @@ export function Navbar() {
             selectedOrgId={orgId}
             onSelect={setOrgId}
             onCreate={() => {
+              // Implement actual organization creation logic later
               console.log("create organization clicked")
             }}
           />
@@ -74,7 +74,8 @@ export function Navbar() {
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </button>
 
-          <BellDot size={20} />
+          {/* Notification Dropdown; badge handled inside, not here */}
+          <Notifications />
 
           <UserMenu
             firstName={user?.first_name || ""}

@@ -5,7 +5,7 @@ import DashboardPage from "@/pages/DashboardPage"
 import LoginPage from "./pages/LoginPage"
 import AppLayout from "./components/layout/AppLayout"
 import CreateOrganizationPage from "./pages/CreateOrgPage"
-import SettingsPage from "./pages/SettingsPage"
+import SettingsPage from "./pages/settings/SettingsPage"
 
 export const router = createBrowserRouter ([
     {

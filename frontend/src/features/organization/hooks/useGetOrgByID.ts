@@ -8,7 +8,7 @@ export function useGetOrgByID(orgId: string) {
     isLoading: loading,
     error,
   } = useQuery<Organization, Error>({
-    queryKey: ["organization", orgId],
+    queryKey: ["org", orgId],
     queryFn: () => getOrgByID(orgId),
     enabled: !!orgId,
   });

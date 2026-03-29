@@ -5,6 +5,7 @@ import { RouterProvider } from "react-router-dom";
 import { router } from './router';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+
 // Set initial theme before rendering the app
 const savedTheme = localStorage.getItem('theme');
 if (
