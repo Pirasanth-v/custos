@@ -135,7 +135,26 @@ func (s *OrgService) GetMembers(ctx context.Context, orgID string) ([]dto.Member
 	return members, nil
 }
 
-func (s *OrgService) UpdateMemberRole(ctx context.Context, orgID string, req *dto.UpdateMemberRoleRequest) error {
+func (s *OrgService) UpdateMemberRole(ctx context.Context, orgID, userID string, role *model.Role, req *dto.UpdateMemberRoleRequest) error {
+	// Check if the requesting user has permission to manage members
+	if !role.HasPermission(model.PermManageMembers) {
+		return errors.New("insufficient permissions")
+	}
+
+	// Prevent the current user from upgrading themselves to owner
+	if userID == req.MemberID && req.RoleID == model.RoleOwnerID {
+		return errors.New("you can't upgrade yourself to owner")
+	}
+
+	// Prevent owner from being demoted by others
+	member, err := s.memberRepo.GetMember(ctx, orgID, req.MemberID)
+	if err != nil {
+		return fmt.Errorf("failed to get member for role update: %w", err)
+	}
+	if member.RoleID == model.RoleOwnerID {
+		return errors.New("cannot change owner role")
+	}
+
 	// Check if user is an active member of the organization
 	isMember, err := s.memberRepo.IsMember(ctx, orgID, req.MemberID)
 	if err != nil {
@@ -143,6 +162,15 @@ func (s *OrgService) UpdateMemberRole(ctx context.Context, orgID string, req *dt
 	}
 	if !isMember {
 		return errors.New("user is not an active member of the organization")
+	}
+
+	//check if it is a personal organization
+	isPersonal, err := s.orgRepo.IsPersonal(ctx, orgID)
+	if err != nil {
+		return fmt.Errorf("failed to check if org is personal: %w", err)
+	}
+	if isPersonal {
+		return errors.New("cannot edit member roles for a personal organization")
 	}
 
 	// Update the member's role in the repository
@@ -153,10 +181,25 @@ func (s *OrgService) UpdateMemberRole(ctx context.Context, orgID string, req *dt
 	return nil
 }
 
-func (s *OrgService) RemoveMember(ctx context.Context, role *model.Role, orgID, userID string) error {
+func (s *OrgService) RemoveMember(ctx context.Context, role *model.Role, orgID, userID, memberID string) error {
+	// Fetch the member to check their role
+	member, err := s.memberRepo.GetMember(ctx, orgID, memberID)
+	if err != nil {
+		return fmt.Errorf("failed to get member for removal: %w", err)
+	}
+
+	if member.RoleID == model.RoleOwnerID {
+		return errors.New("can't remove owner of the organization")
+	}
+	
 	// Check permission
 	if !role.HasPermission(model.PermManageMembers) {
 		return fmt.Errorf("insufficient permissions")
+	}
+
+	// Check if the requesting user is trying to remove their own role
+	if userID == memberID {
+		return errors.New("you can't remove yourself")
 	}
 
 	// Prevent removal if the org would be empty after this operation
@@ -169,7 +212,7 @@ func (s *OrgService) RemoveMember(ctx context.Context, role *model.Role, orgID, 
 	}
 
 	// Remove member
-	if err := s.memberRepo.RemoveMember(ctx, orgID, userID); err != nil {
+	if err := s.memberRepo.RemoveMember(ctx, orgID, memberID); err != nil {
 		return fmt.Errorf("failed to remove member from organization: %w", err)
 	}
 

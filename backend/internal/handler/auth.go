@@ -51,6 +51,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 			}); err != nil {
 				slog.Error("Failed to write error response", "error", err)
 			}
+			return
 		default:
 			slog.Error("register failed", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -59,8 +60,8 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 			}); err != nil {
 				slog.Error("Failed to write error response", "error", err)
 			}
+			return
 		}
-		return
 	}
 
 	// 3. Success response
@@ -109,6 +110,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				slog.Error("failed to write response", "error", err)
 			}
+			return
 
 		default:
 			slog.Error("login failed", "error", err)
@@ -119,8 +121,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			}); err != nil {
 				slog.Error("Failed to write error response", "error", err)
 			}
+			return
 		}
-		return 
 	}
 
 	// Set cookie

@@ -148,11 +148,12 @@ func (h *OrgHandler) UpdateOrg(w http.ResponseWriter, r *http.Request) {
 		switch err.Error() {
 		case "insufficient permissions":
 			response.Error(w, http.StatusForbidden, "insufficient permissions")
+			return
 		default:
 			slog.Error("update org failed", "error", err)
 			response.Error(w, http.StatusInternalServerError, "internal server error")
+			return
 		}
-		return
 	}
 
 	response.JSON(w, http.StatusOK, map[string]string{"message": "organization updated successfully"})
@@ -176,13 +177,15 @@ func (h *OrgHandler) DeleteOrg(w http.ResponseWriter, r *http.Request) {
 		switch err.Error() {
 		case "insufficient permissions":
 			response.Error(w, http.StatusForbidden, "insufficient permissions")
+			return
 		case "cannot delete personal organization":
 			response.Error(w, http.StatusForbidden, "cannot delete personal organization")
+			return
 		default:
 			slog.Error("failed to delete organization", "error", err)
 			response.Error(w, http.StatusInternalServerError, "internal server error")
+			return
 		}
-		return
 	}
 
 	response.JSON(w, http.StatusOK, map[string]string{"message": "organization deleted successfully"})
@@ -212,21 +215,46 @@ func (h *OrgHandler) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, ok := r.Context().Value(middleware.UserIDKey).(string)
+	if !ok || userID == "" {
+		response.Error(w, http.StatusBadRequest, "missing user id")
+		return
+	}
+
+	role, ok := r.Context().Value(middleware.RoleKey).(*model.Role)
+	if !ok || role == nil {
+		response.Error(w, http.StatusBadRequest, "missing role")
+		return
+	}
+
 	var req dto.UpdateMemberRoleRequest
 	if !response.Decode(w, r, &req) {
 		return
 	}
 
-	err := h.orgService.UpdateMemberRole(r.Context(), orgID, &req)
+	err := h.orgService.UpdateMemberRole(r.Context(), orgID, userID, role, &req)
 	if err != nil {
 		switch err.Error() {
 		case "user is not an active member of the organization":
 			response.Error(w, http.StatusUnprocessableEntity, "user is not an active member of the organization")
+			return
+		case "cannot edit member roles for a personal organization":
+			response.Error(w, http.StatusConflict, "cannot edit member role for a personal organization")
+			return
+		case "insufficient permissions":
+			response.Error(w, http.StatusForbidden, "insufficient permissions")
+			return
+		case "you can't upgrade yourself to owner":
+			response.Error(w, http.StatusConflict, "you can't upgrade yourself to owner")
+			return
+		case "cannot change owner role":
+			response.Error(w, http.StatusConflict, "cannot change owner role")
+			return
 		default:
 			slog.Error("failed to update member role", "error", err)
 			response.Error(w, http.StatusInternalServerError, "internal server error")
+			return
 		}
-		return
 	}
 
 	response.JSON(w, http.StatusOK, map[string]string{"message": "user role updated successfully"})
@@ -245,13 +273,19 @@ func (h *OrgHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	memberID := chi.URLParam(r, "userId")
+	if memberID == "" {
+		response.Error(w, http.StatusBadRequest, "missing member id")
+		return
+	}
+
 	role, ok := r.Context().Value(middleware.RoleKey).(*model.Role)
 	if !ok || role == nil {
 		response.Error(w, http.StatusBadRequest, "missing role")
 		return
 	}
 
-	err := h.orgService.RemoveMember(r.Context(), role, orgID, userID)
+	err := h.orgService.RemoveMember(r.Context(), role, orgID, userID, memberID)
 	if err != nil {
 		switch err.Error() {
 		case "insufficient permissions":
@@ -259,6 +293,12 @@ func (h *OrgHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 			return
 		case "organization cannot exist without any member":
 			response.Error(w, http.StatusUnprocessableEntity, "cannot remove last member")
+			return
+		case "can't remove owner of the organization":
+			response.Error(w, http.StatusConflict, "can't remove owner of the organization")
+			return
+		case "you can't remove yourself":
+			response.Error(w, http.StatusConflict, "you can't remove yourself")
 			return
 		default:
 			slog.Error("failed to remove member from organization", "error", err)
