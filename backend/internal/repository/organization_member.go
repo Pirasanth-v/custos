@@ -171,6 +171,23 @@ func (r *OrganizationMemberRepository) GetMembers(ctx context.Context, orgID str
 	return members, nil
 }
 
+func (r *OrganizationMemberRepository) GetMemberStatus(ctx context.Context, orgID, userID string) (string, error) {
+    query := `
+        SELECT status FROM organization_members
+        WHERE org_id = $1
+        AND user_id = $2
+    `
+    var status string
+    err := r.db.QueryRow(ctx, query, orgID, userID).Scan(&status)
+    if err != nil {
+        if errors.Is(err, pgx.ErrNoRows) {
+            return "", nil  
+        }
+        return "", fmt.Errorf("failed to get member status: %w", err)
+    }
+    return status, nil
+}
+
 func (r *OrganizationMemberRepository) InviteMember(ctx context.Context, orgID, inviteeID, roleID, inviterID string) error {
 	query := `
 		INSERT INTO organization_members (org_id, user_id, role_id, added_by, status)
@@ -212,7 +229,8 @@ func (r *OrganizationMemberRepository) AcceptInvitation(ctx context.Context, org
 func (r *OrganizationMemberRepository) DeclineInvitation(ctx context.Context, orgID, userID string) error {
 	query := `
 		UPDATE organization_members
-		SET status = 'removed'
+		SET status = 'removed',
+		    rejected_at = NOW()
 		WHERE org_id = $1
 		  AND user_id = $2
 		  AND status = 'invited'

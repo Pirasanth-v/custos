@@ -201,13 +201,19 @@ func (s *OrgService) InviteMember(ctx context.Context, req dto.InviteMemberReque
 	}
 	inviteeID := inviteeUser.Id
 
-	// Check if invitee is already a member
-	isMember, err := s.memberRepo.IsMember(ctx, orgID, inviteeID)
+	// Check if the invitee is already a member or has an invitation status
+	memberStatus, err := s.memberRepo.GetMemberStatus(ctx, orgID, inviteeID)
 	if err != nil {
-		return fmt.Errorf("failed to check if user is already a member: %w", err)
+		return fmt.Errorf("failed to check member status: %w", err)
 	}
-	if isMember {
+	if memberStatus == "active" {
 		return fmt.Errorf("user already a member")
+	}
+	if memberStatus == "invited" {
+		return fmt.Errorf("invitation already sent")
+	}
+	if memberStatus == "removed" {
+		return fmt.Errorf("user was previously removed from the organization")
 	}
 
 	// Invite the member

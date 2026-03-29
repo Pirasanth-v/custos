@@ -7,6 +7,7 @@ CREATE TABLE organization_members (
     added_by UUID REFERENCES users(id),
     status member_status NOT NULL DEFAULT 'active',
     joined_at TIMESTAMPTZ,
+    rejected_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     PRIMARY KEY(org_id, user_id)

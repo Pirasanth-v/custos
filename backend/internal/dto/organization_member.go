@@ -1,5 +1,7 @@
 package dto
 
+import ( "time" )
+
 type MemberResponse struct {
     UserID    string  `json:"user_id"`
     FirstName string  `json:"first_name"`
@@ -8,7 +10,7 @@ type MemberResponse struct {
     RoleID    string  `json:"role_id"`
     RoleName  string  `json:"role_name"`
     Status    string  `json:"status"`
-    JoinedAt  *string `json:"joined_at"`
+    JoinedAt  *time.Time `json:"joined_at"`
 }
 
 type UpdateMemberRoleRequest struct {
@@ -17,12 +19,12 @@ type UpdateMemberRoleRequest struct {
 }
 
 type InvitationResponse struct {
-    OrgID     string `json:"org_id"`
-    OrgName   string `json:"org_name"`
-    RoleID    string `json:"role_id"`
-    RoleName  string `json:"role_name"`
-    InvitedAt string `json:"invited_at"`
-    InvitedBy string `json:"invited_by"`
+    OrgID     string    `json:"org_id"`
+    OrgName   string    `json:"org_name"`
+    RoleID    string    `json:"role_id"`
+    RoleName  string    `json:"role_name"`
+    InvitedAt time.Time `json:"invited_at"`
+    InvitedBy string    `json:"invited_by"`
 }
 
 type InviteMemberRequest struct {

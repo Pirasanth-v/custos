@@ -321,6 +321,10 @@ func (h *OrgHandler) InviteMember(w http.ResponseWriter, r *http.Request) {
 			response.Error(w, http.StatusUnprocessableEntity, "user not found")
 		case "user already a member":
 			response.Error(w, http.StatusUnprocessableEntity, "user already a member")
+		case "invitation already sent":
+			response.Error(w, http.StatusConflict, "invitation already sent")
+		case "user was previously removed from the organization":
+			response.Error(w, http.StatusConflict, "user was previously removed from the organization")
 		default:
 			slog.Error("failed to invite member", "error", err)
 			response.Error(w, http.StatusInternalServerError, "internal server error")
