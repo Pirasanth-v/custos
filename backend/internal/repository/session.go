@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"errors"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pirasanth-v/custos/internal/model"
@@ -36,17 +37,21 @@ func (r *SessionRepository) CreateSession(ctx context.Context, session model.Ses
 	return nil
 }
 
-func (r *SessionRepository) RevokeSession(ctx context.Context, tokenhash string) error {
-	query := `
-		UPDATE sessions SET is_revoked = TRUE WHERE token_hash = $1
-	`
-
-	_, err := r.DB.Exec(ctx, query, tokenhash)
-	if err != nil {
-		return fmt.Errorf("failed to revoke the session: %w", err)
-	}
-
-	return nil
+func (r *SessionRepository) RevokeSession(ctx context.Context, tokenHash string) error {
+    query := `
+        UPDATE sessions
+        SET is_revoked = TRUE
+        WHERE token_hash = $1
+        AND is_revoked = FALSE
+    `
+    result, err := r.DB.Exec(ctx, query, tokenHash)
+    if err != nil {
+        return fmt.Errorf("failed to revoke session: %w", err)
+    }
+    if result.RowsAffected() == 0 {
+        return errors.New("session not found")
+    }
+    return nil
 }
 
 func (r *SessionRepository) GetSessionByTokenHash(ctx context.Context, tokenHash string) (model.Session, error) {

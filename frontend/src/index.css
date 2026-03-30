@@ -22,6 +22,7 @@
   --color-card-foreground: #0F172A;
   --color-border: #E2E8F0;
   --color-input: #E2E8F0;
+  --color-input-background: #FFFFFF;
   --color-ring: #6366F1;
   --color-popover: #FFFFFF;
   --color-popover-foreground: #0F172A;
@@ -50,6 +51,7 @@ html.dark {
   --color-card-foreground: #F8FAFC;
   --color-border: #334155;
   --color-input: #E2E8F0;
+  --color-input-background: #1E293B;
   --color-ring: #6366F1;
   --color-popover: #1E293B;
   --color-popover-foreground: #F8FAFC;

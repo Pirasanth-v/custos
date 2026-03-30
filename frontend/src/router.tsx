@@ -4,6 +4,8 @@ import RegisterPage from "@/pages/RegisterPage"
 import DashboardPage from "@/pages/DashboardPage"
 import LoginPage from "./pages/LoginPage"
 import AppLayout from "./components/layout/AppLayout"
+import CreateOrganizationPage from "./pages/CreateOrgPage"
+import SettingsPage from "./pages/settings/SettingsPage"
 
 export const router = createBrowserRouter ([
     {
@@ -15,8 +17,16 @@ export const router = createBrowserRouter ([
         element: <LoginPage />
     },
     {
-        path: 'register',
+        path: '/register',
         element: <RegisterPage />
+    },
+    {
+        path: '/createOrg',
+        element: (
+            <ProtectedRoute>
+                <CreateOrganizationPage />
+            </ProtectedRoute>
+        )
     },
     {
         element: (
@@ -28,6 +38,10 @@ export const router = createBrowserRouter ([
             {
                 path: '/dashboard',
                 element: <DashboardPage />
+            },
+            {
+                path: "/settings",
+                element: <SettingsPage />
             }
         ]
     }

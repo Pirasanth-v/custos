@@ -12,7 +12,7 @@ import (
 
 )
 
-func New(AuthMiddleware *m.AuthMiddleware, authHandler *handler.AuthHandler) http.Handler {
+func New(AuthMiddleware *m.AuthMiddleware, OrgMiddleware *m.OrgMiddleware, authHandler *handler.AuthHandler, orgHandler *handler.OrgHandler) http.Handler {
 	r := chi.NewRouter()
 
 	// runs in every request
@@ -45,8 +45,34 @@ func New(AuthMiddleware *m.AuthMiddleware, authHandler *handler.AuthHandler) htt
 		// protected routes
 		r.Group(func(r chi.Router) {
 			r.Use(AuthMiddleware.Authenticate)
+
+			// user endpoints
 			r.Post("/auth/logout", authHandler.Logout)
 			r.Get("/users/me", authHandler.Me)
+
+			// Invitation endpoints (personal notification-like)
+			r.Get("/invitations", orgHandler.GetInvitations)
+			r.Post("/invitations/{orgId}/accept", orgHandler.AcceptInvitation)
+			r.Post("/invitations/{orgId}/decline", orgHandler.DeclineInvitation)
+
+			r.Post("/orgs", orgHandler.CreateOrganization)
+			r.Get("/orgs", orgHandler.GetUserOrgs)
+			
+			// require both auth and org access
+			r.Group(func(r chi.Router) {
+				r.Use(OrgMiddleware.ValidateOrgAccess)
+
+				// Organization endpoints
+				r.Get("/orgs/{orgId}", orgHandler.GetOrgByID)
+				r.Put("/orgs/{orgId}", orgHandler.UpdateOrg)
+				r.Delete("/orgs/{orgId}", orgHandler.DeleteOrg)
+
+				// Organization members endpoints
+				r.Get("/orgs/{orgId}/members", orgHandler.GetMembers)
+				r.Put("/orgs/{orgId}/members/{userId}", orgHandler.UpdateMemberRole)
+				r.Delete("/orgs/{orgId}/members/{userId}", orgHandler.RemoveMember)
+				r.Post("/orgs/{orgId}/members/invite", orgHandler.InviteMember)
+			})
 		})
     })
 

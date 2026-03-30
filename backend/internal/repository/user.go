@@ -9,16 +9,21 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/pirasanth-v/custos/internal/model"
 	"github.com/pirasanth-v/custos/internal/dto"
+	db "github.com/pirasanth-v/custos/internal/database"
 )
 
 // UserRepository provides methods for DB operations related to users.
 type UserRepository struct {
-	db *pgxpool.Pool
+	db db.DBTX
 }
 
 // NewUserRepository instantiates a new UserRepository with a db pool.
 func NewUserRepository(dbPool *pgxpool.Pool) *UserRepository {
 	return &UserRepository{db: dbPool}
+}
+
+func (r *UserRepository) WithTx(tx pgx.Tx) *UserRepository {
+	return &UserRepository{db: tx}
 }
 
 // CreateUser inserts a new user record into the database.

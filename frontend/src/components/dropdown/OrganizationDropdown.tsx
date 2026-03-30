@@ -1,46 +1,48 @@
 import Dropdown from "@/components/dropdown/Dropdown";
 import { ChevronDown, Plus } from "lucide-react";
+import useOrgStore from "@/store/orgStore";
+import { useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
-const organizations = [
-  {
-    id: 1,
-    initials: "AC",
-    name: "Acme Corporation",
-    type: "Current",
-  },
-  {
-    id: 2,
-    initials: "PA",
-    name: "Personal Account",
-    type: "Individual",
-  },
-  {
-    id: 3,
-    initials: "SC",
-    name: "Smith & Co",
-    type: "Agency",
-  },
-];
+export function OrganizationDropdown() {
+  const { currentOrg, orgs, setCurrentOrg } = useOrgStore();
+  const navigate = useNavigate();
 
-type OrganizationDropdownProps = {
-  selectedOrgId: number;
-  onSelect: (id: number) => void;
-  onCreate: () => void;
-};
+  // Prefer personal org by default if none is selected.
+  // Memoize orgs lookup for efficiency.
+  const current = useMemo(() => {
+    if (currentOrg) {
+      // if currentOrg set, use it
+      return orgs.find((org) => org.id === currentOrg.id);
+    }
+    // otherwise use user's personal org (fallback)
+    return orgs.find((org) => org.is_personal) || orgs[0];
+  }, [orgs, currentOrg]);
 
-export function OrganizationDropdown({
-  selectedOrgId,
-  onSelect,
-  onCreate,
-}: OrganizationDropdownProps) {
-  const current = organizations.find((org) => org.id === selectedOrgId);
+  // Helper for name initial
+  const getNameInitial = useCallback((name: string) => {
+    return name?.trim()?.[0]?.toUpperCase() ?? "";
+  }, []);
+
+  // Handle selection: set as current
+  const handleOrgSelect = useCallback(
+    (org: { id: number; name: string }) => {
+      setCurrentOrg(org);
+    },
+    [setCurrentOrg]
+  );
+
+  // Handle create org
+  const handleCreateOrg = useCallback(() => {
+    navigate("/createOrg");
+  }, [navigate]);
 
   return (
     <Dropdown
       widthClass="w-72"
       trigger={
         <button className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition">
-          <span>{current?.name}</span>
+          <span>{current?.name ?? "Choose Organization"}</span>
           <ChevronDown size={16} className="text-muted-foreground" />
         </button>
       }
@@ -50,39 +52,37 @@ export function OrganizationDropdown({
       </div>
 
       <div className="p-2">
-        {organizations.map((org) => {
-          const active = org.id === selectedOrgId;
-
+        {orgs.map((org) => {
+          const active = org.id === current?.id;
           return (
             <button
               key={org.id}
-              onClick={() => onSelect(org.id)}
+              type="button"
+              onClick={() => handleOrgSelect(org)}
               className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition ${
-                active ? "bg-accent" : "hover:bg-accent/60"
+                active ? "bg-muted-foreground/30" : "hover:bg-foreground/5"
               }`}
             >
               <div
                 className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold ${
                   active
                     ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
-                {org.initials}
+                {getNameInitial(org.name)}
               </div>
-
               <div className="flex flex-col">
                 <span className="font-medium text-foreground">{org.name}</span>
-                <span className="text-sm text-muted-foreground">{org.type}</span>
               </div>
             </button>
           );
         })}
       </div>
-
       <div className="border-t border-border">
         <button
-          onClick={onCreate}
+          type="button"
+          onClick={handleCreateOrg}
           className="flex w-full items-center gap-3 px-4 py-3 text-left text-primary hover:bg-accent/60 transition"
         >
           <Plus size={16} />

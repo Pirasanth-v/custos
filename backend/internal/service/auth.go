@@ -14,54 +14,106 @@ import (
 	"github.com/pirasanth-v/custos/internal/model"
 	"golang.org/x/crypto/bcrypt"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AuthService struct {
 	userRepo *repository.UserRepository
+	orgRepo *repository.OrganizationRepository
+	memberRepo *repository.OrganizationMemberRepository
 	sessionRepo *repository.SessionRepository
 	cfg Config.SecurityConfig
+	db *pgxpool.Pool
 }
 
-func NewAuthService(userRepo *repository.UserRepository, sessionRepo *repository.SessionRepository, cfg Config.SecurityConfig) *AuthService {
+func NewAuthService(
+	userRepo *repository.UserRepository,
+	sessionRepo *repository.SessionRepository,
+	orgRepo *repository.OrganizationRepository,
+	memberRepo *repository.OrganizationMemberRepository,
+	cfg Config.SecurityConfig,
+	db *pgxpool.Pool,
+) *AuthService {
 	return &AuthService{
-		userRepo: userRepo,
+		userRepo:    userRepo,
+		orgRepo:     orgRepo,
+		memberRepo:  memberRepo,
 		sessionRepo: sessionRepo,
-		cfg: cfg,
+		cfg:         cfg,
+		db:          db,
 	}
 }
 
 // Register a new user
 func (s *AuthService) Register(ctx context.Context, req *dto.RegisterRequest) error {
-	// Check whether email already used or not
-	exists, err := s.userRepo.IsEmailExists(ctx, req.Email)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return errors.New("email already used")
-	}
+    // begin transaction
+    tx, err := s.db.Begin(ctx)
+    if err != nil {
+        return fmt.Errorf("failed to begin transaction: %w", err)
+    }
+    defer func() {
+        _ = tx.Rollback(ctx)
+    }()
 
-	// Hashed the password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), s.cfg.BcryptCost)
-	if err != nil {
-		return fmt.Errorf("failed to hash password %w", err)
-	}
+    // tx-scoped repos
+    userRepo   := s.userRepo.WithTx(tx)
+    orgRepo    := s.orgRepo.WithTx(tx)
+    memberRepo := s.memberRepo.WithTx(tx)
 
-	// Build user model
-	user := &model.User{
-		Id: uuid.New().String(),
-		FirstName: req.FirstName,
-		LastName: req.LastName,
-		Email: req.Email,
-		PasswordHash: string(hashedPassword),
-	}
-	
-	// Insert into DB
-	if err := s.userRepo.CreateUser(ctx, *user); err != nil {
-		return fmt.Errorf("failed to create user %w", err)
-	}
+    // check email inside transaction
+    exists, err := userRepo.IsEmailExists(ctx, req.Email)
+    if err != nil {
+        return err
+    }
+    if exists {
+        return errors.New("email already used")
+    }
 
-	return nil
+    // hash password
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), s.cfg.BcryptCost)
+    if err != nil {
+        return fmt.Errorf("failed to hash password: %w", err)
+    }
+
+    // create user
+    user := model.User{
+        Id:           uuid.New().String(),
+        FirstName:    req.FirstName,
+        LastName:     req.LastName,
+        Email:        req.Email,
+        PasswordHash: string(hashedPassword),
+    }
+    if err := userRepo.CreateUser(ctx, user); err != nil {
+        return fmt.Errorf("failed to create user: %w", err)
+    }
+
+    // create personal org
+    orgID := uuid.New().String()
+    org := model.Organization{
+        Id:         orgID,
+        Name:       req.FirstName + "'s Personal",
+        IsPersonal: true,
+        CreatedBy:  user.Id,
+    }
+    if err := orgRepo.CreateOrganization(ctx, org); err != nil {
+        return fmt.Errorf("failed to create organization: %w", err)
+    }
+
+    // add user as owner
+    now := time.Now().UTC()
+    member := model.OrganizationMember{
+        OrgID:     orgID,
+        UserID:    user.Id,
+        RoleID:    model.RoleOwnerID,
+        Status:    "active",
+        AddedBy:   &user.Id,
+        JoinedAt:  &now,
+    }
+    if err := memberRepo.AddMember(ctx, member); err != nil {
+        return fmt.Errorf("failed to add owner: %w", err)
+    }
+
+    return tx.Commit(ctx)
 }
 
 func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest) (string, error) {
