@@ -18,3 +18,7 @@ export const getOrgByID = async (orgId: string): Promise<Organization> => {
 export const updateOrganization = async(orgId: string, data: updateOrganizationRequest): Promise<void> => {
     await api.put(`/orgs/${orgId}`, data)
 }
+
+export const deleteOrganization = async(orgId: string): Promise<void> => {
+    await api.delete(`orgs/${orgId}`)
+}

@@ -8,6 +8,7 @@ import {
   RoleViewerID,
 } from "@/features/roles/types";
 import type { Member } from "@/features/organizationMembers/types";
+import StatusMessage from "./StatusMessage";
 
 type Role = {
   id: string;
@@ -90,9 +91,12 @@ export default function EditRoleModal({
         </div>
 
         {err && (
-          <div className="bg-red-500/20 text-destructive px-3 py-2 rounded text-sm">
-            {err}
-          </div>
+          <StatusMessage
+            type="error"
+            message={err}
+            compact
+            onClose={() => {}}
+          />
         )}
 
         {/* Role Selection */}

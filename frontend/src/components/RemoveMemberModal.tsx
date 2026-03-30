@@ -134,7 +134,12 @@ export default function RemoveMemberModal({
         </div>
 
         {/* Optional server error */}
-        <StatusMessage type="error" message={errorMessage} compact />
+        <StatusMessage
+          type="error"
+          message={errorMessage}
+          compact
+          onClose={() => {}}
+        />
 
         {/* Confirmation input */}
         <div className="space-y-2">

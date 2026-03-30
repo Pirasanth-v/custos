@@ -1,6 +1,12 @@
-import { AlertCircle, CheckCircle2, Info, TriangleAlert } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Info,
+  TriangleAlert,
+  X,
+} from "lucide-react";
 import type { ReactNode } from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 type StatusType = "error" | "success" | "info" | "warning";
 
@@ -11,8 +17,6 @@ type StatusMessageProps = {
   className?: string;
   compact?: boolean;
   children?: ReactNode;
-  autoHide?: boolean;
-  duration?: number;
   onClose?: () => void;
 };
 
@@ -27,7 +31,7 @@ const styles: Record<
   error: {
     container: "border-destructive/30 bg-destructive/10 text-destructive",
     icon: <AlertCircle className="h-4 w-4" />,
-    title: "Error: ",
+    title: "Error:",
   },
   success: {
     container:
@@ -56,59 +60,14 @@ export default function StatusMessage({
   className = "",
   compact = false,
   children,
-  autoHide,
-  duration,
   onClose,
 }: StatusMessageProps) {
-  // Hooks must be called unconditionally
-  const [visible, setVisible] = useState<boolean>(false);
+  const [visible, setVisible] = useState(true);
 
   const variant = styles[type];
 
-  const [isExiting, setIsExiting] = useState(false);
-
-  useEffect(() => {
-    if (!autoHide || !message) return;
-
-    const hideTimer = setTimeout(() => {
-      setIsExiting(true);
-    }, duration || 3000);
-
-    return () => clearTimeout(hideTimer);
-  }, [message, autoHide, duration]);
-
-  useEffect(() => {
-    if (!message || !isExiting) return;
-
-    const removeTimer = setTimeout(() => {
-      onClose?.();
-      setIsExiting(false);
-    }, 300);
-
-    return () => clearTimeout(removeTimer);
-  }, [message, isExiting, onClose]);
-
-  useEffect(() => {
-    if (!autoHide || !message) return;
-
-    const hideTimer = setTimeout(() => {
-      setVisible(false);
-    }, duration || 3000);
-
-    return () => clearTimeout(hideTimer);
-  }, [message, autoHide, duration]);
-
-  useEffect(() => {
-    if (!message || visible) return;
-
-    const removeTimer = setTimeout(() => {
-      onClose?.();
-    }, 300);
-
-    return () => clearTimeout(removeTimer);
-  }, [visible, message, onClose]);
-
-  if (!message && !children) return null;
+  // Always show the message if provided and visible state is true
+  if ((!message && !children) || !visible) return null;
 
   return (
     <div
@@ -116,16 +75,16 @@ export default function StatusMessage({
       aria-live="polite"
       className={[
         "w-full rounded-xl border transition-all duration-300 ease-out",
-        visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2",
+        "opacity-100 translate-y-0",
         variant.container,
         compact ? "px-3 py-2" : "px-4 py-3",
         className,
       ].join(" ")}
     >
-      <div className="flex items-start gap-2.5">
+      <div className="flex items-center gap-2.5">
         <div className="mt-0.5 shrink-0">{variant.icon}</div>
 
-        <div className="min-w-0 flex justify-center items-center gap-1">
+        <div className="min-w-0 flex flex-1 items-center gap-1">
           {!compact && (
             <p className="text-sm font-semibold">{title || variant.title}</p>
           )}
@@ -138,6 +97,19 @@ export default function StatusMessage({
             <div className={compact ? "mt-1" : "mt-2"}>{children}</div>
           ) : null}
         </div>
+        {onClose && (
+          <button
+            onClick={() => {
+              setVisible(false);
+              onClose();
+            }}
+            className="ml-2 mt-0.5 p-1 text-foreground/50 hover:text-foreground transition"
+            aria-label="Close"
+            tabIndex={0}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );
