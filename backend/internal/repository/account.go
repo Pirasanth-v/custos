@@ -25,7 +25,7 @@ func (r *AccountRepository) WithTx(tx pgx.Tx) *AccountRepository {
 	return &AccountRepository{ db: tx }
 }
 
-func (r *AccountRepository) CreateAccount(ctx context.Context, userID string, account model.Account) error {
+func (r *AccountRepository) CreateAccount(ctx context.Context, account model.Account) error {
 	query := `
 		INSERT INTO accounts (
 			id, name, type, currency_id, initial_balance, net_balance, description, created_by, created_at, updated_at
@@ -43,7 +43,7 @@ func (r *AccountRepository) CreateAccount(ctx context.Context, userID string, ac
 		account.InitialBalance,
 		account.NetBalance,
 		account.Description,
-		userID,
+		account.CreatedBy,
 		account.CreatedAt,
 		account.UpdatedAt,
 	)
@@ -88,7 +88,7 @@ func (r *AccountRepository) GetAccountByID(ctx context.Context, accID string) (m
 	return account, nil
 }
 
-func (r *AccountRepository) UpdateAccount(ctx context.Context, accID, string, req dto.UpdateAccountRequest) error {
+func (r *AccountRepository) UpdateAccount(ctx context.Context, accID string, req *dto.UpdateAccountRequest) error {
 	query := `UPDATE accounts SET`
 	args := []any{}
 	i := 1
@@ -140,12 +140,13 @@ func (r *AccountRepository) DeleteAccount(ctx context.Context, userID, accID str
 	return nil
 }
 
-func (r *AccountRepository) GetAccountsByOrgID(ctx context.Context, orgID string) ([]model.Account, error) {
+func (r *AccountRepository) GetAccountsByOrgID(ctx context.Context, orgID string) ([]dto.AccountResponse, error) {
 	query := `
-		SELECT a.id, a.name, a.type, a.currency_id, a.initial_balance, a.net_balance, a.description,
+		SELECT a.id, a.name, a.type, a.currency_id, c.name, c.symbol, a.initial_balance, a.net_balance, a.description,
 		       a.created_by, a.created_at, a.updated_at, a.deleted_at
 		FROM accounts a
 		JOIN account_ownership ao ON a.id = ao.account_id
+		JOIN currencies c ON a.currency_id = c.id
 		WHERE ao.org_id = $1
 		AND a.deleted_at IS NULL
 	`
@@ -155,22 +156,23 @@ func (r *AccountRepository) GetAccountsByOrgID(ctx context.Context, orgID string
 	}
 	defer rows.Close()
 
-	var accounts []model.Account
+	var accounts []dto.AccountResponse
 
 	for rows.Next() {
-		var account model.Account
+		var account dto.AccountResponse
 		if err := rows.Scan(
 			&account.ID,
 			&account.Name,
 			&account.Type,
 			&account.CurrencyID,
+			&account.CurrencyName,
+			&account.CurrencySymbol,
 			&account.InitialBalance,
 			&account.NetBalance,
 			&account.Description,
 			&account.CreatedBy,
 			&account.CreatedAt,
 			&account.UpdatedAt,
-			&account.DeletedAt,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan account: %w", err)
 		}
@@ -183,3 +185,5 @@ func (r *AccountRepository) GetAccountsByOrgID(ctx context.Context, orgID string
 
 	return accounts, nil
 }
+
+

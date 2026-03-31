@@ -12,7 +12,13 @@ import (
 
 )
 
-func New(AuthMiddleware *m.AuthMiddleware, OrgMiddleware *m.OrgMiddleware, authHandler *handler.AuthHandler, orgHandler *handler.OrgHandler) http.Handler {
+func New(
+	AuthMiddleware *m.AuthMiddleware, 
+	OrgMiddleware *m.OrgMiddleware, 
+	authHandler *handler.AuthHandler, 
+	orgHandler *handler.OrgHandler,
+	accHandler *handler.AccountHandler,
+) http.Handler {
 	r := chi.NewRouter()
 
 	// runs in every request
@@ -72,6 +78,13 @@ func New(AuthMiddleware *m.AuthMiddleware, OrgMiddleware *m.OrgMiddleware, authH
 				r.Put("/orgs/{orgId}/members/{userId}", orgHandler.UpdateMemberRole)
 				r.Delete("/orgs/{orgId}/members/{userId}", orgHandler.RemoveMember)
 				r.Post("/orgs/{orgId}/members/invite", orgHandler.InviteMember)
+
+				// Account
+				r.Post("/orgs/{orgId}/accounts", accHandler.CreateAccount)
+				r.Get("/orgs/{orgId}/accounts", accHandler.GetAccountsByOrgID)
+				r.Get("/orgs/{orgId}/accounts/{accId}", accHandler.GetAccountByID)
+				r.Patch("/orgs/{orgId}/accounts/{accId}", accHandler.UpdateAccount)
+				r.Delete("/orgs/{orgId}/accounts/{accId}", accHandler.DeleteAccount)
 			})
 		})
     })

@@ -21,8 +21,9 @@ type Account struct {
 	CurrencyID     string      `json:"currency_id"`
 	InitialBalance string     `json:"initial_balance"`
 	NetBalance     string     `json:"net_balance"`
-	Description    *string     `json:"description,omitempty"`
+	Description    *string     `json:"description"`
 	CreatedBy      string      `json:"created_by"`
+	DeletedBy      *string      `json:"deleted_by"`
 	CreatedAt      time.Time   `json:"created_at"`
 	UpdatedAt      time.Time   `json:"updated_at"`
 	DeletedAt      *time.Time  `json:"deleted_at"`
