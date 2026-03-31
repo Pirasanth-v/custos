@@ -9,7 +9,7 @@ CREATE TABLE accounts (
     net_balance NUMERIC(19,4) NOT NULL DEFAULT 0,
     description TEXT,
     created_by UUID NOT NULL REFERENCES users(id),
-    deleted_by UUID NULL REFERENCES user(id),
+    deleted_by UUID REFERENCES users(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ 
