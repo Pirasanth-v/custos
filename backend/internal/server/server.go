@@ -18,6 +18,7 @@ func New(
 	authHandler *handler.AuthHandler, 
 	orgHandler *handler.OrgHandler,
 	accHandler *handler.AccountHandler,
+	currencyHandler *handler.CurrencyHandler,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -63,6 +64,10 @@ func New(
 
 			r.Post("/orgs", orgHandler.CreateOrganization)
 			r.Get("/orgs", orgHandler.GetUserOrgs)
+
+			// Currency
+			r.Get("/currencies", currencyHandler.GetAll)
+			r.Get("/currencies/{id}", currencyHandler.GetByID)
 			
 			// require both auth and org access
 			r.Group(func(r chi.Router) {
