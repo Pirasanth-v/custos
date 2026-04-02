@@ -27,7 +27,7 @@ func New(
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,  // ← critical for cookies
 		MaxAge:           300,
@@ -48,6 +48,10 @@ func New(
 		// public routes, no auth needed
 		r.Post("/auth/register", authHandler.Register)
 		r.Post("/auth/login", authHandler.Login)
+		
+		// Currency
+		r.Get("/currencies", currencyHandler.GetAll)
+		r.Get("/currencies/{id}", currencyHandler.GetByID)
 
 		// protected routes
 		r.Group(func(r chi.Router) {
@@ -64,11 +68,7 @@ func New(
 
 			r.Post("/orgs", orgHandler.CreateOrganization)
 			r.Get("/orgs", orgHandler.GetUserOrgs)
-
-			// Currency
-			r.Get("/currencies", currencyHandler.GetAll)
-			r.Get("/currencies/{id}", currencyHandler.GetByID)
-			
+	
 			// require both auth and org access
 			r.Group(func(r chi.Router) {
 				r.Use(OrgMiddleware.ValidateOrgAccess)

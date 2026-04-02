@@ -22,7 +22,7 @@ func NewAccountHandler(s *service.AccountService) *AccountHandler {
 
 func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	// Get role from context
-	role, ok := r.Context().Value(middleware.RoleKey).(model.Role)
+	role, ok := r.Context().Value(middleware.RoleKey).(*model.Role)
 	if !ok {
 		slog.Warn("missing role in CreateAccount")
 		response.Error(w, http.StatusBadRequest, "missing role")
@@ -53,7 +53,7 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call service
-	err := h.accService.CreateAccount(r.Context(), role, orgID, userID, &req)
+	err := h.accService.CreateAccount(r.Context(), *role, orgID, userID, &req)
 	if err != nil {
 		slog.Error("failed to create account", "error", err)
 		switch err.Error() {
@@ -144,7 +144,7 @@ func (h *AccountHandler) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get role from context
-	role, ok := r.Context().Value(middleware.RoleKey).(model.Role)
+	role, ok := r.Context().Value(middleware.RoleKey).(*model.Role)
 	if !ok {
 		slog.Warn("missing role in UpdateAccount")
 		response.Error(w, http.StatusBadRequest, "missing role")
@@ -159,7 +159,7 @@ func (h *AccountHandler) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call service to update account
-	err := h.accService.UpdateAccount(r.Context(), orgID, accID, role, &req)
+	err := h.accService.UpdateAccount(r.Context(), orgID, accID, *role, &req)
 	if err != nil {
 		slog.Error("failed to update account", "error", err)
 		switch err.Error() {
@@ -204,7 +204,7 @@ func (h *AccountHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get role from context
-	role, ok := r.Context().Value(middleware.RoleKey).(model.Role)
+	role, ok := r.Context().Value(middleware.RoleKey).(*model.Role)
 	if !ok {
 		slog.Warn("missing role in DeleteAccount")
 		response.Error(w, http.StatusBadRequest, "missing role")
@@ -212,7 +212,7 @@ func (h *AccountHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call service
-	err := h.accService.DeleteAccount(r.Context(), orgID, role, userID, accID)
+	err := h.accService.DeleteAccount(r.Context(), orgID, *role, userID, accID)
 	if err != nil {
 		slog.Error("failed to delete account", "error", err)
 		switch err.Error() {

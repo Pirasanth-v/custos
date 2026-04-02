@@ -19,6 +19,7 @@ type AccountResponse struct {
 	Name           string              `json:"name"`
 	Type           model.AccountType   `json:"type"`
 	CurrencyID	   string			   `json:"currency_id"`
+	CurrencyCode   string			   `json:"currency_code"`
 	CurrencyName   string              `json:"currency_name"`
 	CurrencySymbol string			   `json:"currency_symbol"`
 	InitialBalance string              `json:"initial_balance"`

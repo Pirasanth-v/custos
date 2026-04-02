@@ -89,24 +89,35 @@ func (r *AccountRepository) GetAccountByID(ctx context.Context, accID string) (m
 }
 
 func (r *AccountRepository) UpdateAccount(ctx context.Context, accID string, req *dto.UpdateAccountRequest) error {
-	query := `UPDATE accounts SET`
+	setClauses := []string{}
 	args := []any{}
 	i := 1
 
 	if req.Name != nil {
-		query += fmt.Sprintf(" name = $%d,", i)
+		setClauses = append(setClauses, fmt.Sprintf("name = $%d", i))
 		args = append(args, *req.Name)
 		i++
 	}
 
 	if req.Description != nil {
-		query += fmt.Sprintf(" description = $%d", i)
+		setClauses = append(setClauses, fmt.Sprintf("description = $%d", i))
 		args = append(args, *req.Description)
 		i++
 	}
 
-	query = strings.TrimRight(query, ",")
-	query += fmt.Sprintf(" updated_at = NOW() WHERE id = $%d AND deleted_at IS NULL", i)
+	// always update updated_at
+	setClauses = append(setClauses, "updated_at = NOW()")
+
+	// if nothing was provided except updated_at, optionally block it
+	if len(setClauses) == 1 {
+		return errors.New("no fields provided to update")
+	}
+
+	query := fmt.Sprintf(
+		"UPDATE accounts SET %s WHERE id = $%d AND deleted_at IS NULL",
+		strings.Join(setClauses, ", "),
+		i,
+	)
 	args = append(args, accID)
 
 	res, err := r.db.Exec(ctx, query, args...)
@@ -117,7 +128,7 @@ func (r *AccountRepository) UpdateAccount(ctx context.Context, accID string, req
 	if res.RowsAffected() == 0 {
 		return errors.New("account not found")
 	}
-	
+
 	return nil
 }
 
@@ -142,8 +153,8 @@ func (r *AccountRepository) DeleteAccount(ctx context.Context, userID, accID str
 
 func (r *AccountRepository) GetAccountsByOrgID(ctx context.Context, orgID string) ([]dto.AccountResponse, error) {
 	query := `
-		SELECT a.id, a.name, a.type, a.currency_id, c.name, c.symbol, a.initial_balance, a.net_balance, a.description,
-		       a.created_by, a.created_at, a.updated_at, a.deleted_at
+		SELECT a.id, a.name, a.type, a.currency_id, c.code, c.name, c.symbol, a.initial_balance, a.net_balance, a.description,
+		       a.created_by, a.created_at, a.updated_at
 		FROM accounts a
 		JOIN account_ownership ao ON a.id = ao.account_id
 		JOIN currencies c ON a.currency_id = c.id
@@ -165,6 +176,7 @@ func (r *AccountRepository) GetAccountsByOrgID(ctx context.Context, orgID string
 			&account.Name,
 			&account.Type,
 			&account.CurrencyID,
+			&account.CurrencyCode,
 			&account.CurrencyName,
 			&account.CurrencySymbol,
 			&account.InitialBalance,

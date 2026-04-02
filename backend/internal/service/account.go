@@ -29,16 +29,6 @@ func NewAccountService(db *pgxpool.Pool, currencyRepo *repository.CurrencyReposi
 	}
 }
 
-func (s *AccountService) GetAllCurrencies(ctx context.Context) ([]model.Currency, error) {
-	// call repo
-	currencies, err := s.currencyRepo.GetAll(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get currencies: %w", err)
-	}
-
-	return currencies, nil
-}
-
 func (s *AccountService) CreateAccount(ctx context.Context, role model.Role, orgID, userID string, req *dto.CreateAccountRequest) error {
 	// Check if the role has permission
 	if !role.HasPermission(model.PermManageAccounts) {
@@ -128,6 +118,8 @@ func (s *AccountService) GetAccountByID(ctx context.Context, orgID, accID string
 		ID:             acc.ID,
 		Name:           acc.Name,
 		Type:           acc.Type,
+		CurrencyID:		acc.CurrencyID,
+		CurrencyCode:	currency.Code,
 		CurrencyName:   currency.Name,
 		CurrencySymbol: *currency.Symbol,
 		InitialBalance: acc.InitialBalance,

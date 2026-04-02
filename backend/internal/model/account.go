@@ -10,6 +10,7 @@ const (
 	AccountTypeBank   AccountType = "bank"
 	AccountTypeCash   AccountType = "cash"
 	AccountTypeCredit AccountType = "credit"
+	AccountTypeSavings AccountType = "savings"
 	AccountTypeWallet AccountType = "wallet"
 	AccountTypeOther  AccountType = "other"
 )
