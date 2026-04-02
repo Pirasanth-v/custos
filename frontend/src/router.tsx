@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage"
 import AppLayout from "./components/layout/AppLayout"
 import CreateOrganizationPage from "./pages/CreateOrgPage"
 import SettingsPage from "./pages/settings/SettingsPage"
+import AccountsPage from "./pages/AccountsPage"
 
 export const router = createBrowserRouter ([
     {
@@ -38,6 +39,10 @@ export const router = createBrowserRouter ([
             {
                 path: '/dashboard',
                 element: <DashboardPage />
+            },
+            {
+                path: '/accounts',
+                element: <AccountsPage />
             },
             {
                 path: "/settings",

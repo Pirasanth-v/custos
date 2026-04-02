@@ -4,9 +4,10 @@ type ModalProps = {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
+  maxWidthClass?: string;
 };
 
-export default function Modal({ open, onClose, children }: ModalProps) {
+export default function Modal({ open, onClose, children, maxWidthClass }: ModalProps) {
   // Close modal on ESC key
   useEffect(() => {
     if (!open) return;
@@ -34,7 +35,13 @@ export default function Modal({ open, onClose, children }: ModalProps) {
       />
 
       {/* Modal content */}
-      <div className="relative z-10 w-full max-w-xl rounded-2xl border border-white/10 bg-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div
+        className={`relative z-10 w-full ${
+          maxWidthClass || "max-w-xl"
+        } rounded-2xl border border-white/10 bg-card shadow-2xl animate-in fade-in zoom-in-95 duration-200`}
+        role="dialog"
+        aria-modal="true"
+      >
         {children}
       </div>
     </div>
