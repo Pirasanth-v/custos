@@ -12,7 +12,14 @@ import (
 
 )
 
-func New(AuthMiddleware *m.AuthMiddleware, OrgMiddleware *m.OrgMiddleware, authHandler *handler.AuthHandler, orgHandler *handler.OrgHandler) http.Handler {
+func New(
+	AuthMiddleware *m.AuthMiddleware, 
+	OrgMiddleware *m.OrgMiddleware, 
+	authHandler *handler.AuthHandler, 
+	orgHandler *handler.OrgHandler,
+	accHandler *handler.AccountHandler,
+	currencyHandler *handler.CurrencyHandler,
+) http.Handler {
 	r := chi.NewRouter()
 
 	// runs in every request
@@ -20,7 +27,7 @@ func New(AuthMiddleware *m.AuthMiddleware, OrgMiddleware *m.OrgMiddleware, authH
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,  // ← critical for cookies
 		MaxAge:           300,
@@ -41,6 +48,10 @@ func New(AuthMiddleware *m.AuthMiddleware, OrgMiddleware *m.OrgMiddleware, authH
 		// public routes, no auth needed
 		r.Post("/auth/register", authHandler.Register)
 		r.Post("/auth/login", authHandler.Login)
+		
+		// Currency
+		r.Get("/currencies", currencyHandler.GetAll)
+		r.Get("/currencies/{id}", currencyHandler.GetByID)
 
 		// protected routes
 		r.Group(func(r chi.Router) {
@@ -57,7 +68,7 @@ func New(AuthMiddleware *m.AuthMiddleware, OrgMiddleware *m.OrgMiddleware, authH
 
 			r.Post("/orgs", orgHandler.CreateOrganization)
 			r.Get("/orgs", orgHandler.GetUserOrgs)
-			
+	
 			// require both auth and org access
 			r.Group(func(r chi.Router) {
 				r.Use(OrgMiddleware.ValidateOrgAccess)
@@ -72,6 +83,13 @@ func New(AuthMiddleware *m.AuthMiddleware, OrgMiddleware *m.OrgMiddleware, authH
 				r.Put("/orgs/{orgId}/members/{userId}", orgHandler.UpdateMemberRole)
 				r.Delete("/orgs/{orgId}/members/{userId}", orgHandler.RemoveMember)
 				r.Post("/orgs/{orgId}/members/invite", orgHandler.InviteMember)
+
+				// Account
+				r.Post("/orgs/{orgId}/accounts", accHandler.CreateAccount)
+				r.Get("/orgs/{orgId}/accounts", accHandler.GetAccountsByOrgID)
+				r.Get("/orgs/{orgId}/accounts/{accId}", accHandler.GetAccountByID)
+				r.Patch("/orgs/{orgId}/accounts/{accId}", accHandler.UpdateAccount)
+				r.Delete("/orgs/{orgId}/accounts/{accId}", accHandler.DeleteAccount)
 			})
 		})
     })

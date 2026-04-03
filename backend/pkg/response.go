@@ -6,7 +6,14 @@ import (
 	"log/slog"
 )
 
-func JSON(w http.ResponseWriter, status int, body any) {
+func JSON(w http.ResponseWriter, status int, body any, headers ...map[string]string) {
+	//set custom headers
+	for _, h := range headers {
+		for key, val := range h {
+			w.Header().Set(key, val)
+		}
+	}
+
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(status)
 	err := json.NewEncoder(w).Encode(body)
