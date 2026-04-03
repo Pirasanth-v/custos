@@ -77,7 +77,6 @@ export default function CreateAccountModal({
 }: CreateAccountModalProps) {
   if (!open) return null;
   const currencyList = Array.isArray(currencies) ? currencies : [];
-  console.log(currencyList);
 
   return (
     <CreateAccountModalContent
