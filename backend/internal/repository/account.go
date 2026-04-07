@@ -198,4 +198,110 @@ func (r *AccountRepository) GetAccountsByOrgID(ctx context.Context, orgID string
 	return accounts, nil
 }
 
+func (r *AccountRepository) UpdateNetBalance(ctx context.Context, req dto.UpdateNetBalanceBody) error {
+	debitQuery := `
+		UPDATE accounts
+		SET net_balance = net_balance::numeric - $1::numeric
+		WHERE id = $2
+	`
+
+	creditQuery := `
+		UPDATE accounts
+		SET net_balance = net_balance::numeric + $1::numeric
+		WHERE id = $2
+	`
+
+	switch req.Type {
+	case "income":
+		_, err := r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to update net balance for income: %w", err)
+		}
+
+	case "expense":
+		_, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to update net balance for expense: %w", err)
+		}
+
+	case "transfer":
+		// Validate required field for transfer
+		if *req.ToAccountID == "" {
+			return errors.New("to_account_id cannot be empty for transfers")
+		}
+
+		// Debit from accID (source)
+		_, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to debit (transfer out) from account: %w", err)
+		}
+
+		// Credit to ToAccountID (destination)
+		_, err = r.db.Exec(ctx, creditQuery, req.Amount, req.ToAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to credit (transfer in) to account: %w", err)
+		}
+
+	default:
+		return errors.New("invalid account operation type")
+	}
+
+	return nil
+}
+
+func (r *AccountRepository) ReverseBalance(ctx context.Context, req dto.UpdateNetBalanceBody) error {
+	debitQuery := `
+		UPDATE accounts
+		SET net_balance = net_balance::numeric - $1::numeric
+		WHERE id = $2
+	`
+
+	creditQuery := `
+		UPDATE accounts
+		SET net_balance = net_balance::numeric + $1::numeric
+		WHERE id = $2
+	`
+
+	switch req.Type {
+	case "income":
+		// For reverse income, deduct amount from account
+		_, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to reverse balance for income: %w", err)
+		}
+
+	case "expense":
+		// For reverse expense, add amount to account
+		_, err := r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to reverse balance for expense: %w", err)
+		}
+
+	case "transfer":
+		// Validate required field for transfer
+		if *req.ToAccountID == "" {
+			return errors.New("to_account_id cannot be empty for transfer reversal")
+		}
+
+		// For transfer reversal:
+		// Add to source (accID)
+		_, err := r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to reverse (credit back) from source account in transfer: %w", err)
+		}
+
+		// Deduct from destination (ToAccountID)
+		_, err = r.db.Exec(ctx, debitQuery, req.Amount, req.ToAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to reverse (debit back) from destination account in transfer: %w", err)
+		}
+
+	default:
+		return errors.New("invalid account operation type for reversal")
+	}
+
+	return nil
+}
+
+
 
