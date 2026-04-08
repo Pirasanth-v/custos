@@ -44,23 +44,26 @@ func EncodeCursor(id string, createdAt time.Time) (string, error) {
 }
 
 // DecodeCursor decodes the base64-encoded cursor and returns the id and timestamp.
-func DecodeCursor(cursor string) (id string, createdAt time.Time, err error) {
+func DecodeCursor(cursor string) (id *string, createdAt *time.Time, err error) {
     if cursor == "" {
-        return "", time.Time{}, errors.New("cursor is empty")
+        return nil, nil, errors.New("cursor is empty")
     }
     data, err := base64.RawURLEncoding.DecodeString(cursor)
     if err != nil {
-        return "", time.Time{}, fmt.Errorf("invalid cursor: %w", err)
+        return nil, nil, fmt.Errorf("invalid cursor: %w", err)
     }
     var payload cursorPayload
     if err := json.Unmarshal(data, &payload); err != nil {
-        return "", time.Time{}, fmt.Errorf("invalid cursor: %w", err)
+        return nil, nil, fmt.Errorf("invalid cursor: %w", err)
     }
     if payload.ID == "" {
-        return "", time.Time{}, errors.New("cursor missing id")
+        return nil, nil, errors.New("cursor missing id")
     }
     if payload.CreatedAt == 0 {
-        return "", time.Time{}, errors.New("cursor missing timestamp")
+        return nil, nil, errors.New("cursor missing timestamp")
     }
-    return payload.ID, time.UnixMicro(payload.CreatedAt).UTC(), nil
+
+    time := time.UnixMicro(payload.CreatedAt).UTC()
+
+    return &payload.ID, &time, nil
 }

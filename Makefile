@@ -15,5 +15,9 @@ migrate-reset:
 	migrate -path $(MIGRATION_PATH) -database "${DB_URL}" up
 
 seed:
-	docker exec -i custos_db psql -U $(DB_USER) -d $(DB_NAME) < database/seeds/system_roles.sql
-	docker exec -i custos_db psql -U $(DB_USER) -d $(DB_NAME) < database/seeds/currencies.sql
+	#docker exec -i custos_db psql -U $(DB_USER) -d $(DB_NAME) < database/seeds/system_roles.sql
+	#docker exec -i custos_db psql -U $(DB_USER) -d $(DB_NAME) < database/seeds/currencies.sql
+	docker exec -i custos_db psql -U $(DB_USER) -d $(DB_NAME) < database/seeds/categories.sql
+
+
+	

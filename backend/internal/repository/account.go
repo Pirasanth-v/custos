@@ -279,7 +279,7 @@ func (r *AccountRepository) ReverseBalance(ctx context.Context, req dto.UpdateNe
 
 	case "transfer":
 		// Validate required field for transfer
-		if *req.ToAccountID == "" {
+		if req.ToAccountID == nil || *req.ToAccountID == "" {
 			return errors.New("to_account_id cannot be empty for transfer reversal")
 		}
 

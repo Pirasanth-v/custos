@@ -61,7 +61,6 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, role model.R
 		ID:            uuid.New().String(),
 		FromAccountID: accID,
 		CreatedBy:     userID,
-		UpdatedBy: 	   userID,
 		OrgID:         orgID,
 		Type:          req.Type,
 		Amount:        req.Amount,
@@ -73,8 +72,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, role model.R
 		UpdatedAt:     time.Now(),
 	}
 
-	// set ToAccountID for transfer
-	if req.Type == "transfer" && req.ToAccountID != nil {
+	if req.Type == "transfer" && req.ToAccountID != nil && *req.ToAccountID != "" {
 		transaction.ToAccountID = req.ToAccountID
 	}
 
@@ -124,7 +122,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, role model.R
 		return fmt.Errorf("failed to get from-account: %w", err)
 	}
 
-	belongs, err := s.ownershipRepo.IsBelongs(ctx, accID, orgID)
+	belongs, err := s.ownershipRepo.IsBelongs(ctx, orgID, accID)
 	if err != nil {
 		return fmt.Errorf("failed to check account-organization ownership: %w", err)
 	}
@@ -132,25 +130,21 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, role model.R
 		return errors.New("from-account does not belong to the same organization")
 	}
 
-	toAccountID := ""
-	if req.Type == "transfer" && req.ToAccountID != nil {
-		toAccountID = *req.ToAccountID
-	}
-
-	toAccount, err := accRepo.GetAccountByID(ctx, toAccountID)
-	if err != nil {
-		return fmt.Errorf("failed to get to-account: %w", err)
-	}
-	belongs, err = s.ownershipRepo.IsBelongs(ctx, toAccount.ID, orgID)
-	if err != nil {
-		return fmt.Errorf("failed to check to-account organization ownership: %w", err)
-	}
-	if !belongs {
-		return errors.New("to-account does not belong to the same organization")
-	}
-
-	if fromAccount.CurrencyID != toAccount.CurrencyID {
-		return errors.New("both accounts should have the same currency")
+	if req.Type == "transfer" {
+		toAccount, err := accRepo.GetAccountByID(ctx, *req.ToAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to get to-account: %w", err)
+		}
+		belongs, err = s.ownershipRepo.IsBelongs(ctx, orgID, toAccount.ID)
+		if err != nil {
+			return fmt.Errorf("failed to check to-account organization ownership: %w", err)
+		}
+		if !belongs {
+			return errors.New("to-account does not belong to the same organization")
+		}
+		if fromAccount.CurrencyID != toAccount.CurrencyID {
+			return errors.New("both accounts should have the same currency")
+		}
 	}
 
 	// step 1 create transaction

@@ -28,14 +28,15 @@ func (r *TransactionRepository) WithTx(tx pgx.Tx) *TransactionRepository {
 
 func (r *TransactionRepository) CreateTransaction(ctx context.Context, transaction model.Transaction) error {
 	query := `
-		INSERT INTO transactions (id, org_id, from_account_id, created_by, type, amount, description, category_id, status)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO transactions (id, org_id, from_account_id, to_account_id, created_by, type, amount, description, category_id, status)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`
 
 	_, err := r.db.Exec(ctx, query,
 		transaction.ID,
 		transaction.OrgID,
 		transaction.FromAccountID,
+		transaction.ToAccountID,
 		transaction.CreatedBy,
 		transaction.Type,
 		transaction.Amount,
@@ -192,8 +193,8 @@ func (r *TransactionRepository) GetTransactionByID(ctx context.Context, tranID s
 }
 
 func (r *TransactionRepository) GetTransactionsByAccID(ctx context.Context, accID, cursor string, limit int) (*dto.PaginatedResponse[model.Transaction], error) {
-	var lastTranID string
-	var lastTranCreatedAt time.Time
+	var lastTranID *string
+	var lastTranCreatedAt *time.Time
 
 	if cursor != "" {
 		var err error
@@ -201,9 +202,6 @@ func (r *TransactionRepository) GetTransactionsByAccID(ctx context.Context, accI
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode cursor: %w", err)
 		}
-	} else {
-		lastTranCreatedAt = time.Now()
-		lastTranID = ""
 	}
 
 	query := `
@@ -211,7 +209,8 @@ func (r *TransactionRepository) GetTransactionsByAccID(ctx context.Context, accI
 		FROM transactions
 		WHERE from_account_id = $1
 		  AND (
-				(created_at, id) < ($2, $3)
+		  		$2::timestamptz IS NULL
+				OR (created_at, id) < ($2, $3::uuid)
 			)
 		  AND status != 'deleted'
 		  AND deleted_at IS NULL
@@ -278,18 +277,15 @@ func (r *TransactionRepository) GetTransactionsByAccID(ctx context.Context, accI
 }
 
 func (r *TransactionRepository) GetTransactionsByOrgID(ctx context.Context, orgID, cursor string, limit int) (*dto.PaginatedResponse[model.Transaction], error) {
-	var lastTranID string
-	var lastTranCreatedAt time.Time
+	var lastTranID *string
+	var lastTranCreatedAt *time.Time
+	var err error
 
 	if cursor != "" {
-		var err error
 		lastTranID, lastTranCreatedAt, err = dto.DecodeCursor(cursor)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode cursor: %w", err)
 		}
-	} else {
-		lastTranCreatedAt = time.Now()
-		lastTranID = ""
 	}
 
 	query := `
@@ -297,7 +293,8 @@ func (r *TransactionRepository) GetTransactionsByOrgID(ctx context.Context, orgI
 		FROM transactions
 		WHERE org_id = $1
 		  AND (
-				(created_at, id) < ($2, $3)
+		  		$2::timestamptz IS NULL
+				OR (created_at, id) < ($2, $3::uuid)
 			)
 		  AND status != 'deleted'
 		  AND deleted_at IS NULL
@@ -344,14 +341,14 @@ func (r *TransactionRepository) GetTransactionsByOrgID(ctx context.Context, orgI
 	hasMore := false
 	var nextCursor string
 	if len(transactions) > limit {
+		transactions = transactions[:limit]
 		hasMore = true
-		last := transactions[limit]
+		last := transactions[limit-1]
 		var err error
 		nextCursor, err = dto.EncodeCursor(last.ID, last.CreatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode new cursor: %w", err)
 		}
-		transactions = transactions[:limit]
 	}
 
 	response := &dto.PaginatedResponse[model.Transaction]{
@@ -383,7 +380,7 @@ func (r *TransactionRepository) IsTranBelongsToAcc(ctx context.Context, tranID, 
 
 func (r *TransactionRepository) GetTransactionByIDForUpdate(ctx context.Context, tranID string) (*dto.UpdateTransactionRequest, error) {
 	query := `
-		SELECT from_account_id, COALESCE(to_account_id,'') , type, amount, description, category_id, version
+		SELECT from_account_id, COALESCE(to_account_id, NULL) , type, amount, description, category_id, version
 		FROM transactions
 		WHERE id = $1
 		  AND status = 'posted'

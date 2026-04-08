@@ -32,7 +32,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	}
 
 	// Get accID from request parameters
-	accID := chi.URLParam(r, "accID")
+	accID := chi.URLParam(r, "accId")
 	if accID == "" {
 		slog.Warn("missing account id in CreateTransaction")
 		response.Error(w, http.StatusBadRequest, "missing account id")
@@ -108,7 +108,7 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 	}
 
 	// Get accID from request parameters
-	accID := chi.URLParam(r, "accID")
+	accID := chi.URLParam(r, "accId")
 	if accID == "" {
 		slog.Warn("missing account id in CreateTransaction")
 		response.Error(w, http.StatusBadRequest, "missing account id")
@@ -116,7 +116,7 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 	}
 
 	// Get tranID from request parameters
-	tranID := chi.URLParam(r, "tranID")
+	tranID := chi.URLParam(r, "tranId")
 	if tranID == "" {
 		slog.Warn("missing transaction id in UpdateTransaction")
 		response.Error(w, http.StatusBadRequest, "missing transaction id")
@@ -189,7 +189,7 @@ func (h *TransactionHandler) DeleteTransaction(w http.ResponseWriter, r *http.Re
 	}
 
 	// Get accID from request parameters
-	accID := chi.URLParam(r, "accID")
+	accID := chi.URLParam(r, "accId")
 	if accID == "" {
 		slog.Warn("missing account id in CreateTransaction")
 		response.Error(w, http.StatusBadRequest, "missing account id")
@@ -197,7 +197,7 @@ func (h *TransactionHandler) DeleteTransaction(w http.ResponseWriter, r *http.Re
 	}
 
 	// Get tranID from request parameters
-	tranID := chi.URLParam(r, "tranID")
+	tranID := chi.URLParam(r, "tranId")
 	if tranID == "" {
 		slog.Warn("missing transaction id in UpdateTransaction")
 		response.Error(w, http.StatusBadRequest, "missing transaction id")
