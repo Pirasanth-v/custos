@@ -362,8 +362,14 @@ func (r *TransactionRepository) GetTransactionsByOrgID(ctx context.Context, orgI
 
 func (r *TransactionRepository) IsTranBelongsToAcc(ctx context.Context, tranID, accID string) (bool, error) {
 	query := `
-		SELECT 1 FROM transactions 
-		WHERE id = $1 AND from_account_id = $2
+		SELECT 1 FROM transactions
+		WHERE id = $1
+		  AND (
+			  from_account_id = $2
+			  OR (to_account_id IS NOT NULL AND to_account_id = $2)
+		  )
+		  AND status = 'posted'
+		  AND deleted_at IS NULL
 		LIMIT 1
 	`
 	var found int

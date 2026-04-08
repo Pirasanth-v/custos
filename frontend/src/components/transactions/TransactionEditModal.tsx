@@ -69,43 +69,71 @@ export default function TransactionEditModal({
   const [categoryId, setCategoryId] = useState<string>(
     transaction?.category_id ?? ""
   );
-  const [toAccountId, setToAccountId] = useState<string | null>(
-    transaction?.to_account_id ?? null
+  const [fromAccountId, setFromAccountId] = useState<string>(
+    transaction?.from_account_id ?? (accounts.length > 0 ? accounts[0].id : "")
+  );
+  // Make sure this is always a string, not null
+  const [toAccountId, setToAccountId] = useState<string>(
+    transaction?.to_account_id ?? ""
   );
   const [localError, setLocalError] = useState("");
 
   const version = transaction?.version ?? 0;
 
-  // Keep transfer target consistent with type.
-  const effectiveToAccountId = type === "transfer" ? toAccountId : null;
+  // Get the currently selected "from" account object for filtering transfers
+  const fromAccount = useMemo(
+    () => accounts.find(a => a.id === fromAccountId) ?? null,
+    [accounts, fromAccountId]
+  );
+
   const isTransfer = type === "transfer";
 
   const parsedAmount = useMemo(() => Number(amount), [amount]);
   const amountValid = Number.isFinite(parsedAmount) && parsedAmount > 0;
-  const toAccountValid = !isTransfer || (toAccountId?.trim().length ?? 0) > 0;
-  const canSubmitRequiredFields = !!transaction && amountValid && toAccountValid;
+  const fromAccountValid = !!accounts.find(a => a.id === fromAccountId);
+
+  const toAccountValid =
+    !isTransfer ||
+    ((toAccountId?.trim().length ?? 0) > 0 &&
+      toAccountId !== fromAccountId &&
+      !!accounts.find(a => a.id === toAccountId));
+  const canSubmitRequiredFields = !!transaction && amountValid && fromAccountValid && toAccountValid;
+
+  // Only use toAccountId if transfer, else null. 
+  // However: Also make sure the currency of the destination matches fromAccount
+  const effectiveToAccountId =
+    isTransfer &&
+    accounts.find((a) => a.id === toAccountId)?.currency_code === fromAccount?.currency_code
+      ? toAccountId
+      : null;
 
   const hasChanged = useMemo(() => {
     if (!transaction) return false;
 
-    const normalizedTo = type === "transfer" ? toAccountId ?? null : null;
+    const normalizedTo = type === "transfer" ? (toAccountId || null) : null;
     const originalTo = transaction.to_account_id ?? null;
-
     return (
       transaction.type !== type ||
-      (String(transaction.amount ?? "")) !== amount.trim() ||
+      String(transaction.amount ?? "") !== amount.trim() ||
       (transaction.description ?? "") !== description.trim() ||
       (transaction.category_id ?? "") !== categoryId.trim() ||
+      (transaction.from_account_id ?? "") !== fromAccountId ||
       originalTo !== normalizedTo
     );
-  }, [transaction, type, amount, description, categoryId, toAccountId]);
+  }, [transaction, type, amount, description, categoryId, fromAccountId, toAccountId]);
 
   const canSubmit = canSubmitRequiredFields && hasChanged && !loading;
 
+  // Create transfer options for the destination, filtering by active "from" account
   const transferOptions = useMemo(() => {
-    if (!transaction) return [];
-    return accounts.filter((a) => a.id !== transaction.from_account_id);
-  }, [accounts, transaction]);
+    if (!fromAccount) return [];
+    // To account cannot be the same as the from account, and must match currency
+    return accounts.filter(
+      a =>
+        a.id !== fromAccountId &&
+        a.currency_code === fromAccount.currency_code
+    );
+  }, [accounts, fromAccount, fromAccountId]);
 
   const handleSubmit = async () => {
     setLocalError("");
@@ -115,16 +143,27 @@ export default function TransactionEditModal({
       setLocalError("Amount must be a number greater than 0.");
       return;
     }
+    if (!fromAccountValid) {
+      setLocalError("Please choose a valid account for 'From account'.");
+      return;
+    }
     if (isTransfer && (!toAccountId || !toAccountId.trim())) {
       setLocalError("Destination account is required for transfer transactions.");
+      return;
+    }
+    if (
+      isTransfer &&
+      fromAccountId === toAccountId
+    ) {
+      setLocalError("Destination account cannot be the same as the source account.");
       return;
     }
 
     await onSubmit({
       tranId: transaction.id,
-      fromAccountId: transaction.from_account_id,
+      fromAccountId: fromAccountId,
       data: {
-        from_account_id: transaction.from_account_id,
+        from_account_id: fromAccountId,
         to_account_id: isTransfer ? (effectiveToAccountId as string) : null,
         type,
         amount: amount.trim(),
@@ -164,13 +203,23 @@ export default function TransactionEditModal({
         />
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <Field label="From account" required helperText="Locked for safety (transaction identity).">
-            <input
-              type="text"
-              value={transaction.from_account_id}
-              disabled
-              className="h-11 w-full cursor-not-allowed rounded-xl border border-input bg-background px-3 text-sm text-muted-foreground"
-            />
+          <Field label="From account" required helperText="Choose the source account.">
+            <select
+              value={fromAccountId}
+              onChange={e => {
+                setFromAccountId(e.target.value);
+                // Important: When changing the source account, clear the destination!
+                setToAccountId("");
+              }}
+              className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              disabled={loading || accounts.length < 1}
+            >
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name} ({a.currency_code})
+                </option>
+              ))}
+            </select>
           </Field>
 
           <Field label="Version" required helperText="Used for optimistic concurrency.">
@@ -188,7 +237,11 @@ export default function TransactionEditModal({
             <Field label="Type" required>
               <select
                 value={type}
-                onChange={(e) => setType(e.target.value as TransactionType)}
+                onChange={(e) => {
+                  setType(e.target.value as TransactionType);
+                  // If switching away from transfer, clear toAccountId
+                  if (e.target.value !== "transfer") setToAccountId("");
+                }}
                 className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               >
                 <option value="income">income</option>
@@ -235,6 +288,7 @@ export default function TransactionEditModal({
                 value={toAccountId ?? ""}
                 onChange={(e) => setToAccountId(e.target.value)}
                 className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                disabled={transferOptions.length < 1}
               >
                 <option value="" disabled>
                   Select destination account
@@ -252,7 +306,7 @@ export default function TransactionEditModal({
                 Transfer fields hidden
               </p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                When the transaction type is not `transfer`, `to_account_id` is not
+                When the transaction type is not <code>transfer</code>, <code>to_account_id</code> is not
                 required.
               </p>
             </div>
