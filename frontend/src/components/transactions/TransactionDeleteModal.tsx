@@ -33,8 +33,8 @@ export default function TransactionDeleteModal({
   if (!open || !transaction) return null;
 
   const canDelete =
-    confirmationText.trim() === transaction.id && !loading;
-
+    confirmationText.trim() === "DELETE" && !loading;
+console.log(transaction)
   return (
     <Modal open={open} onClose={onClose}>
       <div className="space-y-6 p-6 text-white">
@@ -57,7 +57,10 @@ export default function TransactionDeleteModal({
           </p>
           <div className="mt-2 flex flex-wrap gap-2 text-sm text-muted-foreground">
             <span className="rounded-full border border-border px-3 py-1 font-mono">
-              {transaction.id.slice(0, 10)}…
+              {(transaction.description && transaction.description.length > 60)
+                ? transaction.description.slice(0, 30) + "…"
+                : (transaction.description ?? "No description provided")}
+         
             </span>
             <span className="rounded-full border border-border px-3 py-1">
               Amount: {formatSignedAmount(transaction.type, transaction.amount)}
@@ -83,13 +86,13 @@ export default function TransactionDeleteModal({
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-foreground">
-            Type <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-destructive">{transaction.id}</span> to confirm
+            Type <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-destructive">DELETE</span> to confirm
           </label>
           <input
             type="text"
             value={confirmationText}
             onChange={(e) => setConfirmationText(e.target.value)}
-            placeholder={transaction.id}
+            placeholder={"Type DELETE"}
             className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
             autoComplete="off"
             spellCheck={false}

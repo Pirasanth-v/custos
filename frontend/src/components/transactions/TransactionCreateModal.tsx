@@ -60,6 +60,8 @@ export default function TransactionCreateModal({
   const [toAccountId, setToAccountId] = useState<string | null>(null);
   const [localError, setLocalError] = useState("");
 
+  accounts = Array.isArray(accounts) ? accounts : [];
+
   const fromAccount = useMemo(
     () => (accounts ? accounts.find((a) => a.id === fromAccountId) ?? null : null),
     [accounts, fromAccountId],
@@ -229,12 +231,12 @@ export default function TransactionCreateModal({
                 Destination account hidden
               </p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                `to_account_id` is required only for `transfer` transactions.
+                It is required only for transfer type transactions.
               </p>
             </div>
           )}
 
-          <Field label="Description" helperText="Optional. Improves audit clarity.">
+          <Field label="Description">
             <textarea
               rows={4}
               value={description}

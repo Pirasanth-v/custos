@@ -281,7 +281,7 @@ export default function TransactionPage() {
           )}
 
           <TransactionEditModal
-            key={editOpen ? "open" : "closed"}
+            key={editOpen ? "edit-open" : "edit-closed"}
             open={editOpen}
             onClose={() => setEditOpen(false)}
             transaction={selectedTransaction}
@@ -311,7 +311,7 @@ export default function TransactionPage() {
           />
 
           <TransactionCreateModal
-            key={createOpen ? "open" : "closed"}
+            key={createOpen ? "create-open" : "create-closed"}
             open={createOpen}
             onClose={() => setCreateOpen(false)}
             accounts={accountsList as Account[]}
@@ -336,7 +336,7 @@ export default function TransactionPage() {
           />
 
           <TransactionDeleteModal
-            key={deleteOpen ? "open" : "closed"}
+            key={deleteOpen ? "delete-open" : "delete-closed"}
             open={deleteOpen}
             onClose={() => setDeleteOpen(false)}
             transaction={transactionToDelete}

@@ -56,6 +56,9 @@ export default function TransactionEditModal({
   loading = false,
   errorMessage,
 }: TransactionEditModalProps) {
+
+  accounts = Array.isArray(accounts) ? accounts : [];
+
   // Set initial values straight from the transaction prop
   const [type, setType] = useState<TransactionType>(
     transaction?.type ?? "income"
@@ -79,6 +82,12 @@ export default function TransactionEditModal({
   const [localError, setLocalError] = useState("");
 
   const version = transaction?.version ?? 0;
+  const formattedDate = useMemo(() => {
+    if (!transaction?.created_at) return "";
+    const parsedDate = new Date(transaction.created_at);
+    if (Number.isNaN(parsedDate.getTime())) return "";
+    return parsedDate.toLocaleDateString("en-GB");
+  }, [transaction?.created_at]);
 
   // Get the currently selected "from" account object for filtering transfers
   const fromAccount = useMemo(
@@ -99,13 +108,11 @@ export default function TransactionEditModal({
       !!accounts.find(a => a.id === toAccountId));
   const canSubmitRequiredFields = !!transaction && amountValid && fromAccountValid && toAccountValid;
 
-  // Only use toAccountId if transfer, else null. 
-  // However: Also make sure the currency of the destination matches fromAccount
   const effectiveToAccountId =
     isTransfer &&
     accounts.find((a) => a.id === toAccountId)?.currency_code === fromAccount?.currency_code
       ? toAccountId
-      : null;
+      : "";
 
   const hasChanged = useMemo(() => {
     if (!transaction) return false;
@@ -164,7 +171,7 @@ export default function TransactionEditModal({
       fromAccountId: fromAccountId,
       data: {
         from_account_id: fromAccountId,
-        to_account_id: isTransfer ? (effectiveToAccountId as string) : null,
+        to_account_id: effectiveToAccountId,
         type,
         amount: amount.trim(),
         description: description.trim(),
@@ -178,101 +185,133 @@ export default function TransactionEditModal({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="space-y-6 p-6 text-white">
-        <div className="flex items-start gap-4">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/20">
-            <Pencil className="h-5 w-5" />
-          </div>
-
-          <div className="min-w-0">
-            <h2 className="text-xl font-semibold text-foreground">
-              Edit Transaction
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Update transaction fields. Version is required to avoid conflicting
-              edits.
-            </p>
+        <div className="flex items-start justify-between border-b border-border px-6 py-5">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/25 text-primary">
+              <Pencil className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-xl font-semibold leading-none text-foreground">
+                Edit transaction
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {transaction.description?.trim() || "No description"}{" "}
+                {formattedDate ? `- ${formattedDate}` : ""}
+              </p>
+            </div>
           </div>
         </div>
 
-        <StatusMessage
-          type="error"
-          message={localError || errorMessage}
-          compact
-          onClose={() => setLocalError("")}
-        />
+        <div className="space-y-5 px-6 py-6">
+          <StatusMessage
+            type="error"
+            message={localError || errorMessage}
+            compact
+            onClose={() => setLocalError("")}
+          />
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <Field label="From account" required helperText="Choose the source account.">
-            <select
-              value={fromAccountId}
-              onChange={e => {
-                setFromAccountId(e.target.value);
-                // Important: When changing the source account, clear the destination!
-                setToAccountId("");
-              }}
-              className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-              disabled={loading || accounts.length < 1}
-            >
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name} ({a.currency_code})
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Version" required helperText="Used for optimistic concurrency.">
-            <input
-              type="number"
-              value={version}
-              disabled
-              className="h-11 w-full cursor-not-allowed rounded-xl border border-input bg-background px-3 text-sm text-muted-foreground"
-            />
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field label="Type" required>
+              <div className="grid grid-cols-3 gap-2">
+                {(["income", "expense", "transfer"] as TransactionType[]).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => {
+                      setType(option);
+                      if (option !== "transfer") setToAccountId("");
+                    }}
+                    className={`h-11 rounded-xl border text-sm font-medium capitalize transition ${
+                      type === option
+                        ? "border-primary bg-primary/25 text-primary"
+                        : "border-input bg-background text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="Amount" required>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  $
+                </span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-input bg-background pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                />
+              </div>
+            </Field>
+          </div>
+
+          <div className={`grid grid-cols-1 gap-5 ${isTransfer ? "sm:grid-cols-2" : ""}`}>
+            <Field label="From account" required>
               <select
-                value={type}
-                onChange={(e) => {
-                  setType(e.target.value as TransactionType);
-                  // If switching away from transfer, clear toAccountId
-                  if (e.target.value !== "transfer") setToAccountId("");
+                value={fromAccountId}
+                onChange={e => {
+                  setFromAccountId(e.target.value);
+                  setToAccountId("");
                 }}
                 className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                disabled={loading || accounts.length < 1}
               >
-                <option value="income">income</option>
-                <option value="expense">expense</option>
-                <option value="transfer">transfer</option>
+                {accounts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name} ({a.currency_code})
+                  </option>
+                ))}
               </select>
             </Field>
 
-            <Field label="Amount" required helperText="Must be greater than 0.">
+            {isTransfer ? (
+              <Field label="To account" required>
+                <select
+                  value={effectiveToAccountId}
+                  onChange={(e) => setToAccountId(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  disabled={transferOptions.length < 1}
+                >
+                  <option value="" disabled>
+                    Select destination account
+                  </option>
+                  {transferOptions.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name} ({a.currency_code})
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            ) : null}
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <Field label="Date" required>
               <input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                type="text"
+                value={formattedDate}
+                disabled
+                className="h-11 w-full cursor-not-allowed rounded-xl border border-input bg-background px-3 text-sm text-muted-foreground"
+              />
+            </Field>
+
+            <Field label="Category" required>
+              <input
+                type="text"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                placeholder="e.g. office_supplies"
                 className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               />
             </Field>
           </div>
 
-          <Field label="Category ID" required helperText="Use the category id string used by your backend.">
-            <input
-              type="text"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              placeholder="e.g. cat_123"
-              className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-            />
-          </Field>
-
-          <Field label="Description" helperText="Optional but recommended for audit clarity.">
+          <Field label="Description">
             <textarea
               rows={4}
               value={description}
@@ -282,43 +321,17 @@ export default function TransactionEditModal({
             />
           </Field>
 
-          {isTransfer ? (
-            <Field label="To account" required helperText="Required for transfers.">
-              <select
-                value={toAccountId ?? ""}
-                onChange={(e) => setToAccountId(e.target.value)}
-                className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-                disabled={transferOptions.length < 1}
-              >
-                <option value="" disabled>
-                  Select destination account
-                </option>
-                {transferOptions.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} ({a.currency_code})
-                  </option>
-                ))}
-              </select>
-            </Field>
-          ) : (
-            <div className="rounded-2xl border border-border bg-background/40 p-4">
-              <p className="text-sm font-medium text-foreground">
-                Transfer fields hidden
-              </p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                When the transaction type is not <code>transfer</code>, <code>to_account_id</code> is not
-                required.
-              </p>
-            </div>
-          )}
+          <div className="rounded-xl border border-border bg-background/50 px-4 py-3 text-sm text-muted-foreground">
+            Editing will update the account balance and create an audit log entry.
+          </div>
         </div>
 
-        <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-end">
+        <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-5 sm:flex-row sm:items-center sm:justify-end">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-background px-6 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
           >
             Cancel
           </button>
@@ -327,7 +340,7 @@ export default function TransactionEditModal({
             type="button"
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -337,12 +350,11 @@ export default function TransactionEditModal({
             ) : (
               <>
                 <Pencil className="h-4 w-4" />
-                Save Changes
+                Save changes
               </>
             )}
           </button>
         </div>
-      </div>
     </Modal>
   );
 }

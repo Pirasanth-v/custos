@@ -117,7 +117,12 @@ export default function TransactionsTable({
 
                 <td className="hidden px-6 py-4 text-sm text-muted-foreground lg:table-cell">
                   <div className="max-w-[520px] truncate">
-                    {t.description?.trim() ? t.description : "—"}
+                    {t.description && t.description.trim()
+                      ? t.description.trim().length > 60
+                        ? t.description.trim().slice(0, 30) + "..."
+                        : t.description.trim()
+                      : <span className="italic text-muted-foreground">—</span>}
+               
                   </div>
                 </td>
 
