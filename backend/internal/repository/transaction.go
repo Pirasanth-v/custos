@@ -414,3 +414,23 @@ func (r *TransactionRepository) GetTransactionByIDForUpdate(ctx context.Context,
 
 	return transaction, nil
 }
+
+// CheckCategoryHasTransactions returns true if any transactions exist with the given category ID.
+func (r *TransactionRepository) CheckCategoryHasTransactions(ctx context.Context, categoryID string) (bool, error) {
+	query := `
+		SELECT 1
+		FROM transactions
+		WHERE category_id = $1
+		  AND deleted_at IS NULL
+		LIMIT 1
+	`
+	var found int
+	err := r.db.QueryRow(ctx, query, categoryID).Scan(&found)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check category transactions: %w", err)
+	}
+	return true, nil
+}

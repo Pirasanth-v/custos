@@ -7,6 +7,7 @@ const (
     PermEditOrg            = "edit_org"
     PermManageMembers      = "manage_members"
     PermManageAccounts     = "manage_accounts"
+    PermManageCategories   = "manage_categories"
     PermCreateTransaction  = "create_transactions"
     PermEditTransaction    = "edit_transactions"
     PermDeleteTransaction  = "delete_transactions"

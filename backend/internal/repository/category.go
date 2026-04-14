@@ -48,6 +48,7 @@ func (r *CategoryRepository) GetCategoriesByOrgID(ctx context.Context, orgID str
 		SELECT id, name, created_by, created_at, updated_at, deleted_at
 		FROM categories
 		WHERE org_id = $1 AND deleted_at IS NULL
+		ORDER BY name ASC
 	`
 	rows, err := r.db.Query(ctx, query, orgID)
 	if err != nil {
@@ -125,5 +126,24 @@ func (r *CategoryRepository) IsCategoryBelongsToOrg(ctx context.Context, orgID, 
 		return false, fmt.Errorf("failed to check category: %w", err) 
 	}
 
+	return true, nil
+}
+
+// checks if a category name already exists in the given organization and is not deleted.
+func (r *CategoryRepository) CheckCategoryNameExists(ctx context.Context, orgID, name string) (bool, error) {
+	query := `
+		SELECT 1
+		FROM categories
+		WHERE org_id = $1 AND name = $2 AND deleted_at IS NULL
+		LIMIT 1
+	`
+	var exists int
+	err := r.db.QueryRow(ctx, query, orgID, name).Scan(&exists)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check category name: %w", err)
+	}
 	return true, nil
 }
