@@ -34,7 +34,6 @@ export default function TransactionDeleteModal({
 
   const canDelete =
     confirmationText.trim() === "DELETE" && !loading;
-console.log(transaction)
   return (
     <Modal open={open} onClose={onClose}>
       <div className="space-y-6 p-6 text-white">

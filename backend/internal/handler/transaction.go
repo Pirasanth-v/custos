@@ -87,6 +87,10 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 			slog.Warn("both accounts should have the same currency")
 			response.Error(w, http.StatusUnprocessableEntity, "both accounts should have the same currency")
 			return
+		case "source account balance would go negative after this transaction":
+			slog.Warn("source account balance would go negative after this transaction in CreateTransaction")
+			response.Error(w, http.StatusUnprocessableEntity, "source account balance would go negative after this transaction")
+			return
 		default:
 			slog.Error("failed to create transaction", "err", err)
 			response.Error(w, http.StatusInternalServerError, "failed to create transaction")
@@ -157,22 +161,28 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		switch err.Error() {
 		case "insufficient permissions":
-			slog.Warn("insufficient permissions in CreateTransaction")
+			slog.Warn("insufficient permissions in UpdateTransaction")
 			response.Error(w, http.StatusForbidden, "insufficient permissions")
-			return
 		case "account does not belong to the specified organization":
-			slog.Warn("account does not belong to the specified organization")
+			slog.Warn("account does not belong to the specified organization in UpdateTransaction")
 			response.Error(w, http.StatusForbidden, "account does not belong to the specified organization")
-			return
 		case "transaction does not belong to the specified account":
-			slog.Warn("transaction does not belong to the specified account")
+			slog.Warn("transaction does not belong to the specified account in UpdateTransaction")
 			response.Error(w, http.StatusForbidden, "transaction does not belong to the specified account")
-			return
+		case "amount is required":
+			slog.Warn("amount is required in UpdateTransaction")
+			response.Error(w, http.StatusBadRequest, "amount is required")
+		case "source account will be negative or overdraft":
+			slog.Warn("transaction would cause source account overdraft in UpdateTransaction")
+			response.Error(w, http.StatusBadRequest, "source account would be negative or overdraft")
+		case "destination account will be negative or overdraft":
+			slog.Warn("transaction would cause destination account overdraft in UpdateTransaction")
+			response.Error(w, http.StatusBadRequest, "destination account would be negative or overdraft")
 		default:
-			slog.Error("failed to update transaction", "err", err)
+			slog.Error("failed to update transaction", "error", err)
 			response.Error(w, http.StatusInternalServerError, "failed to update transaction")
-			return
 		}
+		return
 	}
 
 	response.Success(w, http.StatusOK, "transaction updated successfully")
@@ -231,6 +241,14 @@ func (h *TransactionHandler) DeleteTransaction(w http.ResponseWriter, r *http.Re
 		case "transaction does not belong to the account":
 			slog.Warn("transaction does not belong to the specified account")
 			response.Error(w, http.StatusNotFound, "transaction does not belong to the specified account")
+			return
+		case "failed to reverse net balance: insufficient funds or account not found":
+			slog.Warn("insufficient funds or account not found in UpdateTransaction")
+			response.Error(w, http.StatusForbidden, "insufficient funds or account not found")
+			return
+		case "failed to reverse net balance: insufficient funds in source account or account not found":
+			slog.Warn("insufficient funds in source account or account not found in UpdateTransaction")
+			response.Error(w, http.StatusForbidden, "insufficient funds in source account or account not found")
 			return
 		default:
 			slog.Error("failed to delete transaction", "err", err)

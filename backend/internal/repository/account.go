@@ -198,11 +198,31 @@ func (r *AccountRepository) GetAccountsByOrgID(ctx context.Context, orgID string
 	return accounts, nil
 }
 
+func (r *AccountRepository) GetNetBalanceByAccID(ctx context.Context, accID string) (string, error) {
+	query := `
+		SELECT net_balance 
+		FROM accounts
+		WHERE id = $1
+		AND deleted_at IS NULL	
+	`
+
+	var balance string
+	err := r.db.QueryRow(ctx, query, accID).Scan(&balance)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "account not found", nil 
+		}
+		return "", fmt.Errorf("failed to get net balance: %w", err)
+	}
+
+	return balance, nil
+}
+
 func (r *AccountRepository) UpdateNetBalance(ctx context.Context, req dto.UpdateNetBalanceBody) error {
 	debitQuery := `
 		UPDATE accounts
 		SET net_balance = net_balance::numeric - $1::numeric
-		WHERE id = $2
+		WHERE id = $2 
 	`
 
 	creditQuery := `
@@ -213,15 +233,21 @@ func (r *AccountRepository) UpdateNetBalance(ctx context.Context, req dto.Update
 
 	switch req.Type {
 	case "income":
-		_, err := r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
+		res, err := r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
 		if err != nil {
 			return fmt.Errorf("failed to update net balance for income: %w", err)
 		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
 
 	case "expense":
-		_, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
+		res, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
 		if err != nil {
 			return fmt.Errorf("failed to update net balance for expense: %w", err)
+		}		
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
 		}
 
 	case "transfer":
@@ -231,15 +257,22 @@ func (r *AccountRepository) UpdateNetBalance(ctx context.Context, req dto.Update
 		}
 
 		// Debit from accID (source)
-		_, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
+		res, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
 		if err != nil {
 			return fmt.Errorf("failed to debit (transfer out) from account: %w", err)
 		}
+		// Check if the source account had enough balance
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
 
 		// Credit to ToAccountID (destination)
-		_, err = r.db.Exec(ctx, creditQuery, req.Amount, req.ToAccountID)
+		res, err = r.db.Exec(ctx, creditQuery, req.Amount, req.ToAccountID)
 		if err != nil {
 			return fmt.Errorf("failed to credit (transfer in) to account: %w", err)
+		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
 		}
 
 	default:
@@ -265,16 +298,22 @@ func (r *AccountRepository) ReverseBalance(ctx context.Context, req dto.UpdateNe
 	switch req.Type {
 	case "income":
 		// For reverse income, deduct amount from account
-		_, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
+		res, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
 		if err != nil {
 			return fmt.Errorf("failed to reverse balance for income: %w", err)
+		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
 		}
 
 	case "expense":
 		// For reverse expense, add amount to account
-		_, err := r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
+		res, err := r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
 		if err != nil {
 			return fmt.Errorf("failed to reverse balance for expense: %w", err)
+		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
 		}
 
 	case "transfer":
@@ -284,16 +323,22 @@ func (r *AccountRepository) ReverseBalance(ctx context.Context, req dto.UpdateNe
 		}
 
 		// For transfer reversal:
+		// Deduct from destination (ToAccountID)
+		res, err := r.db.Exec(ctx, debitQuery, req.Amount, req.ToAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to reverse (debit back) from destination account in transfer: %w", err)
+		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
+
 		// Add to source (accID)
-		_, err := r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
+		res, err = r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
 		if err != nil {
 			return fmt.Errorf("failed to reverse (credit back) from source account in transfer: %w", err)
 		}
-
-		// Deduct from destination (ToAccountID)
-		_, err = r.db.Exec(ctx, debitQuery, req.Amount, req.ToAccountID)
-		if err != nil {
-			return fmt.Errorf("failed to reverse (debit back) from destination account in transfer: %w", err)
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
 		}
 
 	default:

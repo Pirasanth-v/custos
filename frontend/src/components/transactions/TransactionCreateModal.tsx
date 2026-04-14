@@ -62,19 +62,6 @@ export default function TransactionCreateModal({
 
   accounts = Array.isArray(accounts) ? accounts : [];
 
-  const fromAccount = useMemo(
-    () => (accounts ? accounts.find((a) => a.id === fromAccountId) ?? null : null),
-    [accounts, fromAccountId],
-  );
-
-  const toAccountOptions = useMemo(() => {
-    if (!fromAccount) return [];
-    return accounts.filter(
-      (a) =>
-        a.id !== fromAccount.id &&
-        a.currency_code === fromAccount.currency_code,
-    );
-  }, [accounts, fromAccount]);
 
   const derivedFromAccountId = useMemo(() => {
     if (fromAccountId && accounts.some(a => a.id === fromAccountId)) {
@@ -83,12 +70,36 @@ export default function TransactionCreateModal({
     return accounts[0]?.id ?? "";
   }, [fromAccountId, accounts]);
 
-  const effectiveToAccountId = 
-      type !== "transfer"
+  const fromAccount = useMemo(
+    () => (accounts ? accounts.find((a) => a.id === derivedFromAccountId) ?? null : null),
+    [accounts, derivedFromAccountId],
+  );
+
+  const toAccountOptions = useMemo(() => {
+    if (!fromAccount) return [];
+    return accounts.filter(
+      (a) =>
+        a.id !== derivedFromAccountId &&
+        a.currency_code === fromAccount.currency_code,
+    );
+  }, [accounts, fromAccount]);
+
+  const effectiveToAccountId =
+    type !== "transfer"
       ? null
-      : accounts.find((a) => a.id === toAccountId)?.currency_code === fromAccount?.currency_code
-      ? toAccountId
-      : null;
+      : (() => {
+          // Return toAccountId if valid and matches currency with fromAccount
+          const to = accounts.find(
+            (a) => a.id === toAccountId && a.currency_code === fromAccount?.currency_code && a.id !== fromAccount?.id,
+          );
+          if (to) return toAccountId;
+          // Otherwise, default: first account (not fromAccount) with same currency
+          const def = accounts.find(
+            (a) => a.id !== fromAccount?.id && a.currency_code === fromAccount?.currency_code,
+          );
+          return def?.id ?? null;
+        })();
+
 
   const amountTrimmed = amount.trim();
   const isIntegerString = /^\d+$/.test(amountTrimmed);
@@ -96,7 +107,7 @@ export default function TransactionCreateModal({
   const amountValid = isIntegerString && Number.isFinite(amountInt) && amountInt > 0;
 
   const categoryValid = categoryId.trim().length > 0;
-  const toValid = type !== "transfer" || (toAccountId ?? "").trim().length > 0;
+  const toValid = type !== "transfer" || (effectiveToAccountId ?? "").trim().length > 0;
 
   const canSubmit =
     !loading &&
@@ -215,9 +226,6 @@ export default function TransactionCreateModal({
                 }
                 className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               >
-                <option value="" disabled>
-                  Select destination account
-                </option>
                 {toAccountOptions.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.name} ({a.currency_code})

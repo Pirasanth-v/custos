@@ -32,6 +32,27 @@ function formatDate(value: string) {
   });
 }
 
+function formatTime(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hrs ago`;
+  if (diff < 2592000) {
+    const days = Math.floor(diff / 86400);
+    return `${days} day${days !== 1 ? "s" : ""} ago`;
+  }
+  if (diff < 31104000) {
+    const months = Math.floor(diff / 2592000);
+    return `${months} month${months !== 1 ? "s" : ""} ago`;
+  }
+
+  return date.toLocaleDateString();
+}
+
 export default function TransactionsTable({
   transactions,
   accountsById,
@@ -96,7 +117,7 @@ export default function TransactionsTable({
                     {formatDate(t.created_at)}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    {t.id.slice(0, 8)}
+                    {formatTime(t.created_at)}
                   </div>
                 </td>
 
