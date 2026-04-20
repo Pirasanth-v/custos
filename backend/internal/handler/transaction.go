@@ -55,6 +55,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+
 	// decode request
 	var req dto.CreateTransactionRequest
 	if !response.Decode(w, r, &req) {

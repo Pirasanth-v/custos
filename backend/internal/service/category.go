@@ -43,15 +43,14 @@ func (s *CategoryService) CreateCategory(ctx context.Context, role model.Role, o
 
 	// Generate new category ID
 	catID := uuid.New().String()
-	now := time.Now().UTC().Format(time.RFC3339)
 
 	category := model.Category{
 		ID:        catID,
 		OrgID:     orgID,
 		Name:      req.Name,
 		CreatedBy: userID,
-		CreatedAt: now,
-		UpdatedAt: now,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 		DeletedAt: nil,
 	}
 

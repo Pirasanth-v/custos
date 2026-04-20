@@ -21,6 +21,7 @@ func New(
 	currencyHandler *handler.CurrencyHandler,
 	tranHandler *handler.TransactionHandler,
 	categoryHandler *handler.CategoryHandler,
+	billHandler *handler.BillHandler,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -96,8 +97,8 @@ func New(
 				// Categories
 				r.Post("/orgs/{orgId}/categories", categoryHandler.CreateCategory)
 				r.Get("/orgs/{orgId}/categories", categoryHandler.GetCategories)
-				r.Patch("/orgs/{orgId}/categories/{catId}", categoryHandler.UpdateCategory)
-				r.Delete("/orgs/{orgId}/categories/{catId}", categoryHandler.DeleteCategory)
+				r.Patch("/orgs/{orgId}/categories/{categoryID}", categoryHandler.UpdateCategory)
+				r.Delete("/orgs/{orgId}/categories/{categoryID}", categoryHandler.DeleteCategory)
 
 				// Transaction
 				r.Post("/orgs/{orgId}/accounts/{accId}/transactions", tranHandler.CreateTransaction)
@@ -106,6 +107,17 @@ func New(
 				r.Get("/orgs/{orgId}/accounts/{accId}/transactions/{tranId}", tranHandler.GetTransactionByID)
 				r.Patch("/orgs/{orgId}/accounts/{accId}/transactions/{tranId}", tranHandler.UpdateTransaction)
 				r.Delete("/orgs/{orgId}/accounts/{accId}/transactions/{tranId}", tranHandler.DeleteTransaction)
+			
+				// Bills scoped to a transaction
+				r.Route("/transactions/{txId}/bills", func(r chi.Router) {
+					r.Get("/", billHandler.GetBillsByTransaction)
+					r.Post("/presign", billHandler.PresignUploads)
+					r.Post("/confirm", billHandler.ConfirmUploads)
+					r.Delete("/{billId}", billHandler.DeleteBill)
+				})
+			
+				// Files section in sidebar: all org bills
+				r.Get("/files", billHandler.GetOrgFiles)
 			})
 		})
     })

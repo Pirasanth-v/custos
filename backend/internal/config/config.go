@@ -34,7 +34,8 @@ type StorageConfig struct {
 	AccessKey string
 	SecretKey string
 	Bucket string
-	useSSL bool
+	UseSSL bool
+	PublicHost string	// e.g. "files.yourdomain.com" in prod, "localhost:9000" in dev
 }
 
 type SecurityConfig struct {
@@ -90,7 +91,8 @@ func Load() (*Config, error) {
 		AccessKey: require("STORAGE_ACCESS_KEY"),
 		SecretKey: require("STORAGE_SECRET_KEY"),
 		Bucket: optional("STORAGE_BUCKET", "custos"),
-		useSSL: os.Getenv("STORAGE_USE_SSL") == "true",
+		UseSSL: os.Getenv("STORAGE_USE_SSL") == "true",
+		PublicHost: optional("MINIO_PUBLIC_HOST", "localhost:9000"),
 	}
 
 	cfg.Security = SecurityConfig {

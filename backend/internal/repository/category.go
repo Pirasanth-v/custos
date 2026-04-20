@@ -26,12 +26,13 @@ func (r *CategoryRepository) WithTx(tx pgx.Tx) *CategoryRepository {
 func (r *CategoryRepository) CreateCategory(ctx context.Context, category model.Category) error {
 	query := `
 		INSERT INTO categories (
-			id, name, created_by, created_at, updated_at
+			id, org_id, name, created_by, created_at, updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5)
+		VALUES ($1, $2, $3, $4, $5, $6)
 	`
 	_, err := r.db.Exec(ctx, query,
 		category.ID,
+		category.OrgID,
 		category.Name,
 		category.CreatedBy,
 		category.CreatedAt,
@@ -60,11 +61,11 @@ func (r *CategoryRepository) GetCategoriesByOrgID(ctx context.Context, orgID str
 	for rows.Next() {
 		var c model.Category
 		err := rows.Scan(
-			&c.ID, 
-			&c.Name, 
-			&c.CreatedBy, 
-			&c.CreatedAt, 
-			&c.UpdatedAt, 
+			&c.ID,
+			&c.Name,
+			&c.CreatedBy,
+			&c.CreatedAt,
+			&c.UpdatedAt,
 			&c.DeletedAt,
 		); if err != nil {
 			return nil, fmt.Errorf("failed to scan into category: %w", err)
