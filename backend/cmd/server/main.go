@@ -48,6 +48,7 @@ func main() {
 	currencyRepo := repository.NewCurrencyRepository(db)
 	tranRepo := repository.NewTransactionRepository(db)
 	auditRepo := repository.NewAuditLogRepository(db)
+	categoryRepo := repository.NewCategoryRepository(db)
 
 	// Services
 	authService := service.NewAuthService(userRepo, sessionRepo, orgRepo, memberRepo, cfg.Security, db)
@@ -55,6 +56,7 @@ func main() {
 	accService := service.NewAccountService(db, currencyRepo, accRepo, ownershipRepo)
 	currencyService := service.NewCurrencyService(currencyRepo)
 	tranService := service.NewTransactionService(db, tranRepo, accRepo, ownershipRepo, auditRepo)
+	categoryService := service.NewCategoryService(db, categoryRepo, tranRepo)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService, cfg.Security)
@@ -62,6 +64,7 @@ func main() {
 	accHandler := handler.NewAccountHandler(accService)
 	currencyHandler := handler.NewCurrencyHandler(currencyService)
 	tranHandler := handler.NewTransactionHandler(tranService)
+	categoryHandler := handler.NewCategoryHandler(categoryService)
 
 	// Middlewares
 	authMiddleware := middleware.NewAuthMiddleware(sessionRepo)
@@ -76,6 +79,7 @@ func main() {
 		accHandler, 
 		currencyHandler,
 		tranHandler,
+		categoryHandler,
 	)
 	if err := http.ListenAndServe(":"+cfg.App.Port, router); err != nil {
 		log.Fatalf("Server failed :%v", err)

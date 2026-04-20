@@ -20,6 +20,7 @@ func New(
 	accHandler *handler.AccountHandler,
 	currencyHandler *handler.CurrencyHandler,
 	tranHandler *handler.TransactionHandler,
+	categoryHandler *handler.CategoryHandler,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -91,6 +92,12 @@ func New(
 				r.Get("/orgs/{orgId}/accounts/{accId}", accHandler.GetAccountByID)
 				r.Patch("/orgs/{orgId}/accounts/{accId}", accHandler.UpdateAccount)
 				r.Delete("/orgs/{orgId}/accounts/{accId}", accHandler.DeleteAccount)
+
+				// Categories
+				r.Post("/orgs/{orgId}/categories", categoryHandler.CreateCategory)
+				r.Get("/orgs/{orgId}/categories", categoryHandler.GetCategories)
+				r.Patch("/orgs/{orgId}/categories/{catId}", categoryHandler.UpdateCategory)
+				r.Delete("/orgs/{orgId}/categories/{catId}", categoryHandler.DeleteCategory)
 
 				// Transaction
 				r.Post("/orgs/{orgId}/accounts/{accId}/transactions", tranHandler.CreateTransaction)
