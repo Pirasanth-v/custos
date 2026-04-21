@@ -1,4 +1,5 @@
 import type { Account } from "@/features/account/types";
+import type { Category } from "@/features/category/types";
 import type { Transaction } from "@/features/transaction/types";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
@@ -9,6 +10,7 @@ import TransactionTypeBadge from "./TransactionTypeBadge";
 type TransactionsTableProps = {
   transactions: Transaction[];
   accountsById?: Record<string, Account>;
+  categoriesById?: Record<string, Category>;
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
 };
@@ -56,6 +58,7 @@ function formatTime(dateString: string) {
 export default function TransactionsTable({
   transactions,
   accountsById,
+  categoriesById,
   onEdit,
   onDelete,
 }: TransactionsTableProps) {
@@ -96,6 +99,7 @@ export default function TransactionsTable({
           {transactions.map((t) => {
             const fromAcc = accountsById?.[t.from_account_id];
             const toAcc = t.to_account_id ? accountsById?.[t.to_account_id] : undefined;
+            const category = t.category_id ? categoriesById?.[t.category_id] : undefined;
 
             const amountNum = Number(t.amount);
             const signed =
@@ -143,7 +147,9 @@ export default function TransactionsTable({
                         ? t.description.trim().slice(0, 30) + "..."
                         : t.description.trim()
                       : <span className="italic text-muted-foreground">—</span>}
-               
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Category: {category?.name ?? t.category_id ?? "—"}
                   </div>
                 </td>
 

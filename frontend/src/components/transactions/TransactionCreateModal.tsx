@@ -3,6 +3,7 @@ import { Loader2, Plus } from "lucide-react";
 import Modal from "@/components/ui/modal";
 import StatusMessage from "@/components/StatusMessage";
 import type { Account } from "@/features/account/types";
+import type { Category } from "@/features/category/types";
 import type {
   CreateTransactionRequest,
   TransactionType,
@@ -12,6 +13,7 @@ type TransactionCreateModalProps = {
   open: boolean;
   onClose: () => void;
   accounts: Account[];
+  categories: Category[];
   onSubmit: (payload: {
     fromAccountId: string;
     data: CreateTransactionRequest;
@@ -48,6 +50,7 @@ export default function TransactionCreateModal({
   open,
   onClose,
   accounts,
+  categories,
   onSubmit,
   loading = false,
   errorMessage,
@@ -56,11 +59,12 @@ export default function TransactionCreateModal({
   const [type, setType] = useState<TransactionType>("income");
   const [amount, setAmount] = useState<string>("0");
   const [description, setDescription] = useState<string>("");
-  const [categoryId, setCategoryId] = useState<string>("");
+  const [categoryId, setCategoryId] = useState<string>(categories[0]?.id ?? "");
   const [toAccountId, setToAccountId] = useState<string | null>(null);
   const [localError, setLocalError] = useState("");
 
   accounts = Array.isArray(accounts) ? accounts : [];
+  categories = Array.isArray(categories) ? categories : [];
 
 
   const derivedFromAccountId = useMemo(() => {
@@ -82,7 +86,14 @@ export default function TransactionCreateModal({
         a.id !== derivedFromAccountId &&
         a.currency_code === fromAccount.currency_code,
     );
-  }, [accounts, fromAccount]);
+  }, [accounts, fromAccount, derivedFromAccountId]);
+
+  const effectiveCategoryId = useMemo(() => {
+    if (categoryId && categories.some((c) => c.id === categoryId)) {
+      return categoryId;
+    }
+    return categories[0]?.id ?? "";
+  }, [categoryId, categories]);
 
   const effectiveToAccountId =
     type !== "transfer"
@@ -106,7 +117,7 @@ export default function TransactionCreateModal({
   const amountInt = Number(amountTrimmed);
   const amountValid = isIntegerString && Number.isFinite(amountInt) && amountInt > 0;
 
-  const categoryValid = categoryId.trim().length > 0;
+  const categoryValid = effectiveCategoryId.trim().length > 0;
   const toValid = type !== "transfer" || (effectiveToAccountId ?? "").trim().length > 0;
 
   const canSubmit =
@@ -192,19 +203,24 @@ export default function TransactionCreateModal({
           </Field>
 
           <Field
-            label="Category ID"
+            label="Category"
             required
-            helperText="Use your backend category_id string."
+            helperText="Select the category used for this transaction."
           >
-            <input
-              type="text"
-              value={categoryId}
+            <select
+              value={effectiveCategoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              placeholder="e.g. cat_123"
-              className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-              autoComplete="off"
-              spellCheck={false}
-            />
+              className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            >
+              <option value="" disabled>
+                Select category
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
 
@@ -277,7 +293,7 @@ export default function TransactionCreateModal({
                   type,
                   amount: amountTrimmed,
                   description: description.trim() ? description.trim() : null,
-                  category_id: categoryId.trim(),
+                  category_id: effectiveCategoryId.trim(),
                   to_account_id:
                     type === "transfer" ? (effectiveToAccountId ?? null) : null,
                 },

@@ -15,6 +15,7 @@ import { useUpdateOrg } from "@/features/organization/hooks/useUpdateOrg";
 import GeneralSettings from "./GeneralSettings";
 import MembersSettings from "./MembersSettings";
 import RolesPermissionsSettings from "./RolesPermissionsSettings";
+import CategoriesSettings from "./CategoriesSettings";
 import SettingsPlaceholder from "@/components/SettingsPlaceholder";
 
 const settingsSchema = z.object({
@@ -206,6 +207,8 @@ export default function SettingsPage() {
           <MembersSettings />
         ) : activeTab === "roles" ? (
           <RolesPermissionsSettings />
+        ) : activeTab === "categories" ? (
+          <CategoriesSettings />
         ) : (
           <SettingsPlaceholder activeTab={activeTab} />
         )}

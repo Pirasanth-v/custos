@@ -3,6 +3,7 @@ import { Loader2, Pencil } from "lucide-react";
 import Modal from "@/components/ui/modal";
 import StatusMessage from "@/components/StatusMessage";
 import type { Account } from "@/features/account/types";
+import type { Category } from "@/features/category/types";
 import type {
   Transaction,
   TransactionType,
@@ -14,6 +15,7 @@ type TransactionEditModalProps = {
   onClose: () => void;
   transaction: Transaction | null;
   accounts: Account[];
+  categories: Category[];
   onSubmit: (payload: {
     tranId: string;
     fromAccountId: string;
@@ -52,12 +54,14 @@ export default function TransactionEditModal({
   onClose,
   transaction,
   accounts,
+  categories,
   onSubmit,
   loading = false,
   errorMessage,
 }: TransactionEditModalProps) {
 
   accounts = Array.isArray(accounts) ? accounts : [];
+  categories = Array.isArray(categories) ? categories : [];
 
   // Set initial values straight from the transaction prop
   const [type, setType] = useState<TransactionType>(
@@ -97,16 +101,25 @@ export default function TransactionEditModal({
 
   const isTransfer = type === "transfer";
 
+  const effectiveCategoryId = useMemo(() => {
+    if (categoryId && categories.some((c) => c.id === categoryId)) {
+      return categoryId;
+    }
+    return categories[0]?.id ?? "";
+  }, [categoryId, categories]);
+
   const parsedAmount = useMemo(() => Number(amount), [amount]);
   const amountValid = Number.isFinite(parsedAmount) && parsedAmount > 0;
   const fromAccountValid = !!accounts.find(a => a.id === fromAccountId);
+  const categoryValid = effectiveCategoryId.trim().length > 0;
 
   const toAccountValid =
     !isTransfer ||
     ((toAccountId?.trim().length ?? 0) > 0 &&
       toAccountId !== fromAccountId &&
       !!accounts.find(a => a.id === toAccountId));
-  const canSubmitRequiredFields = !!transaction && amountValid && fromAccountValid && toAccountValid;
+  const canSubmitRequiredFields =
+    !!transaction && amountValid && fromAccountValid && categoryValid && toAccountValid;
 
   const effectiveToAccountId =
     isTransfer &&
@@ -123,11 +136,11 @@ export default function TransactionEditModal({
       transaction.type !== type ||
       String(transaction.amount ?? "") !== amount.trim() ||
       (transaction.description ?? "") !== description.trim() ||
-      (transaction.category_id ?? "") !== categoryId.trim() ||
+      (transaction.category_id ?? "") !== effectiveCategoryId.trim() ||
       (transaction.from_account_id ?? "") !== fromAccountId ||
       originalTo !== normalizedTo
     );
-  }, [transaction, type, amount, description, categoryId, fromAccountId, toAccountId]);
+  }, [transaction, type, amount, description, effectiveCategoryId, fromAccountId, toAccountId]);
 
   const canSubmit = canSubmitRequiredFields && hasChanged && !loading;
 
@@ -175,7 +188,7 @@ export default function TransactionEditModal({
         type,
         amount: amount.trim(),
         description: description.trim(),
-        category_id: categoryId.trim(),
+        category_id: effectiveCategoryId.trim(),
         version,
       },
     });
@@ -301,13 +314,20 @@ export default function TransactionEditModal({
             </Field>
 
             <Field label="Category" required>
-              <input
-                type="text"
-                value={categoryId}
+              <select
+                value={effectiveCategoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                placeholder="e.g. office_supplies"
-                className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-              />
+                className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              >
+                <option value="" disabled>
+                  Select category
+                </option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </Field>
           </div>
 

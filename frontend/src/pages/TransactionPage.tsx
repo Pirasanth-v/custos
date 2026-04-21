@@ -5,6 +5,8 @@ import { Loader2, Plus, RotateCcw } from "lucide-react";
 import useOrgStore from "@/store/orgStore";
 import type { Account } from "@/features/account/types";
 import { useGetAccountsByOrgId } from "@/features/account/hooks/useGetAccountsByOrgId";
+import type { Category } from "@/features/category/types";
+import { useGetCategoriesByOrgId } from "@/features/category/hooks/useGetCategoriesByOrgId";
 import type {
   Transaction,
   TransactionType,
@@ -32,6 +34,18 @@ function createAccountsById(accounts: Account[]): Record<string, Account> {
       return acc;
     },
     {} as Record<string, Account>,
+  );
+}
+
+function createCategoriesById(
+  categories: Category[],
+): Record<string, Category> {
+  return categories.reduce(
+    (acc, category) => {
+      acc[category.id] = category;
+      return acc;
+    },
+    {} as Record<string, Category>,
   );
 }
 
@@ -64,11 +78,20 @@ export default function TransactionPage() {
     loading: accountsLoading,
     error: accountsError,
   } = useGetAccountsByOrgId(orgId);
+  const {
+    data: categoriesList = [],
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useGetCategoriesByOrgId(orgId);
 
   const accountsById = useMemo(() => {
     if (accountsLoading || !accountsList?.length) return undefined;
     return createAccountsById(accountsList);
   }, [accountsLoading, accountsList]);
+  const categoriesById = useMemo(() => {
+    if (categoriesLoading || !categoriesList?.length) return undefined;
+    return createCategoriesById(categoriesList);
+  }, [categoriesLoading, categoriesList]);
 
   const {
     data,
@@ -151,6 +174,12 @@ export default function TransactionPage() {
                 Loading accounts...
               </>
             ) : null}
+            {categoriesLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading categories...
+              </>
+            ) : null}
 
             <button
               type="button"
@@ -159,7 +188,11 @@ export default function TransactionPage() {
                 setCreateOpen(true);
               }}
               disabled={
-                accountsLoading || !orgId || (accountsList?.length ?? 0) === 0
+                accountsLoading ||
+                categoriesLoading ||
+                !orgId ||
+                (accountsList?.length ?? 0) === 0 ||
+                (categoriesList?.length ?? 0) === 0
               }
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -183,6 +216,19 @@ export default function TransactionPage() {
                 typeof accountsError === "object"
                   ? ((accountsError as Error).message ?? String(accountsError))
                   : String(accountsError)
+              }
+            />
+          </div>
+        ) : null}
+        {categoriesError ? (
+          <div className="mb-6">
+            <StatusMessage
+              type="error"
+              message={
+                typeof categoriesError === "object"
+                  ? ((categoriesError as Error).message ??
+                    String(categoriesError))
+                  : String(categoriesError)
               }
             />
           </div>
@@ -248,6 +294,7 @@ export default function TransactionPage() {
               <TransactionsTable
                 transactions={paginatedTransactions}
                 accountsById={accountsById}
+                categoriesById={categoriesById}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
@@ -286,6 +333,7 @@ export default function TransactionPage() {
             onClose={() => setEditOpen(false)}
             transaction={selectedTransaction}
             accounts={accountsList as Account[]}
+            categories={categoriesList as Category[]}
             loading={updateMutation.isPending}
             errorMessage={editError ?? updateMutation.error?.message ?? null}
             onSubmit={async ({ tranId, fromAccountId, data }) => {
@@ -315,6 +363,7 @@ export default function TransactionPage() {
             open={createOpen}
             onClose={() => setCreateOpen(false)}
             accounts={accountsList as Account[]}
+            categories={categoriesList as Category[]}
             loading={createMutation.isPending}
             errorMessage={createError ?? createMutation.error?.message ?? null}
             onSubmit={async ({ fromAccountId, data }) => {
