@@ -117,7 +117,7 @@ func New(
 				})
 			
 				// Files section in sidebar: all org bills
-				r.Get("/files", billHandler.GetOrgFiles)
+				r.Get("/orgs/{orgId}/bills", billHandler.GetOrgFiles)
 			})
 		})
     })

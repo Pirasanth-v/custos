@@ -21,3 +21,34 @@ export type ConfirmBillInput = {
   mime_type: string;         // required
   file_size_bytes: number;   // required
 };
+
+export type BillFileType = "image" | "pdf" | "other";
+ 
+export interface Bill {
+  id: string;
+  transaction_id: string;
+  org_id: string;
+  uploaded_by: string;
+  view_url: string;
+  file_name: string;
+  mime_type: string;
+  file_size_bytes: number; // bytes
+  url: string; // presigned GET url 
+  created_at: string;
+}
+ 
+export interface BillsResponse {
+  data: Bill[];
+}
+ 
+export type BillView = "grid" | "list";
+ 
+export type BillSortKey = "uploaded_at" | "file_name" | "file_size";
+export type BillSortDir = "asc" | "desc";
+ 
+export interface BillFilters {
+  search: string;
+  type: "all" | "image" | "pdf" | "other";
+  sortKey: BillSortKey;
+  sortDir: BillSortDir;
+}

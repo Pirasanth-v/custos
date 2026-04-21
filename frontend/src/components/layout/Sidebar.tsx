@@ -27,7 +27,7 @@ const sidebarItems: SidebarItem[] = [
   { label: "Budgets", to: "/budgets", icon: PiggyBank },
   { label: "Approvals", to: "/approvals", icon: CheckSquare },
   { label: "Reports", to: "/reports", icon: FileText },
-  { label: "Files", to: "/files", icon: Folder },
+  { label: "Files", to: "/bills", icon: Folder },
   { label: "Settings", to: "/settings", icon: Settings },
 ]
 

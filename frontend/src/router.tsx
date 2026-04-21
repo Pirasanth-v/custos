@@ -8,6 +8,7 @@ import CreateOrganizationPage from "./pages/CreateOrgPage"
 import SettingsPage from "./pages/settings/SettingsPage"
 import AccountsPage from "./pages/AccountsPage"
 import TransactionPage from "./pages/TransactionPage"
+import BillsPage from "./pages/BillsPage"
 
 export const router = createBrowserRouter ([
     {
@@ -48,6 +49,10 @@ export const router = createBrowserRouter ([
             {
                 path: '/transactions',
                 element: <TransactionPage />
+            },
+            {
+                path: '/bills',
+                element: <BillsPage />
             },
             {
                 path: "/settings",
