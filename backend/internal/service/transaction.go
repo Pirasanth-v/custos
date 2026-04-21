@@ -6,7 +6,6 @@ import (
 	"time"
 	"errors"
 	"encoding/json"
-	"strconv"
 	"github.com/shopspring/decimal"
 
 	"github.com/pirasanth-v/custos/internal/dto"
@@ -40,20 +39,20 @@ func NewTransactionService(
 	}
 }
 
-func (s *TransactionService) CreateTransaction(ctx context.Context, role model.Role, accID, userID, orgID string, req *dto.CreateTransactionRequest) error {
+func (s *TransactionService) CreateTransaction(ctx context.Context, role model.Role, accID, userID, orgID string, req *dto.CreateTransactionRequest) (string, error) {
 	// check for permission
 	if !role.HasPermission(model.PermCreateTransaction) {
-		return errors.New("insufficient permissions")
+		return "", errors.New("insufficient permissions")
 	}
 
 	// check amount > 0
-	amountInt, err := strconv.Atoi(req.Amount)
-	if err != nil || amountInt <= 0 {
-		return errors.New("transaction amount cannot be zero")
+	amountDec, err := decimal.NewFromString(req.Amount)
+	if err != nil || amountDec.Cmp(decimal.Zero) <= 0 {
+		return "", errors.New("transaction amount cannot be zero")
 	}
 
 	if req.Type == "transfer" && (req.ToAccountID == nil || *req.ToAccountID == "") {
-			return errors.New("to_account_id must be provided for transfer transactions")
+		return "", errors.New("to_account_id must be provided for transfer transactions")
 	}
 	
 
@@ -80,7 +79,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, role model.R
 	// serialize transaction for after_state
 	afterState, err := json.Marshal(transaction)
 	if err != nil {
-		return fmt.Errorf("failed to marshal transaction for audit log: %w", err)
+		return "", fmt.Errorf("failed to marshal transaction for audit log: %w", err)
 	}
 
 	// create log
@@ -107,7 +106,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, role model.R
 	// begin transaction 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return "", fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer func() {
 		_ = tx.Rollback(ctx)
@@ -120,35 +119,35 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, role model.R
 
 	fromAccount, err := accRepo.GetAccountByID(ctx, accID)
 	if err != nil {
-		return fmt.Errorf("failed to get from-account: %w", err)
+		return "", fmt.Errorf("failed to get from-account: %w", err)
 	}
 
 	belongs, err := s.ownershipRepo.IsBelongs(ctx, orgID, accID)
 	if err != nil {
-		return fmt.Errorf("failed to check account-organization ownership: %w", err)
+		return "", fmt.Errorf("failed to check account-organization ownership: %w", err)
 	}
 	if !belongs {
-		return errors.New("from-account does not belong to the same organization")
+		return "", errors.New("from-account does not belong to the same organization")
 	}
 
 	// Prevent creating an EXPENSE or TRANSFER transaction that would overdraw the source account
 	if req.Type == model.TransactionTypeExpense || req.Type == model.TransactionTypeTransfer {
 		newAmt, err := decimal.NewFromString(req.Amount)
 		if err != nil {
-			return fmt.Errorf("failed to parse amount: %w", err)
+			return "", fmt.Errorf("failed to parse amount: %w", err)
 		}
 
 		fromBalanceRaw, err := accRepo.GetNetBalanceByAccID(ctx, fromAccount.ID)
 		if err != nil {
-			return fmt.Errorf("could not get from account balance: %w", err)
+			return "", fmt.Errorf("could not get from account balance: %w", err)
 		}
 		fromBalance, err := decimal.NewFromString(fromBalanceRaw)
 		if err != nil {
-			return fmt.Errorf("failed to parse from account balance: %w", err)
+			return "", fmt.Errorf("failed to parse from account balance: %w", err)
 		}
 		adjusted := fromBalance.Sub(newAmt)
 		if adjusted.LessThan(decimal.Zero) {
-			return errors.New("source account balance would go negative after this transaction")
+			return "", errors.New("source account balance would go negative after this transaction")
 		}
 	}
 
@@ -156,41 +155,41 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, role model.R
 	if req.Type == "transfer" {
 		toAccount, err := accRepo.GetAccountByID(ctx, *req.ToAccountID)
 		if err != nil {
-			return fmt.Errorf("failed to get to-account: %w", err)
+			return "", fmt.Errorf("failed to get to-account: %w", err)
 		}
 		belongs, err = s.ownershipRepo.IsBelongs(ctx, orgID, toAccount.ID)
 		if err != nil {
-			return fmt.Errorf("failed to check to-account organization ownership: %w", err)
+			return "", fmt.Errorf("failed to check to-account organization ownership: %w", err)
 		}
 		if !belongs {
-			return errors.New("to-account does not belong to the same organization")
+			return "", errors.New("to-account does not belong to the same organization")
 		}
 		if fromAccount.CurrencyID != toAccount.CurrencyID {
-			return errors.New("both accounts should have the same currency")
+			return "", errors.New("both accounts should have the same currency")
 		}
 	}
 
 	// step 1 create transaction
 	if err := tranRepo.CreateTransaction(ctx, transaction); err != nil {
-		return fmt.Errorf("failed to create transaction: %w", err)
+		return "", fmt.Errorf("failed to create transaction: %w", err)
 	}
 
 	// step 2 update balance
 	if err := accRepo.UpdateNetBalance(ctx, updateNetBalanceBody); err != nil {
-		return fmt.Errorf("failed to update net balance: %w", err)
+		return "", fmt.Errorf("failed to update net balance: %w", err)
 	}
 
 	// step 3 create audit entry
 	if err := auditRepo.CreateAuditLog(ctx, log); err != nil {
-		return fmt.Errorf("failed to create audit entry: %w", err)
+		return "", fmt.Errorf("failed to create audit entry: %w", err)
 	}
 
 	// commit transaction
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return "", fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	return nil
+	return transaction.ID, nil
 
 }
 

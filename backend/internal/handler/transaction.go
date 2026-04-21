@@ -63,14 +63,15 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	}
 
 	// call service
-	if err := h.tranService.CreateTransaction(
+	tranID, err := h.tranService.CreateTransaction(
 		r.Context(),
 		*role,
 		accID,
 		userID,
 		orgID,
 		&req,
-	); err != nil {
+	)
+	if err != nil {
 		switch err.Error() {
 		case "insufficient permissions":
 			slog.Warn("insufficient permissions in CreateTransaction")
@@ -97,9 +98,9 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 			response.Error(w, http.StatusInternalServerError, "failed to create transaction")
 			return
 		}
-	}
+	}	
 
-	response.Success(w, http.StatusCreated, "transaction created successfully")
+	response.JSON(w, http.StatusCreated, map[string]string{"id": tranID})
 
 }
 

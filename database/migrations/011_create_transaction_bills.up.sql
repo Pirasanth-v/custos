@@ -6,7 +6,7 @@ CREATE TABLE transaction_bills (
     object_key TEXT NOT NULL UNIQUE,                   -- MinIO path: bills/{orgId}/{txId}/{uuid}-{filename}
     file_name VARCHAR(255) NOT NULL,                    -- original filename shown to user
     mime_type VARCHAR(255) NOT NULL,
-    file_size_bytes BIGINT NOT NULL CHECK (file_size > 0),
+    file_size_bytes BIGINT NOT NULL CHECK (file_size_bytes > 0),
     --checksum_sha256 CHAR(64) NOT NULL,
     is_confirmed BOOLEAN NOT NULL DEFAULT FALSE,        -- false until browser confirms upload
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

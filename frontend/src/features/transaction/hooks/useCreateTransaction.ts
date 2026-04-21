@@ -4,7 +4,7 @@ import type { CreateTransactionRequest } from "../types";
 
 export function useCreateTransaction(orgId: string) {
   return useMutation<
-    void,
+    { id: string }, // mutation returns the object from createTransaction
     Error,
     { fromAccountId: string; data: CreateTransactionRequest }
   >({

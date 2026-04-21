@@ -22,6 +22,12 @@ import TransactionsPagination from "@/components/transactions/TransactionsPagina
 import TransactionCreateModal from "@/components/transactions/TransactionCreateModal";
 import TransactionEditModal from "@/components/transactions/TransactionEditModal";
 import TransactionDeleteModal from "@/components/transactions/TransactionDeleteModal";
+import { useGetPresignURL } from "@/features/bills/hooks/useGetPresignURL";
+import type {
+  ConfirmBillInput,
+  PresignFileInput,
+} from "@/features/bills/types";
+import { useConfirmUploads } from "@/features/bills/hooks/useConfirmUploads";
 
 function SkeletonRow() {
   return <div className="h-16 animate-pulse rounded-2xl bg-muted/50" />;
@@ -72,6 +78,8 @@ export default function TransactionPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+
+  const [pendingTxId, setPendingTxId] = useState<string | "">("");
 
   const {
     data: accountsList = [],
@@ -140,6 +148,9 @@ export default function TransactionPage() {
   const updateMutation = useUpdateTransaction(orgId);
   const deleteMutation = useDeleteTransaction(orgId);
   const createMutation = useCreateTransaction(orgId);
+
+  const presignMutation = useGetPresignURL(orgId);
+  const confirmMutation = useConfirmUploads(orgId);
 
   const handleEdit = (t: Transaction) => {
     setEditError(null);
@@ -361,18 +372,79 @@ export default function TransactionPage() {
           <TransactionCreateModal
             key={createOpen ? "create-open" : "create-closed"}
             open={createOpen}
-            onClose={() => setCreateOpen(false)}
+            onClose={() => {
+              setPendingTxId("");
+              setCreateOpen(false);
+            }}
             accounts={accountsList as Account[]}
             categories={categoriesList as Category[]}
             loading={createMutation.isPending}
             errorMessage={createError ?? createMutation.error?.message ?? null}
-            onSubmit={async ({ fromAccountId, data }) => {
+            onSubmit={async ({ fromAccountId, data, files }) => {
               try {
                 setCreateError(null);
-                await createMutation.mutateAsync({ fromAccountId, data });
+                // 1. create transaction and get the id
+                let txId = pendingTxId;
+                if (!txId) {
+                  const res = await createMutation.mutateAsync({
+                    fromAccountId,
+                    data,
+                  });
+                  txId = res.id;
+                  setPendingTxId(txId);
+                }
+
+                // 2. only run if user attached bills
+                if (files.length > 0) {
+                  // Convert files to PresignFileInput array for bill uploads
+                  const bills = files.map((f) => ({
+                    file_name: f.name,
+                    mime_type: f.type,
+                    file_size_bytes: f.size,
+                  })) as PresignFileInput[];
+
+                  const presignURL = await presignMutation.mutateAsync({
+                    txId,
+                    bills,
+                  });
+
+                  // 3. PUT each file directly to MinIO using the presigned URL
+                  await Promise.all(
+                    presignURL.map(({ upload_url, file_name }) => {
+                      const bill = files.find((b) => b.name === file_name)!;
+                      return fetch(upload_url, {
+                        method: "PUT",
+                        body: bill,
+                        headers: { "Content-Type": bill.type },
+                      });
+                    }),
+                  );
+
+                  // 4. Confirm that files are uploaded to bucket from go server
+                  const toBeConfirmBills = presignURL.map(
+                    ({ object_key, file_name }) => {
+                      const bill = files.find((b) => b.name === file_name)!;
+                      return {
+                        object_key,
+                        file_name,
+                        mime_type: bill.type,
+                        file_size_bytes: bill.size,
+                      };
+                    },
+                  ) as ConfirmBillInput[];
+
+                  await confirmMutation.mutateAsync({
+                    txId,
+                    bills: toBeConfirmBills,
+                  });
+                }
+
+                setPendingTxId("");
+
                 queryClient.invalidateQueries({
                   queryKey: ["org", orgId, "transactions"],
                 });
+
                 setCreateOpen(false);
               } catch (err) {
                 let message = "Something went wrong, try again";

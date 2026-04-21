@@ -51,10 +51,11 @@ export const createTransaction = async (
   orgId: string,
   fromAccountId: string,
   data: CreateTransactionRequest,
-): Promise<void> => {
-  await api.post(
+): Promise<{ id: string }> => {
+  const response = await api.post(
     `/orgs/${orgId}/accounts/${fromAccountId}/transactions`,
     data,
   );
+  return response.data
 };
 

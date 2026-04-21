@@ -109,7 +109,7 @@ func New(
 				r.Delete("/orgs/{orgId}/accounts/{accId}/transactions/{tranId}", tranHandler.DeleteTransaction)
 			
 				// Bills scoped to a transaction
-				r.Route("/transactions/{txId}/bills", func(r chi.Router) {
+				r.Route("/orgs/{orgId}/transactions/{txId}/bills", func(r chi.Router) {
 					r.Get("/", billHandler.GetBillsByTransaction)
 					r.Post("/presign", billHandler.PresignUploads)
 					r.Post("/confirm", billHandler.ConfirmUploads)
