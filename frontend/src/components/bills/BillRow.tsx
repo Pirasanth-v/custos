@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Download, Trash2, Eye, Loader2 } from "lucide-react";
 import type { Bill } from "@/features/bills/types";
-import { BillTypeBadge, BillTypeIcon, humanSize, getFileType } from "./BillMetaBadge";
+import { BillTypeBadge, BillTypeIcon } from "./BillMetaBadge";
+import { getFileType, humanSize } from "@/features/bills/utils";
 import { format } from "date-fns";
 
 interface BillRowProps {
