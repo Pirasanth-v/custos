@@ -44,3 +44,8 @@ export type CreateTransactionRequest = {
   to_account_id: string | null;
 };
 
+export type GetTransactionsParams = {
+  cursor?: string;
+  limit?: number;
+};
+

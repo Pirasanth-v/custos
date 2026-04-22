@@ -143,7 +143,7 @@ func (h *BillHandler) GetOrgFiles(w http.ResponseWriter, r *http.Request) {
 
 	params := dto.PaginationParams{
 		Cursor: r.URL.Query().Get("cursor"),
-		Limit:  20, // default
+		Limit:  10, // default
 	}
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
 		if lim, err := strconv.Atoi(limitStr); err == nil && lim > 0 && lim <= 100 {

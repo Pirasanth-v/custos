@@ -7,9 +7,9 @@ export function useBills(orgId: string) {
     queryKey: ["bills", orgId ],
     queryFn: async () => {
       const res = await getBillsByOrg(orgId);
-      return res.data ?? [];
+      return res ?? [];
     },
     enabled: Boolean(orgId),
-    staleTime: 30_000,
+    staleTime: 0,
   });
 }

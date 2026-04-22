@@ -23,11 +23,13 @@ import TransactionCreateModal from "@/components/transactions/TransactionCreateM
 import TransactionEditModal from "@/components/transactions/TransactionEditModal";
 import TransactionDeleteModal from "@/components/transactions/TransactionDeleteModal";
 import { useGetPresignURL } from "@/features/bills/hooks/useGetPresignURL";
-import type {
-  ConfirmBillInput,
-  PresignFileInput,
+import {
+  type ConfirmBillInput,
+  type PresignFileInput,
 } from "@/features/bills/types";
 import { useConfirmUploads } from "@/features/bills/hooks/useConfirmUploads";
+import { useBillsByTransaction } from "@/features/bills/hooks/useGetBillsByTransaction";
+import { useDeleteBill } from "@/features/bills/hooks/useDeleteBill";
 
 function SkeletonRow() {
   return <div className="h-16 animate-pulse rounded-2xl bg-muted/50" />;
@@ -81,11 +83,18 @@ export default function TransactionPage() {
 
   const [pendingTxId, setPendingTxId] = useState<string | "">("");
 
+  const selectedTransactionId = selectedTransaction?.id ?? "";
+  const { data: existingBills = [] } = useBillsByTransaction(
+    orgId,
+    selectedTransactionId,
+  );
+
   const {
     data: accountsList = [],
     loading: accountsLoading,
     error: accountsError,
   } = useGetAccountsByOrgId(orgId);
+
   const {
     data: categoriesList = [],
     loading: categoriesLoading,
@@ -151,6 +160,8 @@ export default function TransactionPage() {
 
   const presignMutation = useGetPresignURL(orgId);
   const confirmMutation = useConfirmUploads(orgId);
+  const { mutateAsync: deleteBillMutation, isPending: isDeleting } =
+    useDeleteBill(orgId, selectedTransactionId);
 
   const handleEdit = (t: Transaction) => {
     setEditError(null);
@@ -345,16 +356,82 @@ export default function TransactionPage() {
             transaction={selectedTransaction}
             accounts={accountsList as Account[]}
             categories={categoriesList as Category[]}
+            existingBills={existingBills}
             loading={updateMutation.isPending}
+            deleting={isDeleting}
             errorMessage={editError ?? updateMutation.error?.message ?? null}
-            onSubmit={async ({ tranId, fromAccountId, data }) => {
+            onSubmit={async ({
+              tranId,
+              fromAccountId,
+              data,
+              filesToAdd,
+              billIdsToDelete,
+            }) => {
               try {
                 setEditError(null);
+                // 1. update transactions details
                 await updateMutation.mutateAsync({
                   tranId,
                   fromAccountId,
                   data,
                 });
+
+                // 2. only run if user added more bills
+                if (filesToAdd.length > 0) {
+                  // Convert files to PresignFileInput array for bill uploads
+                  const bills = filesToAdd.map((f) => ({
+                    file_name: f.name,
+                    mime_type: f.type,
+                    file_size_bytes: f.size,
+                  })) as PresignFileInput[];
+
+                  const presignURL = await presignMutation.mutateAsync({
+                    txId: tranId,
+                    bills,
+                  });
+
+                  // 3. PUT each file directly to MinIO using the presigned URL
+                  await Promise.all(
+                    presignURL.map(({ upload_url, file_name }) => {
+                      const bill = filesToAdd.find(
+                        (b) => b.name === file_name,
+                      )!;
+                      return fetch(upload_url, {
+                        method: "PUT",
+                        body: bill,
+                        headers: { "Content-Type": bill.type },
+                      });
+                    }),
+                  );
+
+                  // 4. Confirm that files are uploaded to bucket from go server
+                  const toBeConfirmBills = presignURL.map(
+                    ({ object_key, file_name }) => {
+                      const bill = filesToAdd.find(
+                        (b) => b.name === file_name,
+                      )!;
+                      return {
+                        object_key,
+                        file_name,
+                        mime_type: bill.type,
+                        file_size_bytes: bill.size,
+                      };
+                    },
+                  ) as ConfirmBillInput[];
+
+                  await confirmMutation.mutateAsync({
+                    txId: tranId,
+                    bills: toBeConfirmBills,
+                  });
+                }
+
+                // 3. delete bills
+                if (billIdsToDelete.length > 0) {
+                  for (const billId of billIdsToDelete) {
+                    await deleteBillMutation(billId);
+                  }
+                }
+
                 queryClient.invalidateQueries({
                   queryKey: ["org", orgId, "transactions"],
                 });
@@ -466,7 +543,16 @@ export default function TransactionPage() {
             onConfirm={async ({ tranId, fromAccountId }) => {
               try {
                 setDeleteError(null);
+                // 1. Delete linked bills
+                if (existingBills.length > 0) {
+                  for (const bill of existingBills) {
+                    await deleteBillMutation(bill.id);
+                  }
+                }
+
+                // 2. Delete transaction
                 await deleteMutation.mutateAsync({ tranId, fromAccountId });
+
                 queryClient.invalidateQueries({
                   queryKey: ["org", orgId, "transactions"],
                 });

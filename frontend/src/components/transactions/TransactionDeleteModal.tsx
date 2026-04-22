@@ -8,7 +8,10 @@ type TransactionDeleteModalProps = {
   open: boolean;
   onClose: () => void;
   transaction: Transaction | null;
-  onConfirm: (payload: { tranId: string; fromAccountId: string }) => Promise<void> | void;
+  onConfirm: (payload: { 
+    tranId: string; 
+    fromAccountId: string ;
+  }) => Promise<void> | void;
   loading?: boolean;
   errorMessage?: string | null;
 };
@@ -111,7 +114,10 @@ export default function TransactionDeleteModal({
           <button
             type="button"
             disabled={!canDelete}
-            onClick={() => onConfirm({ tranId: transaction.id, fromAccountId: transaction.from_account_id })}
+            onClick={() => onConfirm({ 
+              tranId: transaction.id, 
+              fromAccountId: transaction.from_account_id
+            })}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-destructive px-5 text-sm font-medium text-white transition hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? (

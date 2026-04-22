@@ -4,12 +4,8 @@ import type {
   CreateTransactionRequest,
   Transaction,
   UpdateTransactionRequest,
+  GetTransactionsParams,
 } from "./types";
-
-export type GetTransactionsParams = {
-  cursor?: string;
-  limit?: number;
-};
 
 export const getTransactionsByOrgId = async (
   orgId: string,

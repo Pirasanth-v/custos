@@ -37,10 +37,6 @@ export interface Bill {
   created_at: string;
 }
  
-export interface BillsResponse {
-  data: Bill[];
-}
- 
 export type BillView = "grid" | "list";
  
 export type BillSortKey = "uploaded_at" | "file_name" | "file_size";
@@ -52,3 +48,14 @@ export interface BillFilters {
   sortKey: BillSortKey;
   sortDir: BillSortDir;
 }
+
+export type GetOrgBillsParams = {
+  cursor?: string;
+  limit?: number;
+}
+
+export type PaginatedResponse<B> = {
+  data: B[];
+  next: string;
+  has_more: boolean;
+};

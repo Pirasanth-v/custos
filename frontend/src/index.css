@@ -57,5 +57,37 @@ html.dark {
   --color-popover-foreground: #F8FAFC;
 }
 
-/* Enables dark: variant in Tailwind (if using custom integration) */
-@custom-variant dark (&:where(.dark, .dark *));
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #2E2C2A;
+  border-radius: 999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #A8A29E;
+}
+
+/* Light mode override */
+html:not(.dark) .scrollbar-thin {
+  scrollbar-color: #E2DED9 transparent;
+}
+
+html:not(.dark) .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #E2DED9;
+}
+
+html:not(.dark) .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #78716C;
+}
