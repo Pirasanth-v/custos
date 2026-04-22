@@ -61,7 +61,7 @@ func (r *DashboardRepository) GetRecentTransactions(ctx context.Context, orgID s
             amount, 
             description, 
             created_at AS transaction_date, 
-            status,
+            status
         FROM transactions
         WHERE org_id = $1 
           AND deleted_at IS NULL
@@ -106,7 +106,7 @@ func (r *DashboardRepository) GetMonthlySummary(ctx context.Context, orgID strin
           AND month >= DATE_TRUNC('month', NOW()) - ($2 - 1) * INTERVAL '1 month'
         ORDER BY month ASC
     `
-
+	
 	rows, err := r.db.Query(ctx, query, orgID, months)
 	if err != nil {
 		return nil, err

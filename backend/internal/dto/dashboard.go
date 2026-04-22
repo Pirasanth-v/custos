@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"time"
+
 	"github.com/pirasanth-v/custos/internal/model"
 )
 
@@ -10,12 +12,12 @@ type TransactionSummary struct {
 	Type           model.TransactionType   `json:"type"`
 	Amount         string                  `json:"amount"`
 	Description    *string                 `json:"description,omitempty"`
-	TransactionDate string                 `json:"transaction_date"`
+	TransactionDate time.Time                 `json:"transaction_date"`
 	Status         model.TransactionStatus `json:"status"`
 }
 
 type MonthlySummary struct {
-	Month         string `json:"month"`
+	Month         time.Time `json:"month"`
 	TotalIncome   string `json:"total_income"`
 	TotalExpense  string `json:"total_expense"`
 }
