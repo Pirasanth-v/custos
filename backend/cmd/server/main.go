@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/pirasanth-v/custos/internal/config"
-	db "github.com/pirasanth-v/custos/internal/database"
+	"github.com/pirasanth-v/custos/internal/database"
 	"github.com/pirasanth-v/custos/internal/storage"
 	"github.com/pirasanth-v/custos/internal/server"
 	"github.com/pirasanth-v/custos/internal/handler"
@@ -26,7 +26,7 @@ func main() {
 	slog.Info("Cfg is loaded and ready to use")
 
 	// Connect to DB
-	db, err := db.Connect(cfg.DB)
+	db, err := database.Connect(cfg.DB)
 	if err != nil {
 		log.Fatalf("Failed to connect database: %v", err)
 	}
@@ -59,6 +59,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() 
+
+	database.StartViewRefresher(ctx, db)
+
 	// Repositories
 	userRepo := repository.NewUserRepository(db)
 	sessionRepo := repository.NewSessionRepository(db)
@@ -72,6 +77,7 @@ func main() {
 	auditRepo := repository.NewAuditLogRepository(db)
 	categoryRepo := repository.NewCategoryRepository(db)
 	billRepo := repository.NewBillRespository(db)
+	dashboardRepo := repository.NewDashboardRepository(db)
 
 	// Services
 	authService := service.NewAuthService(userRepo, sessionRepo, orgRepo, memberRepo, cfg.Security, db)
@@ -81,6 +87,7 @@ func main() {
 	tranService := service.NewTransactionService(db, tranRepo, accRepo, ownershipRepo, auditRepo)
 	categoryService := service.NewCategoryService(db, categoryRepo, tranRepo)
 	billService := service.NewBillService(db, billRepo, tranRepo, auditRepo, minioClient)
+	dashboardService := service.NewDashboardService(dashboardRepo)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService, cfg.Security)
@@ -90,6 +97,7 @@ func main() {
 	tranHandler := handler.NewTransactionHandler(tranService)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 	billHandler := handler.NewBillHandler(billService)
+	dashboardHandler := handler.NewDashboardHandler(dashboardService)
 
 	// Middlewares
 	authMiddleware := middleware.NewAuthMiddleware(sessionRepo)
@@ -106,9 +114,11 @@ func main() {
 		tranHandler,
 		categoryHandler,
 		billHandler,
+		dashboardHandler,
 	)
 	if err := http.ListenAndServe(":"+cfg.App.Port, router); err != nil {
 		log.Fatalf("Server failed :%v", err)
 	}
 	
 }
+
