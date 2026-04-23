@@ -216,7 +216,6 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	// get user details
 	userResponse, err := h.authService.Me(r.Context(), userID)
 	if err != nil {
