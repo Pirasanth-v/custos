@@ -103,7 +103,6 @@ export default function SettingsPage() {
         setValue("businessAddress", organizationData.address || "", { shouldDirty: false });
       }
     }
-    // eslint-disable-next-line
   }, [organizationData?.name, organizationData?.email, organizationData?.address, reset, setValue]);
 
   const onSubmit = async (data: SettingsFormData) => {

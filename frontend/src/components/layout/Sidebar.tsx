@@ -7,10 +7,10 @@ import {
   PiggyBank,
   CheckSquare,
   FileText,
-  Folder,
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
+  Receipt,
 } from "lucide-react"
 import logo from "@/assets/logo_crop.png"
 
@@ -27,7 +27,7 @@ const sidebarItems: SidebarItem[] = [
   { label: "Budgets", to: "/budgets", icon: PiggyBank },
   { label: "Approvals", to: "/approvals", icon: CheckSquare },
   { label: "Reports", to: "/reports", icon: FileText },
-  { label: "Files", to: "/bills", icon: Folder },
+  { label: "Bills", to: "/bills", icon: Receipt },
   { label: "Settings", to: "/settings", icon: Settings },
 ]
 

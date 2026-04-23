@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ArrowLeft, Receipt, AlertCircle, RefreshCw } from "lucide-react";
-import { Link } from "react-router-dom";
+import { AlertCircle, RefreshCw } from "lucide-react";
 
 // Hooks
 import { useBills } from "@/features/bills/hooks/useGetBillsByOrg";
@@ -49,8 +48,22 @@ export default function BillsPage() {
   const [deletingBill, setDeletingBill] = useState<Bill | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
+  // Pagination State
+  const [limit, setLimit] = useState<number>(10);
+  const [cursor, setCursor] = useState<string>("");
+  const [cursorStack, setCursorStack] = useState<string[]>([]);
+
   // Data
-  const { data: bills = [], isLoading, isError, refetch } = useBills(orgId);
+  const {
+    data: billsResponse,
+    isLoading,
+    isError,
+    refetch,
+  } = useBills(orgId, { cursor, limit });
+  const bills = billsResponse?.data ?? [];
+  const hasNext = billsResponse?.has_more ?? false;
+  const nextCursor = billsResponse?.next ?? "";
+
   const { mutateAsync: deleteBillMutation, isPending: isDeleting } =
     useDeleteBill(orgId, txId);
 
@@ -126,40 +139,40 @@ export default function BillsPage() {
     }
   }
 
+  // Pagination Actions
+  function handleNextPage() {
+    if (!hasNext) return;
+    setCursorStack((prev) => [...prev, cursor]);
+    setCursor(nextCursor);
+  }
+
+  function handlePrevPage() {
+    if (cursorStack.length === 0) return;
+    const newStack = [...cursorStack];
+    const prevCursor = newStack.pop() ?? "";
+    setCursorStack(newStack);
+    setCursor(prevCursor);
+  }
+
+  function handleLimitChange(newLimit: number) {
+    setLimit(newLimit);
+    setCursor("");
+    setCursorStack([]);
+  }
+
   // ── Render ──
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Page header */}
-      <div className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="flex h-14 items-center gap-3">
-            <Link
-              to=".."
-              relative="path"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground"
-              title="Back to transaction"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <div className="h-4 w-px bg-border/60" />
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
-                <Receipt className="h-3.5 w-3.5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-sm font-semibold text-foreground leading-none">
-                  Bills & Receipts
-                </h1>
-                {!isLoading && (
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    {bills.length} {bills.length === 1 ? "file" : "files"}{" "}
-                    attached
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+      <div className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6">
+        <div className="mb-3">
+          <h1 className="text-3xl font-semibold text-foreground tracking-tight">
+            Bills & Receipts
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground md:text-base">
+            Manage your uploaded invoices, bills, and digital receipts here.
+          </p>
         </div>
       </div>
 
@@ -219,8 +232,8 @@ export default function BillsPage() {
               }
               view={view}
               onViewChange={setView}
-              totalCount={bills.length}
-              filteredCount={filtered.length}
+              limit={limit}
+              onLimitChange={handleLimitChange}
             />
           </div>
         )}
@@ -237,14 +250,41 @@ export default function BillsPage() {
         ) : filtered.length === 0 ? (
           <BillEmptyState isFiltered onClearFilters={clearFilters} />
         ) : (
-          <BillGrid
-            bills={filtered}
-            view={view}
-            onPreview={(i) => setPreviewIndex(i)}
-            onDownload={download}
-            onDelete={(bill) => setDeletingBill(bill)}
-            downloadingId={downloadingId}
-          />
+          <>
+            <BillGrid
+              bills={filtered}
+              view={view}
+              onPreview={(i) => setPreviewIndex(i)}
+              onDownload={download}
+              onDelete={(bill) => setDeletingBill(bill)}
+              downloadingId={downloadingId}
+            />
+
+            {/* Pagination Controls */}
+            <div className="mt-8 flex flex-col items-center justify-end gap-4 border-t border-border/40 pt-6 sm:flex-row">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handlePrevPage}
+                  disabled={cursorStack.length === 0 || isLoading}
+                  className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-[12px] font-medium text-foreground transition hover:bg-accent disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <div className="text-[12px] font-medium text-muted-foreground">
+                  Page {cursorStack.length + 1}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleNextPage}
+                  disabled={!hasNext || isLoading}
+                  className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-[12px] font-medium text-foreground transition hover:bg-accent disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </div>
 

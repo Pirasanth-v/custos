@@ -1,13 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { getBillsByOrg } from "../api";
-import type { Bill } from "../types";
+import type { Bill, GetOrgBillsParams, PaginatedResponse } from "../types";
 
-export function useBills(orgId: string) {
-  return useQuery<Bill[]>({
-    queryKey: ["bills", orgId ],
+export function useBills(orgId: string, params?: GetOrgBillsParams) {
+  return useQuery<PaginatedResponse<Bill>>({
+    queryKey: ["bills", orgId, params],
     queryFn: async () => {
-      const res = await getBillsByOrg(orgId);
-      return res ?? [];
+      return await getBillsByOrg(orgId, params);
     },
     enabled: Boolean(orgId),
     staleTime: 0,

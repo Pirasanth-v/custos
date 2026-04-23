@@ -6,8 +6,8 @@ interface BillToolbarProps {
   onFiltersChange: (f: Partial<BillFilters>) => void;
   view: BillView;
   onViewChange: (v: BillView) => void;
-  totalCount: number;
-  filteredCount: number;
+  limit: number;
+  onLimitChange: (limit: number) => void;
 }
 
 const TYPE_OPTIONS: { value: BillFilters["type"]; label: string }[] = [
@@ -28,12 +28,9 @@ export function BillToolbar({
   onFiltersChange,
   view,
   onViewChange,
-  totalCount,
-  filteredCount,
+  limit,
+  onLimitChange,
 }: BillToolbarProps) {
-  const isFiltered =
-    filters.search.length > 0 || filters.type !== "all";
-
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       {/* Left: search + type filter */}
@@ -95,20 +92,20 @@ export function BillToolbar({
 
       {/* Right: count + sort + view */}
       <div className="flex items-center gap-2">
-        {/* Result count */}
-        <span className="hidden text-xs tabular-nums text-muted-foreground sm:block">
-          {isFiltered ? (
-            <>
-              <span className="font-medium text-foreground">{filteredCount}</span>
-              <span> of {totalCount}</span>
-            </>
-          ) : (
-            <>
-              <span className="font-medium text-foreground">{totalCount}</span>
-              <span> {totalCount === 1 ? "bill" : "bills"}</span>
-            </>
-          )}
-        </span>
+        {/* Limit Selector */}
+        <div className="hidden items-center gap-2 rounded-lg border border-border/60 bg-background/60 px-2.5 sm:flex">
+          <span className="text-[10px] font-semibold uppercase tracking-tight text-muted-foreground/70">Per page</span>
+          <select
+            value={limit}
+            onChange={(e) => onLimitChange(Number(e.target.value))}
+            className="h-8 bg-background text-[13px] font-medium text-foreground focus:outline-none"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
 
         <div className="h-4 w-px bg-border/60 hidden sm:block" />
 

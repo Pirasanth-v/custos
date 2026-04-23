@@ -1,5 +1,5 @@
 import api from "@/lib/axios";
-import type { Bill, ConfirmBillInput, PaginatedResponse, PresignBillResult, PresignFileInput } from "./types";
+import type { Bill, ConfirmBillInput, GetOrgBillsParams, PaginatedResponse, PresignBillResult, PresignFileInput } from "./types";
 
 export const getPresignURL = async (
   orgId: string, 
@@ -21,11 +21,13 @@ export const confirmUploads = async (
 
 export async function getBillsByOrg(
     orgId: string,
-  ): Promise<Bill[]> {
+    params?: GetOrgBillsParams
+  ): Promise<PaginatedResponse<Bill>> {
     const res = await api.get<PaginatedResponse<Bill>>(
       `/orgs/${orgId}/bills`,
+      { params }
     );
-    return res.data.data ?? [];
+    return res.data;
   }
 
 export async function getBillsByTransaction(

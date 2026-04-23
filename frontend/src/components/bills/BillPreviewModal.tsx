@@ -68,20 +68,20 @@ export function BillPreviewModal({
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"/>
       {/* Container */}
-      <div className="relative z-10 w-full max-w-5xl">
+      <div className="relative z-10 w-full max-w-5xl bg-background/95">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-white/8 bg-black/60 px-4 py-3 backdrop-blur-md">
+      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-background px-4 py-3 backdrop-blur-md">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white/8">
-            <span className="text-xs font-semibold text-white/60">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-foreground/8">
+            <span className="text-xs font-bold text-foreground/60">
               {idx + 1}/{bills.length}
             </span>
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-white/90">
+            <p className="truncate text-sm font-medium text-foreground/90">
               {bill.file_name}
             </p>
-            <p className="text-[11px] text-white/40">
+            <p className="text-[11px] text-foreground/40">
               {humanSize(bill.file_size_bytes)} ·{" "}
               {format(new Date(bill.created_at), "d MMM yyyy, HH:mm")}
             </p>
@@ -112,7 +112,7 @@ export function BillPreviewModal({
               >
                 <RotateCw className="h-4 w-4" />
               </ToolBtn>
-              <div className="mx-1 h-5 w-px bg-white/10" />
+              <div className="mx-1 h-5 w-px bg-foreground/10" />
             </>
           )}
           <ToolBtn
@@ -139,7 +139,7 @@ export function BillPreviewModal({
           >
             <Trash2 className="h-4 w-4" />
           </ToolBtn>
-          <div className="mx-1 h-5 w-px bg-white/10" />
+          <div className="mx-1 h-5 w-px bg-foreground/10" />
           <ToolBtn onClick={onClose} title="Close">
             <X className="h-4 w-4" />
           </ToolBtn>
@@ -153,13 +153,13 @@ export function BillPreviewModal({
           <>
             <button
               onClick={prev}
-              className="absolute left-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white/70 backdrop-blur transition hover:border-white/25 hover:bg-black/70 hover:text-white"
+              className="absolute left-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-background/50 text-foreground/70 backdrop-blur transition hover:border-foreground/25 hover:bg-background/70 hover:text-foreground"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={next}
-              className="absolute right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white/70 backdrop-blur transition hover:border-white/25 hover:bg-black/70 hover:text-white"
+              className="absolute right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-background/50 text-foreground/70 backdrop-blur transition hover:border-foreground/25 hover:bg-background/70 hover:text-foreground"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -170,7 +170,7 @@ export function BillPreviewModal({
           <div className="flex h-full w-full items-center justify-center p-8">
             {!imgLoaded && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-white/30" />
+                <Loader2 className="h-8 w-8 animate-spin text-foreground/30" />
               </div>
             )}
             <img
@@ -194,15 +194,15 @@ export function BillPreviewModal({
           />
         ) : (
           <div className="flex flex-col items-center gap-4 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-              <ExternalLink className="h-8 w-8 text-white/40" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-foreground/5">
+              <ExternalLink className="h-8 w-8 text-foreground/40" />
             </div>
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-foreground/60">
               Preview not available for this file type.
             </p>
             <button
               onClick={() => onDownload(bill)}
-              className="inline-flex h-9 items-center gap-2 rounded-lg bg-white/10 px-4 text-sm font-medium text-white/80 transition hover:bg-white/15"
+              className="inline-flex h-9 items-center gap-2 rounded-lg bg-foreground/10 px-4 text-sm font-medium text-foreground/80 transition hover:bg-foreground/15"
             >
               <Download className="h-4 w-4" />
               Download file
@@ -213,7 +213,7 @@ export function BillPreviewModal({
 
       {/* Thumbnail strip */}
       {bills.length > 1 && (
-        <div className="shrink-0 border-t border-white/8 bg-black/60 px-4 py-3">
+        <div className="shrink-0 border-t border-white/8 bg-background/35 px-4 py-3">
           <div className="flex items-center gap-2 overflow-x-auto">
             {bills.map((b, i) => (
               <button
@@ -232,7 +232,7 @@ export function BillPreviewModal({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-white/8 text-[8px] font-bold uppercase text-white/60">
+                  <div className="flex h-full w-full items-center justify-center bg-foreground/50 text-[10px] font-bold uppercase text-foreground">
                     {b.mime_type === "application/pdf" ? "PDF" : "FILE"}
                   </div>
                 )}
@@ -265,7 +265,7 @@ function ToolBtn({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`flex h-8 w-8 items-center justify-center rounded-lg text-white/60 transition hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30 ${className}`}
+      className={`flex h-8 w-8 items-center justify-center rounded-lg text-foreground/60 transition hover:bg-foreground/10 hover:text-foreground/90 disabled:cursor-not-allowed disabled:opacity-30 ${className}`}
     >
       {children}
     </button>
