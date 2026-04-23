@@ -216,3 +216,20 @@ func mapBillError(w http.ResponseWriter, err error) {
 		}
 	}
 }
+
+func (h *BillHandler) GetStats(w http.ResponseWriter, r *http.Request) {
+	orgID, ok := r.Context().Value(middleware.OrgIDKey).(string)
+	if !ok {
+		slog.Warn("missing org id in GetStats")
+		response.Error(w, http.StatusBadRequest, "missing org id")
+		return
+	}
+
+	stats, err := h.billService.GetStats(r.Context(), orgID)
+	if err != nil {
+		mapBillError(w, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, stats)
+}

@@ -44,3 +44,10 @@ type BillResponse struct {
     FileSizeBytes int64     `json:"file_size_bytes"`
     CreatedAt     time.Time `json:"created_at"`
 }
+
+type BillStats struct {
+    Total      int    `json:"total"`
+    Images     int    `json:"images"`
+    PDFs       int    `json:"pdfs"`
+    TotalBytes int64  `json:"total_bytes"`
+}

@@ -312,6 +312,17 @@ func sanitizeFileName(name string) string {
 	return b.String()
 }
 
+func (s *BillService) GetStats(ctx context.Context, orgID string) (*dto.BillStats, error) {
+	stats, err := s.billRepo.GetStats(ctx, orgID)
+
+	if err != nil {
+		return nil, err
+	}
+	
+	return stats, nil
+}
+
+
 func billFileNames(bills []dto.ConfirmBillInput) []string {
 	names := make([]string, len(bills))
 	for i, b := range bills {

@@ -243,3 +243,34 @@ func (r *BillRepo) DeleteUnconfirmedBills(ctx context.Context, olderThan time.Du
 	}
 	return keys, nil
 }
+
+// GetStats retrieves statistics about bills for an organization.
+func (r *BillRepo) GetStats(ctx context.Context, orgID string) (*dto.BillStats, error) {
+	query := `
+		SELECT
+			COUNT(*)                                              AS total,
+			COUNT(*) FILTER (WHERE mime_type LIKE 'image/%')      AS images,
+			COUNT(*) FILTER (WHERE mime_type = 'application/pdf') AS pdfs,
+			COALESCE(SUM(file_size_bytes), 0)                     AS total_bytes
+		FROM transaction_bills
+		WHERE org_id = $1
+			AND deleted_at IS NULL
+			AND is_confirmed = FALSE
+	`
+
+	var stats dto.BillStats
+	err := r.db.QueryRow(ctx, query, orgID).Scan(
+		&stats.Total, 
+		&stats.Images, 
+		&stats.PDFs, 
+		&stats.TotalBytes,
+	)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, fmt.Errorf("bill not found")
+		}
+		return nil, fmt.Errorf("get bill stats: %w", err)
+	}
+
+	return &stats, nil
+}
