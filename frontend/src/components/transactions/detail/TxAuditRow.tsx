@@ -4,6 +4,7 @@ type TxAuditRowProps = {
   action: "Created" | "Last edited";
   name: string;
   iso: string;
+  isMe?: boolean;
 };
 
 function initials(name: string): string {
@@ -37,7 +38,7 @@ function avatarColor(name: string): string {
   return AVATAR_COLORS[code % AVATAR_COLORS.length];
 }
 
-export function TxAuditRow({ action, name, iso }: TxAuditRowProps) {
+export function TxAuditRow({ action, name, iso, isMe }: TxAuditRowProps) {
   return (
     <div className="flex items-center gap-2.5">
       {/* Avatar */}
@@ -50,7 +51,7 @@ export function TxAuditRow({ action, name, iso }: TxAuditRowProps) {
       {/* Text */}
       <p className="text-[12px] leading-none text-muted-foreground">
         <span className="text-muted-foreground/60">{action} by </span>
-        <span className="font-medium text-foreground">{name}</span>
+        <span className="font-medium text-foreground">{isMe ? "you" :name}</span>
         <span className="text-muted-foreground/60"> · </span>
         <span className="tabular-nums">{safeFormat(iso)}</span>
       </p>

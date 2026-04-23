@@ -4,6 +4,7 @@ import type { Transaction } from "@/features/transaction/types";
 import type { Account } from "@/features/account/types";
 import type { Category } from "@/features/category/types";
 import { TxAuditRow } from "./TxAuditRow";
+import useAuthStore from "@/store/authStore";
 
 type TxDetailMetaProps = {
   transaction: Transaction;
@@ -37,6 +38,8 @@ export function TxDetailMeta({
   categories,
 }: TxDetailMetaProps) {
   const isTransfer = transaction.type === "transfer";
+  const { user } = useAuthStore();
+  const currentUserId = user?.id;
 
   return (
     <div className="px-6 pb-5">
@@ -87,6 +90,7 @@ export function TxDetailMeta({
           action="Created"
           name={transaction.created_by_name}
           iso={transaction.created_at}
+          isMe={currentUserId == transaction.created_by}
         />
         {transaction.updated_by_name &&
           transaction.updated_at !== transaction.created_at && (
@@ -94,6 +98,7 @@ export function TxDetailMeta({
               action="Last edited"
               name={transaction.updated_by_name}
               iso={transaction.updated_at}
+              isMe={currentUserId == transaction.updated_by}
             />
           )}
       </div>
