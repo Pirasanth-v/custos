@@ -26,3 +26,4 @@ type UpdateNetBalanceBody struct {
 	Type          model.TransactionType  `json:"type"`
 	Amount        string                 `json:"amount"`
 }
+

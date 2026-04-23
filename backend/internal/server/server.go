@@ -22,6 +22,7 @@ func New(
 	tranHandler *handler.TransactionHandler,
 	categoryHandler *handler.CategoryHandler,
 	billHandler *handler.BillHandler,
+	dashboardHandler *handler.DashboardHandler,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -75,6 +76,9 @@ func New(
 			// require both auth and org access
 			r.Group(func(r chi.Router) {
 				r.Use(OrgMiddleware.ValidateOrgAccess)
+
+				// Dashboard
+				r.Get("/orgs/{orgId}/dashboard", dashboardHandler.GetDashboard)
 
 				// Organization endpoints
 				r.Get("/orgs/{orgId}", orgHandler.GetOrgByID)
