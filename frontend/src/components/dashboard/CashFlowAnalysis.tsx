@@ -100,7 +100,7 @@ export function CashFlowAnalysis({ data, loading = false }: CashFlowAnalysisProp
       </div>
 
       {loading ? (
-        <div className="h-56 rounded-xl bg-muted animate-pulse" />
+        <div className="h-56 rounded-xl bg-muted-foreground/10 animate-pulse" />
       ) : (
         <div className="h-56 -mx-2">
           {/* Defensive: Only render chart if chartData is a valid non-empty array */}

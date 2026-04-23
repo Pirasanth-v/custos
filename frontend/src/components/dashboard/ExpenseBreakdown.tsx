@@ -68,64 +68,68 @@ export function ExpenseBreakdown({ data, loading = false }: ExpenseBreakdownProp
   }));
 
   return (
-    <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-6 flex flex-col gap-5">
-      <div>
-        <h3 className="text-sm font-semibold text-foreground">Expense Breakdown</h3>
-        <p className="text-[12px] text-muted-foreground mt-0.5">By category distribution</p>
+    <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-5 flex flex-col gap-4 h-[400px]">
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-foreground leading-none">Expense Breakdown</h3>
+        <p className="text-[11px] text-muted-foreground mt-1 tracking-tight">By category distribution</p>
       </div>
 
       {loading ? (
-        <div className="h-56 rounded-xl bg-muted animate-pulse" />
+        <div className="flex-1 min-h-[220px] rounded-xl bg-muted-foreground/10 animate-pulse" />
       ) : data.length === 0 ? (
-        <div className="h-56 flex items-center justify-center">
-          <p className="text-[13px] text-muted-foreground/50">No expense data yet</p>
+        <div className="flex-1 min-h-[220px] flex items-center justify-center">
+          <p className="text-[13px] text-muted-foreground/50 italic">No data recorded</p>
         </div>
       ) : (
-        <div className="flex items-center gap-6">
-          {/* donut */}
-          <div className="shrink-0 w-40 h-40 relative">
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* donut area - fixed height to prevent pushing legend too far */}
+          <div className="relative w-full h-[180px] shrink-0 flex items-center justify-center -mt-2">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={46}
-                  outerRadius={68}
-                  paddingAngle={3}
+                  innerRadius={50}
+                  outerRadius={70}
+                  paddingAngle={4}
                   dataKey="value"
                   strokeWidth={0}
+                  animationDuration={800}
                 >
                   {chartData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
+                    <Cell key={i} fill={entry.color} className="outline-none" />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
+            
             {/* center total */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-[10px] text-muted-foreground tracking-widest uppercase">Total</span>
-              <span className="text-sm font-bold text-foreground leading-tight">{formatCurrency(total)}</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-0.5">
+              <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-[0.1em]">Total</span>
+              <span className="text-base font-bold text-foreground tabular-nums tracking-tight">{formatCurrency(total)}</span>
             </div>
           </div>
 
-        {/* legend */}
-          <div className="flex-1 flex flex-col gap-2 min-w-0">
-            {chartData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between gap-3 group">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-2 h-2 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-[12px] text-muted-foreground truncate group-hover:text-foreground transition-colors">
-                    {item.name}
-                  </span>
+          {/* legend area - scrollable container that takes remaining space */}
+          <div className="flex-1 overflow-y-auto pr-2 mr-2 scrollbar-thin">
+            <div className="flex flex-col gap-1">
+              {chartData.map((item) => (
+                <div key={item.name} className="flex items-center justify-between group py-1 border-b border-border/5 last:border-0 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-4">
+                    <div className="w-1.5 h-1.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-[12px] text-muted-foreground truncate group-hover:text-foreground transition-colors font-medium">
+                      {item.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-[10px] text-muted-foreground/40 tabular-nums font-medium">{item.pct.toFixed(0)}%</span>
+                    <span className="text-[12px] font-semibold text-foreground/90 tabular-nums">{formatCurrency(item.value)}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[11px] text-muted-foreground/70">{item.pct.toFixed(1)}%</span>
-                  <span className="text-[12px] font-semibold text-foreground/80">{formatCurrency(item.value)}</span>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
