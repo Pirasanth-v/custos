@@ -48,7 +48,7 @@ func (s *DashboardService) GetDashboard(ctx context.Context, orgID string, month
 	}()
 	go func() {
 		defer wg.Done()
-		recent, errs[4] = s.repo.GetRecentTransactions(ctx, orgID, 10)
+		recent, errs[4] = s.repo.GetRecentTransactions(ctx, orgID, 4)
 	}()
 
 	wg.Wait()
