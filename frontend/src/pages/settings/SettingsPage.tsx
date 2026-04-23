@@ -15,6 +15,7 @@ import { useUpdateOrg } from "@/features/organization/hooks/useUpdateOrg";
 import GeneralSettings from "./GeneralSettings";
 import MembersSettings from "./MembersSettings";
 import RolesPermissionsSettings from "./RolesPermissionsSettings";
+import CategoriesSettings from "./CategoriesSettings";
 import SettingsPlaceholder from "@/components/SettingsPlaceholder";
 
 const settingsSchema = z.object({
@@ -102,7 +103,6 @@ export default function SettingsPage() {
         setValue("businessAddress", organizationData.address || "", { shouldDirty: false });
       }
     }
-    // eslint-disable-next-line
   }, [organizationData?.name, organizationData?.email, organizationData?.address, reset, setValue]);
 
   const onSubmit = async (data: SettingsFormData) => {
@@ -206,6 +206,8 @@ export default function SettingsPage() {
           <MembersSettings />
         ) : activeTab === "roles" ? (
           <RolesPermissionsSettings />
+        ) : activeTab === "categories" ? (
+          <CategoriesSettings />
         ) : (
           <SettingsPlaceholder activeTab={activeTab} />
         )}

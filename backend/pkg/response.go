@@ -25,3 +25,7 @@ func JSON(w http.ResponseWriter, status int, body any, headers ...map[string]str
 func Error(w http.ResponseWriter, status int, message string) {
 	JSON(w, status, map[string]string{ "error" : message })
 }
+
+func Success(w http.ResponseWriter, status int, message string) {
+	JSON(w, status, map[string]string{"message": message})
+}

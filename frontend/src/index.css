@@ -27,6 +27,16 @@
   --color-popover: #FFFFFF;
   --color-popover-foreground: #0F172A;
 
+  --color-accent: #F1F5F9;
+  --color-accent-foreground: #0F172A;
+
+  /* Chart Colors */
+  --color-chart-1: #6366F1; /* Primary/Indigo */
+  --color-chart-2: #10B981; /* Success/Emerald */
+  --color-chart-3: #F43F5E; /* Destructive/Rose */
+  --color-chart-4: #F59E0B; /* Warning/Amber */
+  --color-chart-5: #8B5CF6; /* Violet */
+
   /* Fonts */
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace; /* for money values */
@@ -55,7 +65,48 @@ html.dark {
   --color-ring: #6366F1;
   --color-popover: #1E293B;
   --color-popover-foreground: #F8FAFC;
+
+  --color-accent: #1E293B;
+  --color-accent-foreground: #F8FAFC;
+
+  --color-chart-1: #818CF8;
+  --color-chart-2: #34D399;
+  --color-chart-3: #FB7185;
+  --color-chart-4: #FBBF24;
+  --color-chart-5: #A78BFA;
 }
 
-/* Enables dark: variant in Tailwind (if using custom integration) */
-@custom-variant dark (&:where(.dark, .dark *));
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #2E2C2A;
+  border-radius: 999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #A8A29E;
+}
+
+/* Light mode override */
+html:not(.dark) .scrollbar-thin {
+  scrollbar-color: #E2DED9 transparent;
+}
+
+html:not(.dark) .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #E2DED9;
+}
+
+html:not(.dark) .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #78716C;
+}

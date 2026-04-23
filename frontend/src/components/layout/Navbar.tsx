@@ -54,7 +54,6 @@ export function Navbar() {
             onSelect={setOrgId}
             onCreate={() => {
               // Implement actual organization creation logic later
-              console.log("create organization clicked")
             }}
           />
         </div>

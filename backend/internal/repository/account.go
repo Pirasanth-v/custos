@@ -198,4 +198,155 @@ func (r *AccountRepository) GetAccountsByOrgID(ctx context.Context, orgID string
 	return accounts, nil
 }
 
+func (r *AccountRepository) GetNetBalanceByAccID(ctx context.Context, accID string) (string, error) {
+	query := `
+		SELECT net_balance 
+		FROM accounts
+		WHERE id = $1
+		AND deleted_at IS NULL	
+	`
+
+	var balance string
+	err := r.db.QueryRow(ctx, query, accID).Scan(&balance)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "account not found", nil 
+		}
+		return "", fmt.Errorf("failed to get net balance: %w", err)
+	}
+
+	return balance, nil
+}
+
+func (r *AccountRepository) UpdateNetBalance(ctx context.Context, req dto.UpdateNetBalanceBody) error {
+	debitQuery := `
+		UPDATE accounts
+		SET net_balance = net_balance::numeric - $1::numeric
+		WHERE id = $2 
+	`
+
+	creditQuery := `
+		UPDATE accounts
+		SET net_balance = net_balance::numeric + $1::numeric
+		WHERE id = $2
+	`
+
+	switch req.Type {
+	case "income":
+		res, err := r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to update net balance for income: %w", err)
+		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
+
+	case "expense":
+		res, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to update net balance for expense: %w", err)
+		}		
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
+
+	case "transfer":
+		// Validate required field for transfer
+		if req.ToAccountID == nil || *req.ToAccountID == "" {
+			return errors.New("to_account_id cannot be empty for transfers")
+		}
+
+		// Debit from accID (source)
+		res, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to debit (transfer out) from account: %w", err)
+		}
+		// Check if the source account had enough balance
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
+
+		// Credit to ToAccountID (destination)
+		res, err = r.db.Exec(ctx, creditQuery, req.Amount, req.ToAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to credit (transfer in) to account: %w", err)
+		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
+
+	default:
+		return errors.New("invalid account operation type")
+	}
+
+	return nil
+}
+
+func (r *AccountRepository) ReverseBalance(ctx context.Context, req dto.UpdateNetBalanceBody) error {
+	debitQuery := `
+		UPDATE accounts
+		SET net_balance = net_balance::numeric - $1::numeric
+		WHERE id = $2
+	`
+
+	creditQuery := `
+		UPDATE accounts
+		SET net_balance = net_balance::numeric + $1::numeric
+		WHERE id = $2
+	`
+
+	switch req.Type {
+	case "income":
+		// For reverse income, deduct amount from account
+		res, err := r.db.Exec(ctx, debitQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to reverse balance for income: %w", err)
+		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
+
+	case "expense":
+		// For reverse expense, add amount to account
+		res, err := r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to reverse balance for expense: %w", err)
+		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
+
+	case "transfer":
+		// Validate required field for transfer
+		if req.ToAccountID == nil || *req.ToAccountID == "" {
+			return errors.New("to_account_id cannot be empty for transfer reversal")
+		}
+
+		// For transfer reversal:
+		// Deduct from destination (ToAccountID)
+		res, err := r.db.Exec(ctx, debitQuery, req.Amount, req.ToAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to reverse (debit back) from destination account in transfer: %w", err)
+		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
+
+		// Add to source (accID)
+		res, err = r.db.Exec(ctx, creditQuery, req.Amount, req.FromAccountID)
+		if err != nil {
+			return fmt.Errorf("failed to reverse (credit back) from source account in transfer: %w", err)
+		}
+		if res.RowsAffected() == 0 {
+			return errors.New("account not found")
+		}
+
+	default:
+		return errors.New("invalid account operation type for reversal")
+	}
+
+	return nil
+}
+
+
 
