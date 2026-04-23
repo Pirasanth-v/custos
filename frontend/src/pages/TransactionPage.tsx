@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, RotateCcw } from "lucide-react";
@@ -93,16 +94,18 @@ export default function TransactionPage() {
   );
 
   const {
-    data: accountsList = [],
+    data: accountsData,
     loading: accountsLoading,
     error: accountsError,
   } = useGetAccountsByOrgId(orgId);
+  const accountsList = accountsData ?? [];
 
   const {
-    data: categoriesList = [],
+    data: categoriesData,
     loading: categoriesLoading,
     error: categoriesError,
   } = useGetCategoriesByOrgId(orgId);
+  const categoriesList = categoriesData ?? [];
 
   const accountsById = useMemo(() => {
     if (accountsLoading || !accountsList?.length) return undefined;
@@ -264,340 +267,362 @@ export default function TransactionPage() {
           </div>
         ) : null}
 
-        <TransactionsToolbar
-          search={search}
-          onSearchChange={setSearch}
-          type={type}
-          onTypeChange={setType}
-        />
-
-        <div className="rounded-3xl border border-border bg-card/80 shadow-sm">
-          <div className="border-b border-border px-6 py-5 md:px-8">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 className="text-xl font-semibold">Transaction Feed</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Showing your most recent transactions first.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Page size</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="h-10 rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-                >
-                  {[10, 25, 50].map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        {!accountsLoading && (accountsList?.length ?? 0) === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-dashed border-border/60 bg-card/40 px-6 py-20 text-center shadow-sm backdrop-blur-sm md:px-8">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 text-primary transition-transform duration-500 hover:rotate-12">
+              <Plus className="h-10 w-10" />
+            </div>
+            <h3 className="mt-6 text-2xl font-bold tracking-tight text-foreground">
+              No accounts found
+            </h3>
+            <p className="mt-3 max-w-sm text-base text-muted-foreground leading-relaxed">
+              You need to create at least one account before you can start
+              recording transactions. It only takes a minute!
+            </p>
+            <div className="mt-10">
+              <Link
+                to="/accounts"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-8 text-base font-semibold text-white transition-all hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98]"
+              >
+                <Plus className="h-5 w-5" />
+                Create First Account
+              </Link>
             </div>
           </div>
+        ) : (
+          <>
+            <TransactionsToolbar
+              search={search}
+              onSearchChange={setSearch}
+              type={type}
+              onTypeChange={setType}
+            />
 
-          {isLoading ? (
-            <div className="space-y-3 px-6 py-6 md:px-8">
-              <SkeletonRow />
-              <SkeletonRow />
-              <SkeletonRow />
-            </div>
-          ) : visibleTransactions.length === 0 ? (
-            <div className="px-6 py-16 text-center md:px-8">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <RotateCcw className="h-6 w-6" />
+            <div className="rounded-3xl border border-border bg-card/80 shadow-sm">
+              <div className="border-b border-border px-6 py-5 md:px-8">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold">Transaction Feed</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Showing your most recent transactions first.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>Page size</span>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="h-10 rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                    >
+                      {[10, 25, 50].map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
-              <h3 className="mt-4 text-xl font-semibold text-foreground">
-                No transactions found
-              </h3>
-              <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                Try adjusting your search/filter, or load more results to
-                continue browsing.
-              </p>
-            </div>
-          ) : (
-            <div className="px-6 py-6 md:px-8">
-              <TransactionsTable
-                transactions={paginatedTransactions}
-                accountsById={accountsById}
-                categoriesById={categoriesById}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onView={handleView}
-              />
 
-              <TransactionsPagination
-                totalLoaded={transactions.length}
-                visibleCount={paginatedTransactions.length}
-                currentPage={effectivePage}
-                totalPages={totalPages}
-                canGoPrev={canGoPrev}
-                canGoNext={canGoNext}
-                isFetchingNextPage={isFetchingNextPage}
-                onPrev={() => {
-                  if (!canGoPrev) return;
-                  setCurrentPage((p) => Math.max(1, p - 1));
-                }}
-                onNext={async () => {
-                  if (effectivePage < totalPages) {
-                    setCurrentPage((p) => p + 1);
-                    return;
-                  }
-                  if (hasNextPage) {
-                    const res = await fetchNextPage();
-                    const fetched =
-                      (res.data?.pages?.at(-1)?.data?.length ?? 0) > 0;
-                    if (fetched) setCurrentPage((p) => p + 1);
-                  }
-                }}
-              />
-            </div>
-          )}
+              {isLoading ? (
+                <div className="space-y-3 px-6 py-6 md:px-8">
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                </div>
+              ) : visibleTransactions.length === 0 ? (
+                <div className="px-6 py-16 text-center md:px-8">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <RotateCcw className="h-6 w-6" />
+                  </div>
+                  <h3 className="mt-4 text-xl font-semibold text-foreground">
+                    No transactions found
+                  </h3>
+                  <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                    Try adjusting your search/filter, or load more results to
+                    continue browsing.
+                  </p>
+                </div>
+              ) : (
+                <div className="px-6 py-6 md:px-8">
+                  <TransactionsTable
+                    transactions={paginatedTransactions}
+                    accountsById={accountsById}
+                    categoriesById={categoriesById}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onView={handleView}
+                  />
 
-          <TransactionDetailModal
-            open={viewOpen}
-            onClose={() => setViewOpen(false)}
-            transaction={selectedTransaction}
-            orgId={orgId}
-            accounts={accountsList}
-            categories={categoriesList}
-            currencyCode={
-              accountsList.find(
-                (a) => a.id === selectedTransaction?.from_account_id,
-              )?.currency_code
+                  <TransactionsPagination
+                    totalLoaded={transactions.length}
+                    visibleCount={paginatedTransactions.length}
+                    currentPage={effectivePage}
+                    totalPages={totalPages}
+                    canGoPrev={canGoPrev}
+                    canGoNext={canGoNext}
+                    isFetchingNextPage={isFetchingNextPage}
+                    onPrev={() => {
+                      if (!canGoPrev) return;
+                      setCurrentPage((p) => Math.max(1, p - 1));
+                    }}
+                    onNext={async () => {
+                      if (effectivePage < totalPages) {
+                        setCurrentPage((p) => p + 1);
+                        return;
+                      }
+                      if (hasNextPage) {
+                        const res = await fetchNextPage();
+                        const fetched =
+                          (res.data?.pages?.at(-1)?.data?.length ?? 0) > 0;
+                        if (fetched) setCurrentPage((p) => p + 1);
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        <TransactionDetailModal
+          open={viewOpen}
+          onClose={() => setViewOpen(false)}
+          transaction={selectedTransaction}
+          orgId={orgId}
+          accounts={accountsList}
+          categories={categoriesList}
+          currencyCode={
+            accountsList?.find(
+              (a) => a.id === selectedTransaction?.from_account_id,
+            )?.currency_code
+          }
+          onEdit={(tx) => {
+            setSelectedTransaction(tx);
+            setEditOpen(true);
+          }}
+          onDelete={(tx) => {
+            setSelectedTransaction(tx);
+            setDeleteOpen(true);
+          }}
+        />
+
+        <TransactionEditModal
+          key={editOpen ? "edit-open" : "edit-closed"}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          transaction={selectedTransaction}
+          accounts={accountsList as Account[]}
+          categories={categoriesList as Category[]}
+          existingBills={existingBills}
+          loading={updateMutation.isPending}
+          deleting={isDeleting}
+          errorMessage={editError ?? updateMutation.error?.message ?? null}
+          onSubmit={async ({
+            tranId,
+            fromAccountId,
+            data,
+            filesToAdd,
+            billIdsToDelete,
+          }) => {
+            try {
+              setEditError(null);
+              // 1. update transactions details
+              await updateMutation.mutateAsync({
+                tranId,
+                fromAccountId,
+                data,
+              });
+
+              // 2. only run if user added more bills
+              if (filesToAdd.length > 0) {
+                // Convert files to PresignFileInput array for bill uploads
+                const bills = filesToAdd.map((f) => ({
+                  file_name: f.name,
+                  mime_type: f.type,
+                  file_size_bytes: f.size,
+                })) as PresignFileInput[];
+
+                const presignURL = await presignMutation.mutateAsync({
+                  txId: tranId,
+                  bills,
+                });
+
+                // 3. PUT each file directly to MinIO using the presigned URL
+                await Promise.all(
+                  presignURL.map(({ upload_url, file_name }) => {
+                    const bill = filesToAdd.find((b) => b.name === file_name)!;
+                    return fetch(upload_url, {
+                      method: "PUT",
+                      body: bill,
+                      headers: { "Content-Type": bill.type },
+                    });
+                  }),
+                );
+
+                // 4. Confirm that files are uploaded to bucket from go server
+                const toBeConfirmBills = presignURL.map(
+                  ({ object_key, file_name }) => {
+                    const bill = filesToAdd.find((b) => b.name === file_name)!;
+                    return {
+                      object_key,
+                      file_name,
+                      mime_type: bill.type,
+                      file_size_bytes: bill.size,
+                    };
+                  },
+                ) as ConfirmBillInput[];
+
+                await confirmMutation.mutateAsync({
+                  txId: tranId,
+                  bills: toBeConfirmBills,
+                });
+              }
+
+              // 3. delete bills
+              if (billIdsToDelete.length > 0) {
+                for (const billId of billIdsToDelete) {
+                  await deleteBillMutation(billId);
+                }
+              }
+
+              queryClient.invalidateQueries({
+                queryKey: ["org", orgId, "transactions"],
+              });
+              setEditOpen(false);
+            } catch (err) {
+              let message = "Something went wrong, try again";
+              if (axios.isAxiosError(err)) {
+                message = err.response?.data?.error || message;
+              }
+              setEditError(message);
             }
-            onEdit={(tx) => {
-              setSelectedTransaction(tx);
-              setEditOpen(true);
-            }}
-            onDelete={(tx) => {
-              setSelectedTransaction(tx);
-              setDeleteOpen(true);
-            }}
-          />
+          }}
+        />
 
-          <TransactionEditModal
-            key={editOpen ? "edit-open" : "edit-closed"}
-            open={editOpen}
-            onClose={() => setEditOpen(false)}
-            transaction={selectedTransaction}
-            accounts={accountsList as Account[]}
-            categories={categoriesList as Category[]}
-            existingBills={existingBills}
-            loading={updateMutation.isPending}
-            deleting={isDeleting}
-            errorMessage={editError ?? updateMutation.error?.message ?? null}
-            onSubmit={async ({
-              tranId,
-              fromAccountId,
-              data,
-              filesToAdd,
-              billIdsToDelete,
-            }) => {
-              try {
-                setEditError(null);
-                // 1. update transactions details
-                await updateMutation.mutateAsync({
-                  tranId,
+        <TransactionCreateModal
+          key={createOpen ? "create-open" : "create-closed"}
+          open={createOpen}
+          onClose={() => {
+            setPendingTxId("");
+            setCreateOpen(false);
+          }}
+          accounts={accountsList as Account[]}
+          categories={categoriesList as Category[]}
+          loading={createMutation.isPending}
+          errorMessage={createError ?? createMutation.error?.message ?? null}
+          onSubmit={async ({ fromAccountId, data, files }) => {
+            try {
+              setCreateError(null);
+              // 1. create transaction and get the id
+              let txId = pendingTxId;
+              if (!txId) {
+                const res = await createMutation.mutateAsync({
                   fromAccountId,
                   data,
                 });
-
-                // 2. only run if user added more bills
-                if (filesToAdd.length > 0) {
-                  // Convert files to PresignFileInput array for bill uploads
-                  const bills = filesToAdd.map((f) => ({
-                    file_name: f.name,
-                    mime_type: f.type,
-                    file_size_bytes: f.size,
-                  })) as PresignFileInput[];
-
-                  const presignURL = await presignMutation.mutateAsync({
-                    txId: tranId,
-                    bills,
-                  });
-
-                  // 3. PUT each file directly to MinIO using the presigned URL
-                  await Promise.all(
-                    presignURL.map(({ upload_url, file_name }) => {
-                      const bill = filesToAdd.find(
-                        (b) => b.name === file_name,
-                      )!;
-                      return fetch(upload_url, {
-                        method: "PUT",
-                        body: bill,
-                        headers: { "Content-Type": bill.type },
-                      });
-                    }),
-                  );
-
-                  // 4. Confirm that files are uploaded to bucket from go server
-                  const toBeConfirmBills = presignURL.map(
-                    ({ object_key, file_name }) => {
-                      const bill = filesToAdd.find(
-                        (b) => b.name === file_name,
-                      )!;
-                      return {
-                        object_key,
-                        file_name,
-                        mime_type: bill.type,
-                        file_size_bytes: bill.size,
-                      };
-                    },
-                  ) as ConfirmBillInput[];
-
-                  await confirmMutation.mutateAsync({
-                    txId: tranId,
-                    bills: toBeConfirmBills,
-                  });
-                }
-
-                // 3. delete bills
-                if (billIdsToDelete.length > 0) {
-                  for (const billId of billIdsToDelete) {
-                    await deleteBillMutation(billId);
-                  }
-                }
-
-                queryClient.invalidateQueries({
-                  queryKey: ["org", orgId, "transactions"],
-                });
-                setEditOpen(false);
-              } catch (err) {
-                let message = "Something went wrong, try again";
-                if (axios.isAxiosError(err)) {
-                  message = err.response?.data?.error || message;
-                }
-                setEditError(message);
+                txId = res.id;
+                setPendingTxId(txId);
               }
-            }}
-          />
 
-          <TransactionCreateModal
-            key={createOpen ? "create-open" : "create-closed"}
-            open={createOpen}
-            onClose={() => {
+              // 2. only run if user attached bills
+              if (files.length > 0) {
+                // Convert files to PresignFileInput array for bill uploads
+                const bills = files.map((f) => ({
+                  file_name: f.name,
+                  mime_type: f.type,
+                  file_size_bytes: f.size,
+                })) as PresignFileInput[];
+
+                const presignURL = await presignMutation.mutateAsync({
+                  txId,
+                  bills,
+                });
+
+                // 3. PUT each file directly to MinIO using the presigned URL
+                await Promise.all(
+                  presignURL.map(({ upload_url, file_name }) => {
+                    const bill = files.find((b) => b.name === file_name)!;
+                    return fetch(upload_url, {
+                      method: "PUT",
+                      body: bill,
+                      headers: { "Content-Type": bill.type },
+                    });
+                  }),
+                );
+
+                // 4. Confirm that files are uploaded to bucket from go server
+                const toBeConfirmBills = presignURL.map(
+                  ({ object_key, file_name }) => {
+                    const bill = files.find((b) => b.name === file_name)!;
+                    return {
+                      object_key,
+                      file_name,
+                      mime_type: bill.type,
+                      file_size_bytes: bill.size,
+                    };
+                  },
+                ) as ConfirmBillInput[];
+
+                await confirmMutation.mutateAsync({
+                  txId,
+                  bills: toBeConfirmBills,
+                });
+              }
+
               setPendingTxId("");
+
+              queryClient.invalidateQueries({
+                queryKey: ["org", orgId, "transactions"],
+              });
+
               setCreateOpen(false);
-            }}
-            accounts={accountsList as Account[]}
-            categories={categoriesList as Category[]}
-            loading={createMutation.isPending}
-            errorMessage={createError ?? createMutation.error?.message ?? null}
-            onSubmit={async ({ fromAccountId, data, files }) => {
-              try {
-                setCreateError(null);
-                // 1. create transaction and get the id
-                let txId = pendingTxId;
-                if (!txId) {
-                  const res = await createMutation.mutateAsync({
-                    fromAccountId,
-                    data,
-                  });
-                  txId = res.id;
-                  setPendingTxId(txId);
-                }
-
-                // 2. only run if user attached bills
-                if (files.length > 0) {
-                  // Convert files to PresignFileInput array for bill uploads
-                  const bills = files.map((f) => ({
-                    file_name: f.name,
-                    mime_type: f.type,
-                    file_size_bytes: f.size,
-                  })) as PresignFileInput[];
-
-                  const presignURL = await presignMutation.mutateAsync({
-                    txId,
-                    bills,
-                  });
-
-                  // 3. PUT each file directly to MinIO using the presigned URL
-                  await Promise.all(
-                    presignURL.map(({ upload_url, file_name }) => {
-                      const bill = files.find((b) => b.name === file_name)!;
-                      return fetch(upload_url, {
-                        method: "PUT",
-                        body: bill,
-                        headers: { "Content-Type": bill.type },
-                      });
-                    }),
-                  );
-
-                  // 4. Confirm that files are uploaded to bucket from go server
-                  const toBeConfirmBills = presignURL.map(
-                    ({ object_key, file_name }) => {
-                      const bill = files.find((b) => b.name === file_name)!;
-                      return {
-                        object_key,
-                        file_name,
-                        mime_type: bill.type,
-                        file_size_bytes: bill.size,
-                      };
-                    },
-                  ) as ConfirmBillInput[];
-
-                  await confirmMutation.mutateAsync({
-                    txId,
-                    bills: toBeConfirmBills,
-                  });
-                }
-
-                setPendingTxId("");
-
-                queryClient.invalidateQueries({
-                  queryKey: ["org", orgId, "transactions"],
-                });
-
-                setCreateOpen(false);
-              } catch (err) {
-                let message = "Something went wrong, try again";
-                if (axios.isAxiosError(err)) {
-                  message = err.response?.data?.error || message;
-                }
-                setCreateError(message);
+            } catch (err) {
+              let message = "Something went wrong, try again";
+              if (axios.isAxiosError(err)) {
+                message = err.response?.data?.error || message;
               }
-            }}
-          />
+              setCreateError(message);
+            }
+          }}
+        />
 
-          <TransactionDeleteModal
-            key={deleteOpen ? "delete-open" : "delete-closed"}
-            open={deleteOpen}
-            onClose={() => setDeleteOpen(false)}
-            transaction={transactionToDelete}
-            loading={deleteMutation.isPending}
-            errorMessage={deleteError ?? deleteMutation.error?.message ?? null}
-            onConfirm={async ({ tranId, fromAccountId }) => {
-              try {
-                setDeleteError(null);
-                // 1. Delete linked bills
-                if (existingBills.length > 0) {
-                  for (const bill of existingBills) {
-                    await deleteBillMutation(bill.id);
-                  }
+        <TransactionDeleteModal
+          key={deleteOpen ? "delete-open" : "delete-closed"}
+          open={deleteOpen}
+          onClose={() => setDeleteOpen(false)}
+          transaction={transactionToDelete}
+          loading={deleteMutation.isPending}
+          errorMessage={deleteError ?? deleteMutation.error?.message ?? null}
+          onConfirm={async ({ tranId, fromAccountId }) => {
+            try {
+              setDeleteError(null);
+              // 1. Delete linked bills
+              if (existingBills.length > 0) {
+                for (const bill of existingBills) {
+                  await deleteBillMutation(bill.id);
                 }
-
-                // 2. Delete transaction
-                await deleteMutation.mutateAsync({ tranId, fromAccountId });
-
-                queryClient.invalidateQueries({
-                  queryKey: ["org", orgId, "transactions"],
-                });
-                setDeleteOpen(false);
-              } catch (err) {
-                let message = "Something went wrong, try again";
-                if (axios.isAxiosError(err)) {
-                  message = err.response?.data?.error || message;
-                }
-                setDeleteError(message);
               }
-            }}
-          />
-        </div>
+
+              // 2. Delete transaction
+              await deleteMutation.mutateAsync({ tranId, fromAccountId });
+
+              queryClient.invalidateQueries({
+                queryKey: ["org", orgId, "transactions"],
+              });
+              setDeleteOpen(false);
+            } catch (err) {
+              let message = "Something went wrong, try again";
+              if (axios.isAxiosError(err)) {
+                message = err.response?.data?.error || message;
+              }
+              setDeleteError(message);
+            }
+          }}
+        />
       </div>
     </div>
   );
