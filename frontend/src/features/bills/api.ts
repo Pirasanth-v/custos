@@ -1,5 +1,5 @@
 import api from "@/lib/axios";
-import type { Bill, ConfirmBillInput, GetOrgBillsParams, PaginatedResponse, PresignBillResult, PresignFileInput } from "./types";
+import type { Bill, BillsStats, ConfirmBillInput, GetOrgBillsParams, PaginatedResponse, PresignBillResult, PresignFileInput } from "./types";
 
 export const getPresignURL = async (
   orgId: string, 
@@ -40,11 +40,16 @@ export async function getBillsByTransaction(
   return res.data;
 }
    
-  export async function deleteBill(
-    orgId: string,
-    txId: string,
-    billId: string,
-  ): Promise<void> {
-    await api.delete(`/orgs/${orgId}/transactions/${txId}/bills/${billId}`);
-  }
+export async function deleteBill(
+  orgId: string,
+  txId: string,
+  billId: string,
+): Promise<void> {
+  await api.delete(`/orgs/${orgId}/transactions/${txId}/bills/${billId}`);
+}
+
+export async function getStats(orgId: string): Promise<BillsStats> {
+  const res = await api.get(`/orgs/${orgId}/bills/stats`);
+  return res.data;
+}
    

@@ -58,4 +58,11 @@ export type PaginatedResponse<B> = {
   data: B[];
   next: string;
   has_more: boolean;
-};
+}
+
+export interface BillsStats {
+  total_bills: number;
+  total_file_size_bytes: number;
+  image_count: number;
+  pdf_count: number;
+}

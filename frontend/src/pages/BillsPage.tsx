@@ -5,7 +5,6 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 // Hooks
 import { useBills } from "@/features/bills/hooks/useGetBillsByOrg";
 import { useDeleteBill } from "@/features/bills/hooks/useDeleteBill";
-//import { useDownloadBill } from "@/features/bill/hooks/useDownloadBill";
 
 // Components
 import { BillToolbar } from "@/components/bills/BillToolBar";
@@ -24,6 +23,7 @@ import { getFileType } from "@/features/bills/utils";
 
 // Store
 import useOrgStore from "@/store/orgStore";
+import { useBillStats } from "@/features/bills/hooks/useGetStats";
 
 // ─── Default filter state ─────────────────────────────────────────────────────
 
@@ -63,6 +63,7 @@ export default function BillsPage() {
   const bills = billsResponse?.data ?? [];
   const hasNext = billsResponse?.has_more ?? false;
   const nextCursor = billsResponse?.next ?? "";
+  const { data: stats } = useBillStats(orgId);
 
   const { mutateAsync: deleteBillMutation, isPending: isDeleting } =
     useDeleteBill(orgId, txId);
@@ -199,25 +200,18 @@ export default function BillsPage() {
         {/* Stats row */}
         {!isLoading && bills.length > 0 && (
           <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatCard label="Total files" value={String(bills.length)} />
+            <StatCard
+              label="Total files"
+              value={String(stats?.total_bills ?? "—")}
+            />
             <StatCard
               label="Images"
-              value={String(
-                bills.filter((b) => getFileType(b.mime_type) === "image")
-                  .length,
-              )}
+              value={String(stats?.image_count ?? "—")}
             />
-            <StatCard
-              label="PDFs"
-              value={String(
-                bills.filter((b) => getFileType(b.mime_type) === "pdf").length,
-              )}
-            />
+            <StatCard label="PDFs" value={String(stats?.pdf_count ?? "—")} />
             <StatCard
               label="Total size"
-              value={humanSizeTotal(
-                bills.reduce((s, b) => s + b.file_size_bytes, 0),
-              )}
+              value={humanSizeTotal(stats?.total_file_size_bytes ?? 0)}
             />
           </div>
         )}

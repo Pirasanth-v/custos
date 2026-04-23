@@ -255,7 +255,7 @@ func (r *BillRepo) GetStats(ctx context.Context, orgID string) (*dto.BillStats, 
 		FROM transaction_bills
 		WHERE org_id = $1
 			AND deleted_at IS NULL
-			AND is_confirmed = FALSE
+			AND is_confirmed = TRUE
 	`
 
 	var stats dto.BillStats

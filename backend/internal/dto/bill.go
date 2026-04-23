@@ -46,8 +46,8 @@ type BillResponse struct {
 }
 
 type BillStats struct {
-    Total      int    `json:"total"`
-    Images     int    `json:"images"`
-    PDFs       int    `json:"pdfs"`
-    TotalBytes int64  `json:"total_bytes"`
+    Total      int    `json:"total_bills"`
+    Images     int    `json:"image_count"`
+    PDFs       int    `json:"pdf_count"`
+    TotalBytes int64  `json:"total_file_size_bytes"`
 }
