@@ -82,7 +82,7 @@ export default function TransactionDeleteModal({
           <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
             <li>• Reverses net balance impact for the transaction</li>
             <li>• Transaction will be marked as deleted</li>
-            <li>• Requires correct account context for your organization</li>
+            <li>• Any attached bills will also be deleted from this transaction</li>       
           </ul>
         </div>
 

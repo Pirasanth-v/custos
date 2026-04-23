@@ -26,7 +26,9 @@ type Transaction struct {
 	FromAccountID string            `json:"from_account_id"`
 	ToAccountID   *string           `json:"to_account_id"`
 	CreatedBy     string            `json:"created_by"`
-	UpdatedBy     *string            `json:"updated_by"`
+	CreatedByName  *string          `json:"created_by_name"`
+	UpdatedBy      *string          `json:"updated_by"`
+	UpdatedByName  *string          `json:"updated_by_name"`
 	DeletedBy     *string           `json:"deleted_by,omitempty"`
 	Type          TransactionType   `json:"type"`
 	Amount        string            `json:"amount"`

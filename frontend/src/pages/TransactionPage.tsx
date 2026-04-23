@@ -30,6 +30,7 @@ import {
 import { useConfirmUploads } from "@/features/bills/hooks/useConfirmUploads";
 import { useBillsByTransaction } from "@/features/bills/hooks/useGetBillsByTransaction";
 import { useDeleteBill } from "@/features/bills/hooks/useDeleteBill";
+import TransactionDetailModal from "@/components/transactions/detail/TransactionDetailModal";
 
 function SkeletonRow() {
   return <div className="h-16 animate-pulse rounded-2xl bg-muted/50" />;
@@ -80,6 +81,8 @@ export default function TransactionPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+
+  const [viewOpen, setViewOpen] = useState(false);
 
   const [pendingTxId, setPendingTxId] = useState<string | "">("");
 
@@ -162,6 +165,11 @@ export default function TransactionPage() {
   const confirmMutation = useConfirmUploads(orgId);
   const { mutateAsync: deleteBillMutation, isPending: isDeleting } =
     useDeleteBill(orgId, selectedTransactionId);
+
+  const handleView = (t: Transaction) => {
+    setSelectedTransaction(t);
+    setViewOpen(true);
+  };
 
   const handleEdit = (t: Transaction) => {
     setEditError(null);
@@ -319,6 +327,7 @@ export default function TransactionPage() {
                 categoriesById={categoriesById}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onView={handleView}
               />
 
               <TransactionsPagination
@@ -348,6 +357,28 @@ export default function TransactionPage() {
               />
             </div>
           )}
+
+          <TransactionDetailModal
+            open={viewOpen}
+            onClose={() => setViewOpen(false)}
+            transaction={selectedTransaction}
+            orgId={orgId}
+            accounts={accountsList}
+            categories={categoriesList}
+            currencyCode={
+              accountsList.find(
+                (a) => a.id === selectedTransaction?.from_account_id,
+              )?.currency_code
+            }
+            onEdit={(tx) => {
+              setSelectedTransaction(tx);
+              setEditOpen(true);
+            }}
+            onDelete={(tx) => {
+              setSelectedTransaction(tx);
+              setDeleteOpen(true);
+            }}
+          />
 
           <TransactionEditModal
             key={editOpen ? "edit-open" : "edit-closed"}

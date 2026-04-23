@@ -7,7 +7,9 @@ export type Transaction = {
   from_account_id: string;
   to_account_id?: string | null;
   created_by: string;
+  created_by_name: string;
   updated_by: string;
+  updated_by_name: string;
   deleted_by?: string | null;
   type: TransactionType;
   amount: string;

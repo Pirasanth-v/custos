@@ -1,8 +1,6 @@
 import type { Account } from "@/features/account/types";
 import type { Category } from "@/features/category/types";
 import type { Transaction } from "@/features/transaction/types";
-import { MoreHorizontal } from "lucide-react";
-import { useState } from "react";
 import TransactionActionsMenu from "./TransactionActionsMenu";
 import TransactionStatusBadge from "./TransactionStatusBadge";
 import TransactionTypeBadge from "./TransactionTypeBadge";
@@ -13,6 +11,7 @@ type TransactionsTableProps = {
   categoriesById?: Record<string, Category>;
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
+  onView: (transaction: Transaction) => void;
 };
 
 function formatMoney(amount: number, currencyCode: string) {
@@ -61,20 +60,9 @@ export default function TransactionsTable({
   categoriesById,
   onEdit,
   onDelete,
+  onView,
 }: TransactionsTableProps) {
-  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
-  const handleMenuClick = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    transactionId: string,
-  ) => {
-    e.stopPropagation();
-    setMenuOpenId(transactionId);
-    setAnchorEl(e.currentTarget);
-  };
-
-  const closeMenu = () => setMenuOpenId(null);
 
   return (
     <div className="overflow-x-auto">
@@ -89,7 +77,7 @@ export default function TransactionsTable({
             </th>
             <th className="px-6 py-4 font-medium">Accounts</th>
             <th className="px-6 py-4 font-medium">Status</th>
-            <th className="px-6 py-4 font-medium text-right md:px-8">
+            <th className="px-6 py-4 font-medium text-center">
               Actions
             </th>
           </tr>
@@ -114,7 +102,7 @@ export default function TransactionsTable({
             return (
               <tr
                 key={t.id}
-                className="cursor-default border-b border-border/60 transition hover:bg-muted/40"
+                className="group cursor-default border-b border-border/60 transition hover:bg-muted/40"
               >
                 <td className="px-6 py-4 md:px-8">
                   <div className="text-sm font-medium text-foreground">
@@ -169,29 +157,10 @@ export default function TransactionsTable({
                 </td>
 
                 <td className="px-6 py-4 text-right md:px-8">
-                  <button
-                    type="button"
-                    onClick={(e) => handleMenuClick(e, t.id)}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                    aria-label={`Open actions for transaction ${t.id}`}
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
-
                   <TransactionActionsMenu
-                    open={menuOpenId === t.id}
-                    anchorRef={
-                      anchorEl ? ({ current: anchorEl } as React.RefObject<HTMLButtonElement>) : undefined
-                    }
-                    onClose={closeMenu}
-                    onEdit={() => {
-                      closeMenu();
-                      onEdit(t);
-                    }}
-                    onDelete={() => {
-                      closeMenu();
-                      onDelete(t);
-                    }}
+                    onView={() => onView(t)}
+                    onEdit={() => onEdit(t)}
+                    onDelete={() => onDelete(t)}
                   />
                 </td>
               </tr>

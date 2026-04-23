@@ -289,16 +289,36 @@ func (r *TransactionRepository) GetTransactionsByOrgID(ctx context.Context, orgI
 	}
 
 	query := `
-		SELECT id, org_id, from_account_id, to_account_id, created_by, updated_by, deleted_by, type, amount, description, category_id, version, status, created_at, updated_at, deleted_at
-		FROM transactions
+		SELECT 
+			t.id,
+			t.org_id, 
+			t.from_account_id, 
+			t.to_account_id, 
+			t.created_by, 
+			uc.first_name AS created_by_name, 
+			t.updated_by, 
+			uu.first_name AS updated_by_name, 
+			t.deleted_by, 
+			t.type, 
+			t.amount, 
+			t.description, 
+			t.category_id, 
+			t.version, 
+			t.status, 
+			t.created_at, 
+			t.updated_at, 
+			t.deleted_at
+		FROM transactions t
+		JOIN users uc ON t.created_by = uc.id
+		LEFT JOIN users uu ON t.updated_by = uu.id
 		WHERE org_id = $1
 		  AND (
 		  		$2::timestamptz IS NULL
-				OR (created_at, id) < ($2, $3::uuid)
+				OR (t.created_at, t.id) < ($2, $3::uuid)
 			)
-		  AND status != 'deleted'
-		  AND deleted_at IS NULL
-		ORDER BY created_at DESC, id DESC
+		  AND t.status != 'deleted'
+		  AND t.deleted_at IS NULL
+		ORDER BY t.created_at DESC, t.id DESC
 		LIMIT $4
 	`
 
@@ -317,7 +337,9 @@ func (r *TransactionRepository) GetTransactionsByOrgID(ctx context.Context, orgI
 			&transaction.FromAccountID,
 			&transaction.ToAccountID,
 			&transaction.CreatedBy,
+			&transaction.CreatedByName,
 			&transaction.UpdatedBy,
+			&transaction.UpdatedByName,
 			&transaction.DeletedBy,
 			&transaction.Type,
 			&transaction.Amount,
