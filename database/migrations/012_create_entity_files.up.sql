@@ -1,5 +1,5 @@
 CREATE TABLE entity_files (
-    file_id UUID REFERENCES files(id),
+    file_id UUID REFERENCES transaction_bills(id),
     entity_id UUID NOT NULL,
     entity_type VARCHAR(100) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
