@@ -28,6 +28,7 @@ func main() {
 	slog.Info("starting server", "port", cfg.App.Port)
 	port := os.Getenv("PORT")
 	slog.Info("starting server", "port", port)
+
 	// Build the database URL from config
 	databaseURL := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=%s",
@@ -35,6 +36,7 @@ func main() {
 		cfg.DB.Host, cfg.DB.Port,
 		cfg.DB.Name, cfg.DB.SSLmode,
 	)
+	slog.Info("db url", "url", databaseURL)
 
 	if err := database.RunMigrations(databaseURL); err != nil {
         slog.Error("migration failed", "err", err)
