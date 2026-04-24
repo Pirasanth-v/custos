@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"log/slog"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -29,8 +30,13 @@ func New(
 	// runs in every request
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	allowedOrigins := []string{"http://localhost:5173"}
+	if origin := os.Getenv("ALLOWED_ORIGIN"); origin != "" {
+		allowedOrigins = []string{origin}
+	}
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,  // ← critical for cookies

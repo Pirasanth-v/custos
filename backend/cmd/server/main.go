@@ -90,7 +90,7 @@ func main() {
 	dashboardService := service.NewDashboardService(dashboardRepo)
 
 	// Handlers
-	authHandler := handler.NewAuthHandler(authService, cfg.Security)
+	authHandler := handler.NewAuthHandler(authService, cfg.Security, cfg.App)
 	OrgHandler := handler.NewOrgHandler(orgService)
 	accHandler := handler.NewAccountHandler(accService)
 	currencyHandler := handler.NewCurrencyHandler(currencyService)
