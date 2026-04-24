@@ -34,6 +34,14 @@ func main() {
 		cfg.DB.Name, cfg.DB.SSLmode,
 	)
 
+	slog.Info("connecting to database", 
+    "host", cfg.DB.Host,
+    "port", cfg.DB.Port,
+    "user", cfg.DB.User,
+    "name", cfg.DB.Name,
+    "sslmode", cfg.DB.SSLmode,
+)
+
 	if err := database.RunMigrations(databaseURL); err != nil {
         slog.Error("migration failed", "err", err)
         os.Exit(1)
