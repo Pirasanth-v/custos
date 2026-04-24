@@ -25,7 +25,7 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 	slog.Info("Cfg is loaded and ready to use")
-
+	slog.Info("starting server", "port", cfg.App.Port)
 	// Build the database URL from config
 	databaseURL := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=%s",
@@ -34,7 +34,6 @@ func main() {
 		cfg.DB.Name, cfg.DB.SSLmode,
 	)
 
-	slog.Info("Database connection URL constructed", "url", databaseURL)
 	if err := database.RunMigrations(databaseURL); err != nil {
         slog.Error("migration failed", "err", err)
         os.Exit(1)
