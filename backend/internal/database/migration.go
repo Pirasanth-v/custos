@@ -12,7 +12,7 @@ import (
 
 func RunMigrations(databaseURL string) error {
     m, err := migrate.New(
-        "database/migrations",
+        "file://database/migrations/",
         databaseURL,
     )
     if err != nil {

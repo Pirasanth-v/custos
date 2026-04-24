@@ -23,7 +23,8 @@ COPY --from=builder /app/server .
 
 # Copy migrations so the server can run them on startup
 COPY /database/migrations ./database/migrations
-
+# after COPY database/migrations ./database/migrations
+RUN ls -la /app/database/migrations
 EXPOSE 8080
 
 CMD ["./server"]
