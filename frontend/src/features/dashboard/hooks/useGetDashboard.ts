@@ -7,7 +7,6 @@ export function useDashboard(orgId: string, months = 6) {
     queryKey: ["dashboard", orgId, months],
     queryFn: () => getDashboard(orgId, months),
     enabled: Boolean(orgId),
-    staleTime: 1 * 60 * 1000,      // 2 min — don't refetch unless stale
-    refetchOnWindowFocus: false,
+    staleTime: 1 * 60 * 1000, // 1 min
   });
 }

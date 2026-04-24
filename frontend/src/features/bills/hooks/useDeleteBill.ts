@@ -8,6 +8,7 @@ export function useDeleteBill(orgId: string, txId: string) {
     mutationFn: (billId: string) => deleteBill(orgId, txId, billId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bills", orgId, txId] });
+      qc.invalidateQueries({ queryKey: ["bills", orgId] });
     },
   });
 }

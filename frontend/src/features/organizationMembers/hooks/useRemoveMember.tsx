@@ -15,7 +15,7 @@ export function useRemoveMember() {
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["members", variables.orgId],
+        queryKey: ["org", variables.orgId, "members"],
       });
     },
   });

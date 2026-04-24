@@ -1,12 +1,23 @@
 import Dropdown from "@/components/dropdown/Dropdown";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, Plus, Loader2 } from "lucide-react";
 import useOrgStore from "@/store/orgStore";
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useGetUserOrgs } from "@/features/organization/hooks/useGetUserOrgs";
+import type { Organization } from "@/features/organization/types";
 
 export function OrganizationDropdown() {
-  const { currentOrg, orgs, setCurrentOrg } = useOrgStore();
+  const { currentOrg, setCurrentOrg, setOrgs } = useOrgStore();
   const navigate = useNavigate();
+  const { data: orgs = [], isLoading } = useGetUserOrgs();
+
+  // Keep store in sync for legacy components if needed, 
+  // but better to move away from store-based orgs list.
+  useEffect(() => {
+    if (orgs.length > 0) {
+      setOrgs(orgs);
+    }
+  }, [orgs, setOrgs]);
 
   // Prefer personal org by default if none is selected.
   // Memoize orgs lookup for efficiency.
@@ -26,7 +37,7 @@ export function OrganizationDropdown() {
 
   // Handle selection: set as current
   const handleOrgSelect = useCallback(
-    (org: { id: number; name: string }) => {
+    (org: Organization) => {
       setCurrentOrg(org);
     },
     [setCurrentOrg]
@@ -41,9 +52,16 @@ export function OrganizationDropdown() {
     <Dropdown
       widthClass="w-72"
       trigger={
-        <button className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition">
-          <span>{current?.name ?? "Choose Organization"}</span>
-          <ChevronDown size={16} className="text-muted-foreground" />
+        <button className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition group">
+          {isLoading ? (
+            <Loader2 size={16} className="animate-spin text-muted-foreground" />
+          ) : (
+            <span>{current?.name ?? "Choose Organization"}</span>
+          )}
+          <ChevronDown
+            size={16}
+            className="text-muted-foreground group-hover:text-primary transition"
+          />
         </button>
       }
     >

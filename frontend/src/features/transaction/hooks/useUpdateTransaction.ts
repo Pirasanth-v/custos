@@ -1,8 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateTransaction } from "../api";
 import type { UpdateTransactionRequest } from "../types";
 
 export function useUpdateTransaction(orgId: string) {
+  const queryClient = useQueryClient();
   return useMutation<
     void,
     Error,
@@ -10,6 +11,10 @@ export function useUpdateTransaction(orgId: string) {
   >({
     mutationFn: async ({ fromAccountId, tranId, data }) => {
       return updateTransaction(orgId, fromAccountId, tranId, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["org", orgId, "transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["org", orgId, "accounts"] });
     },
   });
 }
