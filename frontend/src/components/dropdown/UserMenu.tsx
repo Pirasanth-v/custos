@@ -53,17 +53,6 @@ export default function UserMenu({
             type="button"
             onClick={() => {
               setOpen(false);
-              navigate("/profile");
-            }}
-            className="w-full px-4 py-3 text-left text-foreground hover:bg-foreground/5 transition"
-          >
-            Profile
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
               navigate("/settings");
             }}
             className="w-full px-4 py-3 text-left text-foreground hover:bg-foreground/5 transition border-t border-foreground/10"

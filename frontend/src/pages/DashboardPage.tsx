@@ -71,7 +71,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <button
-          onClick={() => navigate(`/org/${orgId}/transactions`)}
+          onClick={() => navigate(`/transactions`)}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
