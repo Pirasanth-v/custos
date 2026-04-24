@@ -18,6 +18,14 @@ const colorCell = (value: string) => {
   return <span>{value}</span>;
 };
 
+type PermissionRow = {
+  feature: string;
+  owner: string;
+  admin: string;
+  member: string;
+  viewer: string;
+};
+
 const RolesPermissionsSettings = () => {
   // Define your roles data here
   const headers = [
@@ -60,7 +68,7 @@ const RolesPermissionsSettings = () => {
       <h1 className="text-2xl font-semibold mb-6">Roles & Permissions</h1>
 
       {/* Roles Table */}
-      <Table
+      <Table<PermissionRow>
         headers={headers}
         data={data}
         renderRow={renderRow}

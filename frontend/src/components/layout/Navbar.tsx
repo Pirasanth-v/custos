@@ -19,7 +19,6 @@ export function Navbar() {
   const { isDark, toggle } = useThemeStore();
 
   const [currency, setCurrency] = useState("USD");
-  const [orgId, setOrgId] = useState(1);
 
   // Handle sign-out logic
   const handleSignOut = async () => {
@@ -49,13 +48,7 @@ export function Navbar() {
 
         {/* Middle Section: Organization Dropdown */}
         <div>
-          <OrganizationDropdown 
-            selectedOrgId={orgId}
-            onSelect={setOrgId}
-            onCreate={() => {
-              // Implement actual organization creation logic later
-            }}
-          />
+          <OrganizationDropdown />
         </div>
 
         {/* Right Section: Currency, Theme, Notifications, Profile */}

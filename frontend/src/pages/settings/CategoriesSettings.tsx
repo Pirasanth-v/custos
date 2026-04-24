@@ -65,7 +65,7 @@ const CategoriesSettings = () => {
             </button>
             <CategoryActionMenu
               open={ellipsisMenuOpen === category.id}
-              anchorRef={anchorEl ? { current: anchorEl } : undefined}
+              anchorRef={anchorEl ? { current: anchorEl } : { current: null }}
               onClose={() => setEllipsisMenuOpen(null)}
               onEdit={() => handleEdit(category)}
               onDelete={() => handleDelete(category)}

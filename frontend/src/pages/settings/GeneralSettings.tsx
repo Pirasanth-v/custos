@@ -6,13 +6,20 @@ import DeleteOrganizationModal from "@/components/DeleteOrgModal";
 import useOrgStore from "@/store/orgStore";
 import { useDeleteOrg } from "@/features/organization/hooks/useDeleteOrg";
 import axios from "axios";
+import { type UseFormRegister, type UseFormHandleSubmit, type FieldErrors } from "react-hook-form";
+
+type SettingsFormData = {
+  organizationName: string;
+  contactEmail: string;
+  businessAddress: string;
+};
 
 interface GeneralSettingsProps {
-  register: ReturnType<typeof import("react-hook-form")["useForm"]>["register"];
-  handleSubmit: (onValid: (data: Record<string, unknown>) => void) => (e?: React.BaseSyntheticEvent) => void;
-  onSubmit: (data: Record<string, unknown>) => void;
+  register: UseFormRegister<SettingsFormData>;
+  handleSubmit: UseFormHandleSubmit<SettingsFormData>;
+  onSubmit: (data: SettingsFormData) => void;
   onCancel: () => void;
-  errors: Record<string, { message?: string }>;
+  errors: FieldErrors<SettingsFormData>;
   isDirty: boolean;
   isSaving: boolean;
   isSubmitting: boolean;

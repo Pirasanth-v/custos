@@ -374,7 +374,7 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
                         <AccountsActionMenu
                           open={menuOpen == account.id}
                           anchorRef={
-                            anchorEl ? { current: anchorEl } : undefined
+                            anchorEl ? { current: anchorEl } : { current: null }
                           }
                           onClose={() => setMenuOpen(null)}
                           onEdit={() => handleEdit(account)}

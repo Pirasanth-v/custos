@@ -15,7 +15,7 @@ import { useRemoveMember } from "@/features/organizationMembers/hooks/useRemoveM
 const MembersSettings = () => {
   const currentOrg = useOrgStore((s) => s.currentOrg);
   const orgId = currentOrg?.id ?? "";
-  const { data: members = [], loading: isLoading, error } = useGetMembers(orgId);
+  const { data: members = [], isLoading, error } = useGetMembers(orgId);
 
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [ellipsisMenuOpen, setEllipsisMenuOpen] = useState<string | null>(null);
@@ -98,7 +98,7 @@ const MembersSettings = () => {
             </button>
             <MemberActionMenu
               open={ellipsisMenuOpen === member.user_id}
-              anchorRef={anchorEl ? { current: anchorEl } : undefined}
+              anchorRef={anchorEl ? { current: anchorEl } : { current: null }}
               onClose={() => setEllipsisMenuOpen(null)}
               onEdit={() => handleEdit(member)}
               onDelete={() => handleDelete(member)}
