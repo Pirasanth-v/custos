@@ -184,8 +184,7 @@ export default function TransactionPage() {
               Transactions
             </h1>
             <p className="mt-2 text-sm text-muted-foreground md:text-base">
-              Track financial activity across your organization with fast,
-              cursor-based pagination.
+              Track financial activity across your organization
             </p>
           </div>
 
@@ -333,7 +332,7 @@ export default function TransactionPage() {
                   <h3 className="mt-4 text-xl font-semibold text-foreground">
                     No transactions found
                   </h3>
-                  <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                  <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground flex justify-center items-center text-center mx-auto">
                     Try adjusting your search/filter, or load more results to
                     continue browsing.
                   </p>
