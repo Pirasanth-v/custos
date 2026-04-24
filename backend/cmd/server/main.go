@@ -26,6 +26,8 @@ func main() {
 	}
 	slog.Info("Cfg is loaded and ready to use")
 	slog.Info("starting server", "port", cfg.App.Port)
+	port := os.Getenv("PORT")
+	slog.Info("starting server", "port", port)
 	// Build the database URL from config
 	databaseURL := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=%s",
