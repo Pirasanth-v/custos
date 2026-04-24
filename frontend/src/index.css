@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand colors */
+  --color-primary: #6366F1;
+  --color-secondary: #E2E8F0;
+
+  /* Semantic colors */
+  --color-success: #10B981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-destructive: #F43F5E;
+
+  /* Muted and background shades */
+  --color-muted: #F1F5F9;
+  --color-background: #F8FAFC;
+  --color-muted-foreground: #64748B;
+  --color-foreground: #0F172A;
+
+  /* UI surface colors */
+  --color-card: #FFFFFF;
+  --color-card-foreground: #0F172A;
+  --color-border: #E2E8F0;
+  --color-input: #E2E8F0;
+  --color-input-background: #FFFFFF;
+  --color-ring: #6366F1;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #0F172A;
+
+  --color-accent: #F1F5F9;
+  --color-accent-foreground: #0F172A;
+
+  /* Chart Colors */
+  --color-chart-1: #6366F1; /* Primary/Indigo */
+  --color-chart-2: #10B981; /* Success/Emerald */
+  --color-chart-3: #F43F5E; /* Destructive/Rose */
+  --color-chart-4: #F59E0B; /* Warning/Amber */
+  --color-chart-5: #8B5CF6; /* Violet */
+
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace; /* for money values */
+}
+
+/* Dark mode overrides: applied when `.dark` class is on <html> */
+html.dark {
+  --color-primary: #6366F1;
+  --color-secondary: #334155;
+
+  --color-success: #10B981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-destructive: #F43F5E;
+
+  --color-muted: #1E293B;
+  --color-background: #0F172A;
+  --color-muted-foreground: #94A3B8;
+  --color-foreground: #F8FAFC;
+
+  --color-card: #1E293B;
+  --color-card-foreground: #F8FAFC;
+  --color-border: #334155;
+  --color-input: #E2E8F0;
+  --color-input-background: #1E293B;
+  --color-ring: #6366F1;
+  --color-popover: #1E293B;
+  --color-popover-foreground: #F8FAFC;
+
+  --color-accent: #1E293B;
+  --color-accent-foreground: #F8FAFC;
+
+  --color-chart-1: #818CF8;
+  --color-chart-2: #34D399;
+  --color-chart-3: #FB7185;
+  --color-chart-4: #FBBF24;
+  --color-chart-5: #A78BFA;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #2E2C2A;
+  border-radius: 999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #A8A29E;
+}
+
+/* Light mode override */
+html:not(.dark) .scrollbar-thin {
+  scrollbar-color: #E2DED9 transparent;
+}
+
+html:not(.dark) .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #E2DED9;
+}
+
+html:not(.dark) .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #78716C;
+}

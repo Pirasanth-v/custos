@@ -1,4 +1,4 @@
-package internal
+package config
 
 import (
 	"fmt"
@@ -34,12 +34,14 @@ type StorageConfig struct {
 	AccessKey string
 	SecretKey string
 	Bucket string
-	useSSL bool
+	UseSSL bool
+	PublicHost string	// e.g. "files.yourdomain.com" in prod, "localhost:9000" in dev
 }
 
 type SecurityConfig struct {
 	TokenSecret string	// secret key for signing tokens
 	BcryptCost int	// difficulty level for password hashing
+	SessionExpiryHours int
 }
 
 func Load() (*Config, error) {
@@ -89,12 +91,14 @@ func Load() (*Config, error) {
 		AccessKey: require("STORAGE_ACCESS_KEY"),
 		SecretKey: require("STORAGE_SECRET_KEY"),
 		Bucket: optional("STORAGE_BUCKET", "custos"),
-		useSSL: os.Getenv("STORAGE_USE_SSL") == "true",
+		UseSSL: os.Getenv("STORAGE_USE_SSL") == "true",
+		PublicHost: optional("MINIO_PUBLIC_HOST", "localhost:9000"),
 	}
 
 	cfg.Security = SecurityConfig {
 		TokenSecret: require("TOKEN_SECRET"),
 		BcryptCost: 12,	// default value
+		SessionExpiryHours: 48,
 	}
 	
 	// override the default if it sets in .env
@@ -103,6 +107,15 @@ func Load() (*Config, error) {
 		cost_int, err := strconv.Atoi(cost)
 		if err == nil {
 			cfg.Security.BcryptCost = cost_int
+		}
+	}
+	
+	// overrides the default if it sets in .env
+	expiry := os.Getenv("SESSION_EXPIRY_HOURS")
+	if expiry != "" {
+		expiry_int, err := strconv.Atoi(expiry)
+		if err == nil {
+			cfg.Security.SessionExpiryHours = expiry_int
 		}
 	}
 	

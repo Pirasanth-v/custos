@@ -1,4 +1,4 @@
-package internal
+package server
 
 import (
 	"net/http"
@@ -6,15 +6,36 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/pirasanth-v/custos/internal/handler"
+	m "github.com/pirasanth-v/custos/internal/middleware"
+	"github.com/go-chi/cors"
 
 )
 
-func New() http.Handler {
+func New(
+	AuthMiddleware *m.AuthMiddleware, 
+	OrgMiddleware *m.OrgMiddleware, 
+	authHandler *handler.AuthHandler, 
+	orgHandler *handler.OrgHandler,
+	accHandler *handler.AccountHandler,
+	currencyHandler *handler.CurrencyHandler,
+	tranHandler *handler.TransactionHandler,
+	categoryHandler *handler.CategoryHandler,
+	billHandler *handler.BillHandler,
+	dashboardHandler *handler.DashboardHandler,
+) http.Handler {
 	r := chi.NewRouter()
 
 	// runs in every request
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type"},
+		AllowCredentials: true,  // ← critical for cookies
+		MaxAge:           300,
+	}))
 
 	// routes
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -26,6 +47,85 @@ func New() http.Handler {
 		}
 		
 	})
+
+	r.Route("/api/v1", func(r chi.Router) {
+		// public routes, no auth needed
+		r.Post("/auth/register", authHandler.Register)
+		r.Post("/auth/login", authHandler.Login)
+		
+		// Currency
+		r.Get("/currencies", currencyHandler.GetAll)
+		r.Get("/currencies/{id}", currencyHandler.GetByID)
+
+		// protected routes
+		r.Group(func(r chi.Router) {
+			r.Use(AuthMiddleware.Authenticate)
+
+			// user endpoints
+			r.Post("/auth/logout", authHandler.Logout)
+			r.Get("/users/me", authHandler.Me)
+
+			// Invitation endpoints (personal notification-like)
+			r.Get("/invitations", orgHandler.GetInvitations)
+			r.Post("/invitations/{orgId}/accept", orgHandler.AcceptInvitation)
+			r.Post("/invitations/{orgId}/decline", orgHandler.DeclineInvitation)
+
+			r.Post("/orgs", orgHandler.CreateOrganization)
+			r.Get("/orgs", orgHandler.GetUserOrgs)
+	
+			// require both auth and org access
+			r.Group(func(r chi.Router) {
+				r.Use(OrgMiddleware.ValidateOrgAccess)
+
+				// Dashboard
+				r.Get("/orgs/{orgId}/dashboard", dashboardHandler.GetDashboard)
+
+				// Organization endpoints
+				r.Get("/orgs/{orgId}", orgHandler.GetOrgByID)
+				r.Put("/orgs/{orgId}", orgHandler.UpdateOrg)
+				r.Delete("/orgs/{orgId}", orgHandler.DeleteOrg)
+
+				// Organization members endpoints
+				r.Get("/orgs/{orgId}/members", orgHandler.GetMembers)
+				r.Put("/orgs/{orgId}/members/{userId}", orgHandler.UpdateMemberRole)
+				r.Delete("/orgs/{orgId}/members/{userId}", orgHandler.RemoveMember)
+				r.Post("/orgs/{orgId}/members/invite", orgHandler.InviteMember)
+
+				// Account
+				r.Post("/orgs/{orgId}/accounts", accHandler.CreateAccount)
+				r.Get("/orgs/{orgId}/accounts", accHandler.GetAccountsByOrgID)
+				r.Get("/orgs/{orgId}/accounts/{accId}", accHandler.GetAccountByID)
+				r.Patch("/orgs/{orgId}/accounts/{accId}", accHandler.UpdateAccount)
+				r.Delete("/orgs/{orgId}/accounts/{accId}", accHandler.DeleteAccount)
+
+				// Categories
+				r.Post("/orgs/{orgId}/categories", categoryHandler.CreateCategory)
+				r.Get("/orgs/{orgId}/categories", categoryHandler.GetCategories)
+				r.Patch("/orgs/{orgId}/categories/{categoryID}", categoryHandler.UpdateCategory)
+				r.Delete("/orgs/{orgId}/categories/{categoryID}", categoryHandler.DeleteCategory)
+
+				// Transaction
+				r.Post("/orgs/{orgId}/accounts/{accId}/transactions", tranHandler.CreateTransaction)
+				r.Get("/orgs/{orgId}/transactions", tranHandler.GetTransactionsByOrgID)
+				r.Get("/orgs/{orgId}/accounts/{accId}/transactions", tranHandler.GetTransactionsByAccID)
+				r.Get("/orgs/{orgId}/accounts/{accId}/transactions/{tranId}", tranHandler.GetTransactionByID)
+				r.Patch("/orgs/{orgId}/accounts/{accId}/transactions/{tranId}", tranHandler.UpdateTransaction)
+				r.Delete("/orgs/{orgId}/accounts/{accId}/transactions/{tranId}", tranHandler.DeleteTransaction)
+			
+				// Bills scoped to a transaction
+				r.Route("/orgs/{orgId}/transactions/{txId}/bills", func(r chi.Router) {
+					r.Get("/", billHandler.GetBillsByTransaction)
+					r.Post("/presign", billHandler.PresignUploads)
+					r.Post("/confirm", billHandler.ConfirmUploads)
+					r.Delete("/{billId}", billHandler.DeleteBill)
+				})
+			
+				// Files section in sidebar: all org bills
+				r.Get("/orgs/{orgId}/bills", billHandler.GetOrgFiles)
+				r.Get("/orgs/{orgId}/bills/stats", billHandler.GetStats)
+			})
+		})
+    })
 
 	return r
 }
