@@ -218,7 +218,7 @@ func (s *TransactionService) GetTransactionsByAccID(ctx context.Context, accID, 
 	return paginatedResp, nil
 }
 
-func (s *TransactionService) GetTransactionsByOrgID(ctx context.Context, orgID string, params dto.PaginationParams) (*dto.PaginatedResponse[model.Transaction], error) {
+func (s *TransactionService) GetTransactionsByOrgID(ctx context.Context, orgID string, filters dto.TransactionFilters, params dto.PaginationParams) (*dto.PaginatedResponse[model.Transaction], error) {
 	// Security Check: Cap the limit to prevent Memory Exhaustion / DDoS
 	if params.Limit <= 0 {
 		params.Limit = 10 // Default fallback limit
@@ -226,7 +226,7 @@ func (s *TransactionService) GetTransactionsByOrgID(ctx context.Context, orgID s
 		params.Limit = 100 // Hard maximum limit
 	}
 
-	paginatedResp, err := s.tranRepo.GetTransactionsByOrgID(ctx, orgID, params.Cursor, params.Limit)
+	paginatedResp, err := s.tranRepo.GetTransactionsByOrgID(ctx, orgID, filters, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get organization transactions: %w", err)
 	}
@@ -332,57 +332,34 @@ func (s *TransactionService) UpdateTransaction(
 		return fmt.Errorf("failed to parse new amount: %w", errParse)
 	}
 
-	switch *req.Type {
-	case model.TransactionTypeExpense:
-		// for expenses check from account will not go negative after update
-		// Check if updating the expense would overdraw the source account.
-		fromBalanceRaw, err := accRepo.GetNetBalanceByAccID(ctx, *oldTran.FromAccountID)
-		if err != nil {
-			return fmt.Errorf("could not get from account balance: %w", err)
-		}
-		fromBalance, err := decimal.NewFromString(fromBalanceRaw)
-		if err != nil {
-			return fmt.Errorf("failed to parse from account balance: %w", err)
-		}
-		// First, reverse the effect of the old expense, then subtract the new amount
-		adjusted := fromBalance.Add(oldAmt).Sub(newAmt)
-		if adjusted.LessThan(decimal.Zero) {
-			return errors.New("source account will be negative or overdraft")
-		}
-	case model.TransactionTypeIncome:
-		// income can't cause negative but for completeness:
-		fromBalanceRaw, err := accRepo.GetNetBalanceByAccID(ctx, *oldTran.FromAccountID)
-		if err != nil {
-			return fmt.Errorf("could not get from account balance: %w", err)
-		}
-		fromBalance, err := decimal.NewFromString(fromBalanceRaw)
-		if err != nil {
-			return fmt.Errorf("failed to parse from account balance: %w", err)
-		}
-		adjusted := fromBalance.Sub(oldAmt) // reverse old income
-		adjusted = adjusted.Add(newAmt)     // apply new income
-		if adjusted.LessThan(decimal.Zero) {
-			return errors.New("source account will be negative or overdraft")
-		}
-	case model.TransactionTypeTransfer:
-		// Transfer: check both from and to accounts
-		// Check from account balance as before
-		fromBalanceRaw, err := accRepo.GetNetBalanceByAccID(ctx, *oldTran.FromAccountID)
-		if err != nil {
-			return fmt.Errorf("could not get from account balance: %w", err)
-		}
-		fromBalance, err := decimal.NewFromString(fromBalanceRaw)
-		if err != nil {
-			return fmt.Errorf("failed to parse from account balance: %w", err)
-		}
-		adjustedFrom := fromBalance.Add(oldAmt).Sub(newAmt)
-		if adjustedFrom.LessThan(decimal.Zero) {
-			return errors.New("source account will be negative or overdraft")
-		}
+	// for expenses check from account will not go negative after update
+	// Check if updating the expense would overdraw the source account.
 
-		// Also check the destination (to account) balance if required by business logic
+	var adjusted decimal.Decimal
+	var adjustedTo decimal.Decimal
+	var adjustedFrom decimal.Decimal
+	
+	// 1. get the current net balance
+	fromBalanceRaw, err := accRepo.GetNetBalanceByAccID(ctx, *oldTran.FromAccountID)
+	if err != nil {
+		return fmt.Errorf("could not get from account balance: %w", err)
+	}
+	fromBalance, err := decimal.NewFromString(fromBalanceRaw)
+	if err != nil {
+		return fmt.Errorf("failed to parse from account balance: %w", err)
+	}
+
+	// 2. reverse the effect of old tran
+	switch *oldTran.Type {
+	case model.TransactionTypeExpense:
+		adjusted = fromBalance.Add(oldAmt)
+	case model.TransactionTypeIncome:
+		adjusted = fromBalance.Sub(oldAmt)
+	case model.TransactionTypeTransfer:
+		adjustedFrom = fromBalance.Add(oldAmt)
+		// Also reverse the destination (to account) balance 
 		if oldTran.ToAccountID != nil && req.ToAccountID != nil && *oldTran.ToAccountID != "" && *req.ToAccountID != "" {
-			// Only check if same to account (otherwise may need more logic)
+			// current toAccount netbalance
 			toBalanceRaw, err := accRepo.GetNetBalanceByAccID(ctx, *oldTran.ToAccountID)
 			if err != nil {
 				return fmt.Errorf("could not get to account balance: %w", err)
@@ -391,14 +368,101 @@ func (s *TransactionService) UpdateTransaction(
 			if err != nil {
 				return fmt.Errorf("failed to parse to account balance: %w", err)
 			}
-			// Reverse old credit, apply new credit (net: toBalance - oldAmt + newAmt)
-			adjustedTo := toBalance.Sub(oldAmt).Add(newAmt)
-			if adjustedTo.LessThan(decimal.Zero) {
-				return errors.New("destination account will be negative or overdraft")
-			}
+			// Reverse old credit
+			adjustedTo = toBalance.Sub(oldAmt)
 		}
 	default:
 	}
+
+	// 3. apply the effect of new tran
+	switch *req.Type {
+	case model.TransactionTypeExpense:
+		adjusted = adjusted.Sub(newAmt)
+	case model.TransactionTypeIncome:
+		adjusted = adjusted.Add(newAmt)
+	case model.TransactionTypeTransfer:
+		adjustedFrom = adjusted.Sub(newAmt)
+		// Also reverse the destination (to account) balance 
+		adjustedTo = adjustedTo.Add(newAmt)
+	default:
+	}
+
+	// 4. only check accounts that were debited
+	if adjusted.Cmp(decimal.Zero) < 0 || adjustedFrom.Cmp(decimal.Zero) < 0 {
+		return errors.New("source account will be negative or overdraft")
+	}
+	// to account is credited on transfer — only check if you enforce no-negative policy there
+	if *req.Type == model.TransactionTypeTransfer && adjustedTo.Cmp(decimal.Zero) < 0 {
+		return errors.New("destination account will be negative or overdraft")
+	}
+
+	// switch *req.Type {
+	// case model.TransactionTypeExpense:
+	// 	// for expenses check from account will not go negative after update
+	// 	// Check if updating the expense would overdraw the source account.
+	// 	fromBalanceRaw, err := accRepo.GetNetBalanceByAccID(ctx, *oldTran.FromAccountID)
+	// 	if err != nil {
+	// 		return fmt.Errorf("could not get from account balance: %w", err)
+	// 	}
+	// 	fromBalance, err := decimal.NewFromString(fromBalanceRaw)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to parse from account balance: %w", err)
+	// 	}
+	// 	// First, reverse the effect of the old expense, then subtract the new amount
+	// 	adjusted := fromBalance.Add(oldAmt).Sub(newAmt)
+	// 	if adjusted.LessThan(decimal.Zero) {
+	// 		return errors.New("source account will be negative or overdraft")
+	// 	}
+	// case model.TransactionTypeIncome:
+	// 	// income can't cause negative but for completeness:
+	// 	fromBalanceRaw, err := accRepo.GetNetBalanceByAccID(ctx, *oldTran.FromAccountID)
+	// 	if err != nil {
+	// 		return fmt.Errorf("could not get from account balance: %w", err)
+	// 	}
+	// 	fromBalance, err := decimal.NewFromString(fromBalanceRaw)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to parse from account balance: %w", err)
+	// 	}
+	// 	adjusted := fromBalance.Sub(oldAmt) // reverse old income
+	// 	adjusted = adjusted.Add(newAmt)     // apply new income
+	// 	if adjusted.LessThan(decimal.Zero) {
+	// 		return errors.New("source account will be negative or overdraft")
+	// 	}
+	// case model.TransactionTypeTransfer:
+	// 	// Transfer: check both from and to accounts
+	// 	// Check from account balance as before
+	// 	fromBalanceRaw, err := accRepo.GetNetBalanceByAccID(ctx, *oldTran.FromAccountID)
+	// 	if err != nil {
+	// 		return fmt.Errorf("could not get from account balance: %w", err)
+	// 	}
+	// 	fromBalance, err := decimal.NewFromString(fromBalanceRaw)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to parse from account balance: %w", err)
+	// 	}
+	// 	adjustedFrom := fromBalance.Add(oldAmt).Sub(newAmt)
+	// 	if adjustedFrom.LessThan(decimal.Zero) {
+	// 		return errors.New("source account will be negative or overdraft")
+	// 	}
+
+	// 	// Also check the destination (to account) balance if required by business logic
+	// 	if oldTran.ToAccountID != nil && req.ToAccountID != nil && *oldTran.ToAccountID != "" && *req.ToAccountID != "" {
+	// 		// Only check if same to account (otherwise may need more logic)
+	// 		toBalanceRaw, err := accRepo.GetNetBalanceByAccID(ctx, *oldTran.ToAccountID)
+	// 		if err != nil {
+	// 			return fmt.Errorf("could not get to account balance: %w", err)
+	// 		}
+	// 		toBalance, err := decimal.NewFromString(toBalanceRaw)
+	// 		if err != nil {
+	// 			return fmt.Errorf("failed to parse to account balance: %w", err)
+	// 		}
+	// 		// Reverse old credit, apply new credit (net: toBalance - oldAmt + newAmt)
+	// 		adjustedTo := toBalance.Sub(oldAmt).Add(newAmt)
+	// 		if adjustedTo.LessThan(decimal.Zero) {
+	// 			return errors.New("destination account will be negative or overdraft")
+	// 		}
+	// 	}
+	// default:
+	// }
 
 	// Step 2: Reverse net balance according to old transaction details
 	reverseReq := dto.UpdateNetBalanceBody{

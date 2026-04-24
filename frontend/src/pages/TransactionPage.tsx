@@ -10,7 +10,7 @@ import type { Category } from "@/features/category/types";
 import { useGetCategoriesByOrgId } from "@/features/category/hooks/useGetCategoriesByOrgId";
 import type {
   Transaction,
-  TransactionType,
+  TransactionFilters,
 } from "@/features/transaction/types";
 import { useCreateTransaction } from "@/features/transaction/hooks/useCreateTransaction";
 import { useGetTransactionsByOrgId } from "@/features/transaction/hooks/useGetTransactionsByOrgId";
@@ -60,8 +60,14 @@ function createCategoriesById(
 }
 
 export default function TransactionPage() {
-  const [search, setSearch] = useState("");
-  const [type, setType] = useState<TransactionType | "all">("all");
+  const [filters, setFilters] = useState<TransactionFilters>({
+    search: "",
+    type: "all",
+    account_ids: [],
+    category_ids: [],
+    sort_key: "date",
+    sort_dir: "desc",
+  });
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -123,39 +129,22 @@ export default function TransactionPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useGetTransactionsByOrgId(orgId, pageSize);
+  } = useGetTransactionsByOrgId(orgId, pageSize, filters);
 
   const transactions: Transaction[] = useMemo(() => {
     if (!data?.pages?.length) return [];
     return data.pages.flatMap((p) => p.data ?? []);
   }, [data]);
 
-  const visibleTransactions = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return transactions.filter((t) => {
-      const matchesType = type === "all" ? true : t.type === type;
-      if (!matchesType) return false;
-      if (!q) return true;
-
-      const haystack = [t.id, t.type, t.amount, t.description ?? ""]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [transactions, search, type]);
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(visibleTransactions.length / pageSize),
-  );
+  const totalPages = Math.max(1, Math.ceil(transactions.length / pageSize));
 
   const effectivePage = Math.min(currentPage, totalPages);
 
   const paginatedTransactions = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     const end = start + pageSize;
-    return visibleTransactions.slice(start, end);
-  }, [visibleTransactions, currentPage, pageSize]);
+    return transactions.slice(start, end);
+  }, [transactions, currentPage, pageSize]);
 
   const canGoPrev = currentPage > 1;
   const canGoNext = currentPage < totalPages || !!hasNextPage;
@@ -292,10 +281,13 @@ export default function TransactionPage() {
         ) : (
           <>
             <TransactionsToolbar
-              search={search}
-              onSearchChange={setSearch}
-              type={type}
-              onTypeChange={setType}
+              filters={filters}
+              onFiltersChange={(patch) => {
+                setFilters((prev) => ({ ...prev, ...patch }));
+                setCurrentPage(1); // Reset to first page on filter change
+              }}
+              accounts={accountsList}
+              categories={categoriesList}
             />
 
             <div className="rounded-3xl border border-border bg-card/80 shadow-sm">
@@ -333,7 +325,7 @@ export default function TransactionPage() {
                   <SkeletonRow />
                   <SkeletonRow />
                 </div>
-              ) : visibleTransactions.length === 0 ? (
+              ) : transactions.length === 0 ? (
                 <div className="px-6 py-16 text-center md:px-8">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                     <RotateCcw className="h-6 w-6" />

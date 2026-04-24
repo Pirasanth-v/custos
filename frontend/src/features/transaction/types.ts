@@ -46,8 +46,17 @@ export type CreateTransactionRequest = {
   to_account_id: string | null;
 };
 
+export type TransactionFilters = {
+  search?: string;
+  type?: TransactionType | "all";
+  account_ids?: string[];
+  category_ids?: string[];
+  sort_key?: string;
+  sort_dir?: string;
+};
+
 export type GetTransactionsParams = {
   cursor?: string;
   limit?: number;
-};
+} & TransactionFilters;
 

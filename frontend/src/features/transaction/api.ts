@@ -15,6 +15,12 @@ export const getTransactionsByOrgId = async (
     params: {
       cursor: params.cursor ?? undefined,
       limit: params.limit ?? undefined,
+      search: params.search ?? undefined,
+      type: params.type ?? undefined,
+      account_ids: params.account_ids ?? undefined,
+      category_ids: params.category_ids ?? undefined,
+      sort_key: params.sort_key ?? undefined,
+      sort_dir: params.sort_dir ?? undefined,
     },
   });
 

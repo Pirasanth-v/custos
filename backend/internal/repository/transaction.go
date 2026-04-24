@@ -276,110 +276,121 @@ func (r *TransactionRepository) GetTransactionsByAccID(ctx context.Context, accI
 	return response, nil
 }
 
-func (r *TransactionRepository) GetTransactionsByOrgID(ctx context.Context, orgID, cursor string, limit int) (*dto.PaginatedResponse[model.Transaction], error) {
+func (r *TransactionRepository) GetTransactionsByOrgID(ctx context.Context, orgID string, filters dto.TransactionFilters, params dto.PaginationParams) (*dto.PaginatedResponse[model.Transaction], error) {
 	var lastTranID *string
 	var lastTranCreatedAt *time.Time
 	var err error
 
-	if cursor != "" {
-		lastTranID, lastTranCreatedAt, err = dto.DecodeCursor(cursor)
+	if params.Cursor != "" {
+		lastTranID, lastTranCreatedAt, err = dto.DecodeCursor(params.Cursor)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode cursor: %w", err)
 		}
 	}
 
-	query := `
-		SELECT 
-			t.id,
-			t.org_id, 
-			t.from_account_id, 
-			t.to_account_id, 
-			t.created_by, 
-			uc.first_name AS created_by_name, 
-			t.updated_by, 
-			uu.first_name AS updated_by_name, 
-			t.deleted_by, 
-			t.type, 
-			t.amount, 
-			t.description, 
-			t.category_id, 
-			t.version, 
-			t.status, 
-			t.created_at, 
-			t.updated_at, 
-			t.deleted_at
+	queryParts := []string{
+		`SELECT 
+			t.id, t.org_id, t.from_account_id, t.to_account_id, t.created_by, 
+			uc.first_name AS created_by_name, t.updated_by, uu.first_name AS updated_by_name, 
+			t.deleted_by, t.type, t.amount, t.description, t.category_id, 
+			t.version, t.status, t.created_at, t.updated_at, t.deleted_at
 		FROM transactions t
 		JOIN users uc ON t.created_by = uc.id
 		LEFT JOIN users uu ON t.updated_by = uu.id
-		WHERE org_id = $1
-		  AND (
-		  		$2::timestamptz IS NULL
-				OR (t.created_at, t.id) < ($2, $3::uuid)
-			)
-		  AND t.status != 'deleted'
-		  AND t.deleted_at IS NULL
-		ORDER BY t.created_at DESC, t.id DESC
-		LIMIT $4
-	`
+		WHERE t.org_id = $1`,
+	}
 
-	rows, err := r.db.Query(ctx, query, orgID, lastTranCreatedAt, lastTranID, limit+1)
+	args := []any{orgID}
+	nextArg := 2
+
+	if filters.Type != "" && filters.Type != "all" {
+		queryParts = append(queryParts, fmt.Sprintf("AND t.type = $%d", nextArg))
+		args = append(args, filters.Type)
+		nextArg++
+	}
+
+	if filters.Search != "" {
+		queryParts = append(queryParts, fmt.Sprintf("AND (t.description ILIKE $%d OR t.amount::text ILIKE $%d)", nextArg, nextArg))
+		args = append(args, "%"+filters.Search+"%")
+		nextArg++
+	}
+
+	if len(filters.AccountIDs) > 0 {
+		queryParts = append(queryParts, fmt.Sprintf("AND (t.from_account_id = ANY($%d) OR t.to_account_id = ANY($%d))", nextArg, nextArg))
+		args = append(args, filters.AccountIDs)
+		nextArg++
+	}
+
+	if len(filters.CategoryIDs) > 0 {
+		queryParts = append(queryParts, fmt.Sprintf("AND t.category_id = ANY($%d)", nextArg))
+		args = append(args, filters.CategoryIDs)
+		nextArg++
+	}
+
+	// Cursor clause
+	if lastTranCreatedAt != nil {
+		queryParts = append(queryParts, fmt.Sprintf("AND (t.created_at, t.id) < ($%d, $%d::uuid)", nextArg, nextArg+1))
+		args = append(args, lastTranCreatedAt, lastTranID)
+		nextArg += 2
+	}
+
+	queryParts = append(queryParts, "AND t.status != 'deleted' AND t.deleted_at IS NULL")
+	
+	// Ordering
+	sortKey := "t.created_at"
+	sortDir := "DESC"
+	if filters.SortKey == "amount" {
+		sortKey = "t.amount::numeric"
+	}
+	if strings.ToUpper(filters.SortDir) == "ASC" {
+		sortDir = "ASC"
+	}
+	queryParts = append(queryParts, fmt.Sprintf("ORDER BY %s %s, t.id DESC", sortKey, sortDir))
+
+	// Limit
+	queryParts = append(queryParts, fmt.Sprintf("LIMIT $%d", nextArg))
+	args = append(args, params.Limit+1)
+
+	query := strings.Join(queryParts, " ")
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get transactions from database: %w", err)
 	}
 	defer rows.Close()
 
-	transactions := make([]model.Transaction, 0, limit+1)
+	transactions := make([]model.Transaction, 0, params.Limit+1)
 	for rows.Next() {
 		var transaction model.Transaction
 		if err := rows.Scan(
-			&transaction.ID,
-			&transaction.OrgID,
-			&transaction.FromAccountID,
-			&transaction.ToAccountID,
-			&transaction.CreatedBy,
-			&transaction.CreatedByName,
-			&transaction.UpdatedBy,
-			&transaction.UpdatedByName,
-			&transaction.DeletedBy,
-			&transaction.Type,
-			&transaction.Amount,
-			&transaction.Description,
-			&transaction.CategoryID,
-			&transaction.Version,
-			&transaction.Status,
-			&transaction.CreatedAt,
-			&transaction.UpdatedAt,
-			&transaction.DeletedAt,
+			&transaction.ID, &transaction.OrgID, &transaction.FromAccountID, &transaction.ToAccountID,
+			&transaction.CreatedBy, &transaction.CreatedByName, &transaction.UpdatedBy, &transaction.UpdatedByName,
+			&transaction.DeletedBy, &transaction.Type, &transaction.Amount, &transaction.Description,
+			&transaction.CategoryID, &transaction.Version, &transaction.Status, &transaction.CreatedAt,
+			&transaction.UpdatedAt, &transaction.DeletedAt,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan into transaction: %w", err)
 		}
 		transactions = append(transactions, transaction)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("failed during rows iteration: %w", err)
-	}
-
 	hasMore := false
 	var nextCursor string
-	if len(transactions) > limit {
-		transactions = transactions[:limit]
+	if len(transactions) > params.Limit {
 		hasMore = true
-		last := transactions[limit-1]
-		var err error
+		last := transactions[params.Limit-1]
 		nextCursor, err = dto.EncodeCursor(last.ID, last.CreatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode new cursor: %w", err)
 		}
+		transactions = transactions[:params.Limit]
 	}
 
-	response := &dto.PaginatedResponse[model.Transaction]{
+	return &dto.PaginatedResponse[model.Transaction]{
 		Data:    transactions,
 		Next:    nextCursor,
 		HasMore: hasMore,
-	}
-
-	return response, nil
+	}, nil
 }
 
 func (r *TransactionRepository) IsTranBelongsToAcc(ctx context.Context, tranID, accID string) (bool, error) {
