@@ -26,14 +26,10 @@ import { useDeleteAccount } from "@/features/account/hooks/useDeleteAccount";
 import StatusMessage from "@/components/StatusMessage";
 
 type AccountsPageProps = {
-  onCreateAccount?: () => void;
   onRowClick?: (account: Account) => void;
 };
 
-export default function AccountsPage({
-  onCreateAccount,
-  onRowClick,
-}: AccountsPageProps) {
+export default function AccountsPage({ onRowClick }: AccountsPageProps) {
   const [search, setSearch] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
 
@@ -296,7 +292,7 @@ export default function AccountsPage({
               <SkeletonRow />
             </div>
           ) : filteredAccounts.length === 0 ? (
-            <EmptyState onCreateAccount={onCreateAccount} />
+            <EmptyState />
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-left">
@@ -517,7 +513,7 @@ function AccountTypeIcon({ type }: { type: Account["type"] }) {
   }
 }
 
-function EmptyState({ onCreateAccount }: { onCreateAccount?: () => void }) {
+function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-16 text-center md:px-8">
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -531,15 +527,6 @@ function EmptyState({ onCreateAccount }: { onCreateAccount?: () => void }) {
         Start by creating your first account to track balances, categorize
         transactions, and power your financial dashboard.
       </p>
-
-      <button
-        type="button"
-        onClick={() => onCreateAccount?.()}
-        className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white shadow-sm transition hover:opacity-95"
-      >
-        <Plus className="h-4 w-4" />
-        Create Account
-      </button>
     </div>
   );
 }
