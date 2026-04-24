@@ -363,9 +363,10 @@ func (h *TransactionHandler) GetTransactionsByOrgID(w http.ResponseWriter, r *ht
 		return
 	}
 
-	// Parse query params for pagination (optional: cursor, limit)
+	// Parse query params for pagination
 	params := dto.PaginationParams{
 		Cursor: r.URL.Query().Get("cursor"),
+		Limit:  10,
 	}
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
 		if lim, err := strconv.Atoi(limitStr); err == nil {
@@ -373,8 +374,18 @@ func (h *TransactionHandler) GetTransactionsByOrgID(w http.ResponseWriter, r *ht
 		}
 	}
 
+	// Parse filter params
+	filters := dto.TransactionFilters{
+		Search:      r.URL.Query().Get("search"),
+		Type:        r.URL.Query().Get("type"),
+		SortKey:     r.URL.Query().Get("sort_key"),
+		SortDir:     r.URL.Query().Get("sort_dir"),
+		AccountIDs:  r.URL.Query()["account_ids"],
+		CategoryIDs: r.URL.Query()["category_ids"],
+	}
+
 	// Call service
-	transactions, err := h.tranService.GetTransactionsByOrgID(r.Context(), orgID, params)
+	transactions, err := h.tranService.GetTransactionsByOrgID(r.Context(), orgID, filters, params)
 	if err != nil {
 		slog.Error("failed to get transactions by org id", "err", err)
 		response.Error(w, http.StatusInternalServerError, "failed to get organization transactions")
