@@ -10,7 +10,7 @@ import (
 	"github.com/pirasanth-v/custos/internal/handler"
 	m "github.com/pirasanth-v/custos/internal/middleware"
 	"github.com/go-chi/cors"
-
+	"github.com/pirasanth-v/custos/pkg/ratelimit"
 )
 
 func New(
@@ -43,6 +43,10 @@ func New(
 		MaxAge:           300,
 	}))
 
+	authLimiter   := ratelimit.NewStore(10, 10)   // 10 req/min, burst 10
+    uploadLimiter := ratelimit.NewStore(20, 20)   // 20 req/min, burst 20
+    apiLimiter    := ratelimit.NewStore(60, 30)   // 60 req/min, burst 30
+
 	// routes
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/json")
@@ -55,9 +59,12 @@ func New(
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
-		// public routes, no auth needed
-		r.Post("/auth/register", authHandler.Register)
-		r.Post("/auth/login", authHandler.Login)
+		r.Group(func(r chi.Router) {
+			// public routes, no auth needed
+			r.Use(m.RateLimit(authLimiter))
+			r.Post("/auth/register", authHandler.Register)
+			r.Post("/auth/login", authHandler.Login)
+		})
 		
 		// Currency
 		r.Get("/currencies", currencyHandler.GetAll)
@@ -65,6 +72,7 @@ func New(
 
 		// protected routes
 		r.Group(func(r chi.Router) {
+			r.Use(m.RateLimit(apiLimiter))
 			r.Use(AuthMiddleware.Authenticate)
 
 			// user endpoints
@@ -120,6 +128,7 @@ func New(
 			
 				// Bills scoped to a transaction
 				r.Route("/orgs/{orgId}/transactions/{txId}/bills", func(r chi.Router) {
+					r.Use(m.RateLimit(uploadLimiter))
 					r.Get("/", billHandler.GetBillsByTransaction)
 					r.Post("/presign", billHandler.PresignUploads)
 					r.Post("/confirm", billHandler.ConfirmUploads)
