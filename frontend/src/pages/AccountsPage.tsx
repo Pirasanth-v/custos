@@ -24,6 +24,7 @@ import { useUpdateAccount } from "@/features/account/hooks/useUpdateAccount";
 import DeleteAccountModal from "@/components/accounts/DeleteAccountModal";
 import { useDeleteAccount } from "@/features/account/hooks/useDeleteAccount";
 import StatusMessage from "@/components/StatusMessage";
+import { toast } from "@/lib/toast";
 
 type AccountsPageProps = {
   onRowClick?: (account: Account) => void;
@@ -178,6 +179,7 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
               try {
                 setCreateAccountError("");
                 await createAccountMutation.mutateAsync(data);
+                toast.success("Account created");
                 setCreateAccountOpen(false);
               } catch (error) {
                 let message = "Something went wrong, try again";
@@ -399,6 +401,7 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
                   accountId: selectedAccount?.id ?? "",
                   data,
                 });
+                toast.success("Account updated");
                 setEditModalOpen(false);
               } catch (error) {
                 let message = "Something went wrong, try again";
@@ -420,6 +423,7 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
               try {
                 setDeleteAccountError("");
                 await deleteAccountMutation.mutateAsync(account.id);
+                toast.success("Account deleted");
                 setDeleteModalOpen(false);
               } catch (error) {
                 let message = "Something went wrong, try again";

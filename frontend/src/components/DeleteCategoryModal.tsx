@@ -6,6 +6,7 @@ import { useDeleteCategory } from "@/features/category/hooks/useDeleteCategory";
 import type { Category } from "@/features/category/types";
 import useOrgStore from "@/store/orgStore";
 import axios from "axios";
+import { toast } from "@/lib/toast";
 
 type Props = {
   open: boolean;
@@ -34,6 +35,7 @@ export default function DeleteCategoryModal({
     setError(null);
     try {
       await deleteCategory(category.id);
+      toast.success("Category deleted");
       onClose();
     } catch (err) {
       let message = "Something went wrong. Try again later.";

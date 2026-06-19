@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { toast } from "@/lib/toast";
 
 // Zod schema for form validation
 const orgSchema = z.object({
@@ -38,6 +39,7 @@ export default function CreateOrganizationPage() {
     setServerError("");
     try {
       await createOrganization(data);
+      toast.success("Organization created");
       reset();
       navigate("/dashboard");
     } catch (error) {

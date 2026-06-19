@@ -45,6 +45,8 @@ export default function LoginPage() {
         if (status) {
           if (status === 401) {
             setServerError("Invalid email or password");
+          } else if (status === 429) {
+            setServerError("Too many requests, please try again later");
           } else {
             setServerError("Something went wrong, try again");
           }

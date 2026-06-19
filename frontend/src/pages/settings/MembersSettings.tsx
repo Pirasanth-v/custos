@@ -11,6 +11,7 @@ import { useUpdateMemberRole } from "@/features/organizationMembers/hooks/useUpd
 import type { Member, updateMemberRoleRequest } from "@/features/organizationMembers/types";
 import axios from "axios";
 import { useRemoveMember } from "@/features/organizationMembers/hooks/useRemoveMember";
+import { toast } from "@/lib/toast";
 
 const MembersSettings = () => {
   const currentOrg = useOrgStore((s) => s.currentOrg);
@@ -151,6 +152,7 @@ const MembersSettings = () => {
             } as updateMemberRoleRequest,
             {
               onSuccess: () => {
+                toast.success("Member role updated");
                 setEditModalOpen(false);
               },
               onError: (err) => {
@@ -182,6 +184,7 @@ const MembersSettings = () => {
               orgId: currentOrg?.id ?? "",
               userId: memberToRemove.user_id
             })
+            toast.success("Member removed");
             setRemoveModalOpen(false);
           } catch (error) {
             let message = "Something went wrong. try again."

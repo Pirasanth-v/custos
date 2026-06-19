@@ -74,7 +74,7 @@ func Load() (*Config, error) {
 
 	cfg.App = AppConfig {
 		Env: optional("APP_ENV", "development"),
-		Port: optional("PORT", "8080"),
+		Port: optional("APP_PORT", "8080"),
 	}
 
 	cfg.DB = DBconfig {

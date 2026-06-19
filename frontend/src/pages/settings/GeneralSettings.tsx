@@ -7,6 +7,7 @@ import useOrgStore from "@/store/orgStore";
 import { useDeleteOrg } from "@/features/organization/hooks/useDeleteOrg";
 import axios from "axios";
 import { type UseFormRegister, type UseFormHandleSubmit, type FieldErrors } from "react-hook-form";
+import { toast } from "@/lib/toast";
 
 type SettingsFormData = {
   organizationName: string;
@@ -199,6 +200,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
           try {
             setDeleteOrgError("");
             await deleteOrgMutation.mutateAsync();
+            toast.success("Organization deleted");
             setDeleteOrgOpen(false);
           } catch (error) {
             let message = "Something went wrong, try again."
