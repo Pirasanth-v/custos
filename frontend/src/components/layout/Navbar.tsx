@@ -19,7 +19,6 @@ export function Navbar() {
   const { isDark, toggle } = useThemeStore();
 
   const [currency, setCurrency] = useState("USD");
-  const [orgId, setOrgId] = useState(1);
 
   // Handle sign-out logic
   const handleSignOut = async () => {
@@ -33,41 +32,37 @@ export function Navbar() {
 
   return (
     <>
-      {error && 
+      {error &&
         <div className="fixed top-18 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded shadow">
-        {error}
-        <button
-          className="ml-3 text-sm underline"
-          onClick={() => setError("")}
-          aria-label="Dismiss error"
-        >
-          Dismiss
-        </button>
-      </div>}
+          {error}
+          <button
+            className="ml-3 text-sm underline"
+            onClick={() => setError("")}
+            aria-label="Dismiss error"
+          >
+            Dismiss
+          </button>
+        </div>}
       <nav className="h-16 flex justify-between items-center bg-card text-foreground border-b border-border px-5">
         <h1 className="text-lg font-medium">Custos</h1>
 
         {/* Middle Section: Organization Dropdown */}
-        <div>
-          <OrganizationDropdown 
-            selectedOrgId={orgId}
-            onSelect={setOrgId}
-            onCreate={() => {
-              // Implement actual organization creation logic later
-            }}
-          />
+        <div className="hidden md:block">
+          <OrganizationDropdown />
         </div>
 
         {/* Right Section: Currency, Theme, Notifications, Profile */}
         <div className="flex gap-5 items-center">
-          <CurrencyDropdown 
-            selectedCurrency={currency}
-            onSelect={setCurrency}
-          />
+          <div className="hidden md:block">
+            <CurrencyDropdown
+              selectedCurrency={currency}
+              onSelect={setCurrency}
+            />
+          </div>
 
           <button
             onClick={toggle}
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
+            className="hidden md:block p-2 rounded-lg hover:bg-muted transition-colors"
             aria-label="Toggle theme"
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
