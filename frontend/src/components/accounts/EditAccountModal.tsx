@@ -73,45 +73,45 @@ function EditAccountModalContent({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="space-y-6 p-6 text-white">
+      <div className="space-y-5 p-4 text-white sm:space-y-6 sm:p-6">
         {/* Header */}
-        <div className="flex items-start gap-4">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/20">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/20 sm:h-11 sm:w-11 sm:rounded-2xl">
             <Pencil className="h-5 w-5" />
           </div>
 
           <div className="min-w-0">
-            <h2 className="text-xl font-semibold text-foreground">
+            <h2 className="text-lg font-semibold text-foreground sm:text-xl">
               Edit Account
             </h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <p className="mt-1.5 text-sm leading-6 text-muted-foreground sm:mt-2">
               Update account details. Only the name and description can be changed
               to preserve financial consistency.
             </p>
           </div>
         </div>
 
-        <StatusMessage type="error" message={localError || errorMessage} compact onClose={() => setLocalError("")}/>
+        <StatusMessage type="error" message={localError || errorMessage} compact onClose={() => setLocalError("")} />
 
         {/* Read-only summary */}
-        <div className="rounded-2xl border border-border bg-card/70 p-4">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <div className="rounded-2xl border border-border bg-card/70 p-3 sm:p-4">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:h-12 sm:w-12 sm:rounded-2xl">
               <AccountTypeIcon type={account.type} />
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="text-lg font-semibold text-foreground">
+              <p className="break-words text-base font-semibold text-foreground sm:text-lg">
                 {account.name}
               </p>
-              <div className="mt-2 flex flex-wrap gap-2 text-sm text-muted-foreground">
+              <div className="mt-2 flex max-w-full flex-wrap gap-1.5 text-xs text-muted-foreground sm:gap-2 sm:text-sm">
                 <span className="rounded-full border border-border px-3 py-1 capitalize">
                   {account.type}
                 </span>
                 <span className="rounded-full border border-border px-3 py-1">
                   {account.currency_code || account.currency_id}
                 </span>
-                <span className="rounded-full border border-border px-3 py-1">
+                <span className="max-w-full break-all rounded-xl border border-border px-2.5 py-1 sm:rounded-full sm:px-3">
                   Opening: {account.currency_symbol || ""}{String(account.initial_balance)}
                 </span>
               </div>
@@ -120,14 +120,14 @@ function EditAccountModalContent({
         </div>
 
         {/* Editable fields */}
-        <div className="grid grid-cols-1 gap-5">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5">
           <Field label="Account Name" required>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Account name"
-              className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              className="w-full resize-none rounded-xl border border-input bg-background px-3 py-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
             />
           </Field>
 
@@ -146,7 +146,7 @@ function EditAccountModalContent({
         </div>
 
         {/* Locked fields notice */}
-        <div className="rounded-2xl border border-border bg-background/40 p-4">
+        <div className="rounded-2xl border border-border bg-background/40 p-3 sm:p-4">
           <p className="text-sm font-medium text-foreground">Locked fields</p>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
             Account type, currency, and opening balance cannot be edited here to
@@ -160,7 +160,7 @@ function EditAccountModalContent({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             Cancel
           </button>
@@ -169,7 +169,7 @@ function EditAccountModalContent({
             type="button"
             disabled={!canSubmit}
             onClick={handleSubmit}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {loading ? (
               <>

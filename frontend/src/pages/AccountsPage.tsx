@@ -10,24 +10,39 @@ import {
   Filter,
   MoreHorizontal,
   WalletCards,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { useGetAccountsByOrgId } from "@/features/account/hooks/useGetAccountsByOrgId";
 import useOrgStore from "@/store/orgStore";
 import type { Account } from "@/features/account/types";
-import CreateAccountModal from "@/components/CreateAccountModal";
+import CreateAccountModal from "@/components/accounts/CreateAccountModal";
 import axios from "axios";
 import { useCreateAccount } from "@/features/account/hooks/useCreateAccount";
 import { useGetAllCurrencies } from "@/features/currency/hooks/useGetAllCurrencies";
-import AccountsActionMenu from "@/components/AccountsActionMenu";
 import EditAccountModal from "@/components/accounts/EditAccountModal";
 import { useUpdateAccount } from "@/features/account/hooks/useUpdateAccount";
 import DeleteAccountModal from "@/components/accounts/DeleteAccountModal";
 import { useDeleteAccount } from "@/features/account/hooks/useDeleteAccount";
 import StatusMessage from "@/components/StatusMessage";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 type AccountsPageProps = {
   onRowClick?: (account: Account) => void;
 };
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function AccountsPage({ onRowClick }: AccountsPageProps) {
   const [search, setSearch] = useState("");
@@ -52,10 +67,6 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
   const [CreateAccountOpen, setCreateAccountOpen] = useState(false);
   const [createAccountError, setCreateAccountError] = useState("");
   const createAccountMutation = useCreateAccount(orgId);
-
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-
-  const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
@@ -104,23 +115,12 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
     };
   }, [accounts]);
 
-  const handleMenuClick = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>, accId: string) => {
-      e.stopPropagation();
-      setMenuOpen(accId);
-      setAnchorEl(e.currentTarget);
-    },
-    [],
-  );
-
   const handleEdit = useCallback((account: Account) => {
-    setMenuOpen(null);
     setSelectedAccount(account);
     setEditModalOpen(true);
   }, []);
 
   const handleDelete = useCallback((account: Account) => {
-    setMenuOpen(null);
     setAccountToDelete(account);
     setDeleteModalOpen(true);
   }, []);
@@ -145,11 +145,13 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
 
   return (
     <div className="min-h-full bg-background text-foreground">
-      <div className="mx-auto w-full max-w-7xl px-6 py-8 md:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-8 md:px-8">
         {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:mb-8 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Accounts</h1>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              Accounts
+            </h1>
             <p className="mt-2 text-sm text-muted-foreground md:text-base">
               Manage your organization accounts, monitor balances, and keep
               financial records organized.
@@ -159,7 +161,7 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
           <button
             type="button"
             onClick={() => setCreateAccountOpen(true)}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white shadow-sm transition hover:opacity-95"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white shadow-sm transition hover:opacity-95 sm:w-fit"
           >
             <Plus className="h-4 w-4" />
             Create Account
@@ -205,7 +207,7 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
         )}
 
         {/* Top Stats */}
-        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 sm:mb-8 xl:grid-cols-4">
           <StatCard
             title="Total Accounts"
             value={String(stats.totalAccounts)}
@@ -230,7 +232,7 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
         </div>
 
         {/* Toolbar */}
-        <div className="mb-6 rounded-2xl border border-border bg-card/80 p-4 shadow-sm">
+        <div className="mb-6 rounded-2xl border border-border bg-card/80 p-3 shadow-sm sm:p-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-1 flex-col gap-3 sm:flex-row">
               <div className="relative w-full sm:max-w-md">
@@ -246,23 +248,28 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
 
               <div className="relative w-full sm:w-56">
                 <Filter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="h-11 w-full appearance-none rounded-xl border border-input bg-background pl-10 pr-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-                >
-                  <option value="all">All Types</option>
-                  <option value="cash">Cash</option>
-                  <option value="bank">Bank</option>
-                  <option value="credit">Credit</option>
-                  <option value="wallet">Wallet</option>
-                  <option value="savings">Savings</option>
-                  <option value="other">Other</option>
-                </select>
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger
+                    aria-label="Filter by account type"
+                    className="h-11 w-full rounded-xl border border-input bg-transparent! pl-10 pr-3 text-sm text-foreground shadow-none hover:bg-transparent! focus:bg-transparent! focus-visible:ring-2 focus-visible:ring-ring/60 data-[state=open]:bg-transparent!"
+                  >
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+
+                  <SelectContent position="popper">
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="bank">Bank</SelectItem>
+                    <SelectItem value="credit">Credit</SelectItem>
+                    <SelectItem value="wallet">Wallet</SelectItem>
+                    <SelectItem value="savings">Savings</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            <div className="text-sm text-muted-foreground">
+            <div className="self-start text-sm text-muted-foreground lg:self-auto">
               Showing{" "}
               <span className="font-medium text-foreground">
                 {filteredAccounts.length}
@@ -273,11 +280,13 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
         </div>
 
         {/* Main content */}
-        <div className="rounded-3xl border border-border bg-card/80 shadow-sm">
-          <div className="border-b border-border px-6 py-5 md:px-8">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card/80 shadow-sm sm:rounded-3xl">
+          <div className="border-b border-border px-4 py-4 sm:px-6 sm:py-5 md:px-8">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="text-xl font-semibold">Account Directory</h2>
+                <h2 className="text-lg font-semibold sm:text-xl">
+                  Account Directory
+                </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Review balances, categories, and account health at a glance.
                 </p>
@@ -286,7 +295,7 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
           </div>
 
           {loading ? (
-            <div className="space-y-3 px-6 py-6 md:px-8">
+            <div className="space-y-3 px-4 py-5 sm:px-6 sm:py-6 md:px-8">
               <SkeletonRow />
               <SkeletonRow />
               <SkeletonRow />
@@ -294,16 +303,26 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
           ) : filteredAccounts.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left">
+            <div className="w-full overflow-hidden">
+              <table className="w-full table-auto text-left">
                 <thead className="border-b border-border">
                   <tr className="text-sm text-muted-foreground">
-                    <th className="px-6 py-4 font-medium md:px-8">Account</th>
-                    <th className="px-6 py-4 font-medium">Type</th>
-                    <th className="px-6 py-4 font-medium">Currency</th>
-                    <th className="px-6 py-4 font-medium">Initial Balance</th>
-                    <th className="px-6 py-4 font-medium">Net Balance</th>
-                    <th className="px-6 py-4 font-medium text-right md:px-8">
+                    <th className="px-3 py-4 font-medium sm:px-4 md:px-6 lg:px-8">
+                      Account
+                    </th>
+                    <th className="hidden px-6 py-4 font-medium lg:table-cell">
+                      Type
+                    </th>
+                    <th className="hidden px-6 py-4 font-medium md:table-cell">
+                      Currency
+                    </th>
+                    <th className="hidden px-6 py-4 font-medium xl:table-cell">
+                      Initial Balance
+                    </th>
+                    <th className="whitespace-nowrap px-2 py-4 font-medium sm:px-4 md:px-6">
+                      Net Balance
+                    </th>
+                    <th className="px-2 py-4 font-medium text-right sm:px-4 md:px-6 lg:px-8">
                       Actions
                     </th>
                   </tr>
@@ -316,9 +335,9 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
                       onClick={() => onRowClick?.(account)}
                       className="cursor-pointer border-b border-border/60 transition hover:bg-muted/40"
                     >
-                      <td className="px-6 py-4 md:px-8">
+                      <td className="min-w-0 px-3 py-4 sm:px-4 md:px-6 lg:px-8">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:h-11 sm:w-11 sm:rounded-2xl">
                             <AccountTypeIcon type={account.type} />
                           </div>
 
@@ -326,29 +345,29 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
                             <p className="truncate font-medium text-foreground">
                               {account.name}
                             </p>
-                            <p className="truncate text-sm text-muted-foreground">
+                            <p className="hidden truncate text-sm text-muted-foreground sm:block">
                               {account.description || "No description provided"}
                             </p>
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td className="hidden px-6 py-4 lg:table-cell">
                         <AccountTypeBadge type={account.type} />
                       </td>
 
-                      <td className="px-6 py-4 text-sm text-foreground">
+                      <td className="hidden px-6 py-4 text-sm text-foreground md:table-cell">
                         {account.currency_symbol}
                       </td>
 
-                      <td className="px-6 py-4 text-sm text-foreground">
+                      <td className="hidden px-6 py-4 text-sm text-foreground xl:table-cell">
                         {formatMoney(
                           parseFloat(account.initial_balance),
                           account.currency_code,
                         )}
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td className="whitespace-nowrap px-2 py-4 sm:px-4 md:px-6">
                         <span
                           className={`text-sm font-semibold ${
                             parseFloat(account.net_balance) < 0
@@ -363,23 +382,42 @@ export default function AccountsPage({ onRowClick }: AccountsPageProps) {
                         </span>
                       </td>
 
-                      <td className="px-6 py-4 text-right md:px-8">
-                        <button
-                          type="button"
-                          onClick={(e) => handleMenuClick(e, account.id)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </button>
-                        <AccountsActionMenu
-                          open={menuOpen == account.id}
-                          anchorRef={
-                            anchorEl ? { current: anchorEl } : undefined
-                          }
-                          onClose={() => setMenuOpen(null)}
-                          onEdit={() => handleEdit(account)}
-                          onDelete={() => handleDelete(account)}
-                        />
+                      <td className="whitespace-nowrap px-2 py-4 text-right sm:px-4 md:px-6 lg:px-8">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              aria-label={`Actions for ${account.name}`}
+                              onClick={(event) => event.stopPropagation()}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent
+                            align="end"
+                            sideOffset={6}
+                            className="w-44"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <DropdownMenuItem
+                              onSelect={() => handleEdit(account)}
+                              className="cursor-pointer gap-2"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              Edit Account
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              onSelect={() => handleDelete(account)}
+                              className="cursor-pointer gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete Account
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
