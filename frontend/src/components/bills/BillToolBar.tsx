@@ -1,5 +1,13 @@
-import { Search, LayoutGrid, List, ArrowUpDown, X } from "lucide-react";
+import { Search, LayoutGrid, List, X } from "lucide-react";
 import type { BillFilters, BillSortKey, BillView } from "@/features/bills/types";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BillToolbarProps {
   filters: BillFilters;
@@ -63,11 +71,10 @@ export function BillToolbar({
               key={opt.value}
               type="button"
               onClick={() => onFiltersChange({ type: opt.value })}
-              className={`h-9 rounded-lg px-3 text-xs font-medium transition ${
-                filters.type === opt.value
-                  ? "bg-primary/15 text-primary border border-primary/30"
-                  : "border border-border/60 bg-background/40 text-muted-foreground hover:bg-accent hover:text-foreground"
-              }`}
+              className={`h-9 rounded-lg px-3 text-xs font-medium transition ${filters.type === opt.value
+                ? "bg-primary/15 text-primary border border-primary/30"
+                : "border border-border/60 bg-background/40 text-muted-foreground hover:bg-accent hover:text-foreground"
+                }`}
             >
               {opt.label}
             </button>
@@ -75,19 +82,27 @@ export function BillToolbar({
         </div>
 
         {/* Mobile: type select */}
-        <select
+        <Select
           value={filters.type}
-          onChange={(e) =>
-            onFiltersChange({ type: e.target.value as BillFilters["type"] })
+          onValueChange={(value) =>
+            onFiltersChange({ type: value as BillFilters["type"] })
           }
-          className="sm:hidden h-9 rounded-lg border border-border/60 bg-background/60 px-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
         >
-          {TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            aria-label="Filter by bill type"
+            className="h-9 w-auto rounded-lg border border-border/60 bg-transparent! px-2 text-xs text-foreground shadow-none hover:bg-transparent! focus:bg-transparent! focus-visible:ring-2 focus-visible:ring-primary/30 data-[state=open]:bg-transparent! sm:hidden"
+          >
+            <SelectValue />
+          </SelectTrigger>
+
+          <SelectContent position="popper">
+            {TYPE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Right: count + sort + view */}
@@ -95,36 +110,52 @@ export function BillToolbar({
         {/* Limit Selector */}
         <div className="hidden items-center gap-2 rounded-lg border border-border/60 bg-background/60 px-2.5 sm:flex">
           <span className="text-[10px] font-semibold uppercase tracking-tight text-muted-foreground/70">Per page</span>
-          <select
-            value={limit}
-            onChange={(e) => onLimitChange(Number(e.target.value))}
-            className="h-8 bg-background text-[13px] font-medium text-foreground focus:outline-none"
+          <Select
+            value={String(limit)}
+            onValueChange={(value) => onLimitChange(Number(value))}
           >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-          </select>
+            <SelectTrigger
+              aria-label="Items per page"
+              className="h-8 w-[68px] border-0 bg-transparent! px-2 text-[13px] font-medium text-foreground shadow-none hover:bg-transparent! focus:bg-transparent! focus-visible:ring-0 data-[state=open]:bg-transparent!"
+            >
+              <SelectValue />
+            </SelectTrigger>
+
+            <SelectContent position="popper" align="end">
+              {[5, 10, 20, 50].map((value) => (
+                <SelectItem key={value} value={String(value)}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="h-4 w-px bg-border/60 hidden sm:block" />
 
         {/* Sort */}
         <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-background/60 px-2">
-          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-          <select
+          <Select
             value={filters.sortKey}
-            onChange={(e) =>
-              onFiltersChange({ sortKey: e.target.value as BillSortKey })
+            onValueChange={(value) =>
+              onFiltersChange({ sortKey: value as BillSortKey })
             }
-            className="h-9 bg-background text-xs text-foreground focus:outline-none"
           >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              aria-label="Sort bills"
+              className="h-9 min-w-[110px] border-0 bg-transparent! px-2 text-xs text-foreground shadow-none hover:bg-transparent! focus:bg-transparent! focus-visible:ring-0 data-[state=open]:bg-transparent!"
+            >
+              <SelectValue />
+            </SelectTrigger>
+
+            <SelectContent position="popper" align="end">
+              {SORT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <button
             type="button"
             title={filters.sortDir === "asc" ? "Ascending" : "Descending"}
@@ -179,11 +210,10 @@ function ViewBtn({
       type="button"
       onClick={onClick}
       title={title}
-      className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${
-        active
-          ? "bg-primary/15 text-primary"
-          : "text-muted-foreground hover:bg-accent hover:text-foreground"
-      }`}
+      className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${active
+        ? "bg-primary/15 text-primary"
+        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+        }`}
     >
       {children}
     </button>
