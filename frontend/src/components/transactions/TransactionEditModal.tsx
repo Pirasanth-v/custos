@@ -6,7 +6,6 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   ArrowLeftRight,
-  ChevronDown,
   Paperclip,
   Upload,
   FileText,
@@ -27,6 +26,14 @@ import type {
   TransactionType,
   UpdateTransactionRequest,
 } from "@/features/transaction/types";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -110,8 +117,6 @@ const inputCls =
   "h-10 w-full rounded-lg border border-border/70 bg-background/60 px-3 text-sm text-foreground " +
   "placeholder:text-muted-foreground/50 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/60";
 
-const selectCls = `${inputCls} appearance-none`;
-
 // ─── Field wrapper ────────────────────────────────────────────────────────────
 
 function Field({
@@ -156,11 +161,10 @@ function TypeSelector({
             key={t}
             type="button"
             onClick={() => onChange(t)}
-            className={`flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-xs font-medium transition-all duration-200 ${
-              active
-                ? cfg.active
-                : "border-border/60 bg-background/40 text-muted-foreground hover:border-border hover:bg-background/80 hover:text-foreground"
-            }`}
+            className={`flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-xs font-medium transition-all duration-200 ${active
+              ? cfg.active
+              : "border-border/60 bg-background/40 text-muted-foreground hover:border-border hover:bg-background/80 hover:text-foreground"
+              }`}
           >
             <Icon className="h-3.5 w-3.5" />
             {cfg.label}
@@ -171,33 +175,6 @@ function TypeSelector({
   );
 }
 
-// ─── Select with chevron ──────────────────────────────────────────────────────
-
-function SelectField({
-  value,
-  onChange,
-  disabled,
-  children,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className={`${selectCls} pr-8 disabled:cursor-not-allowed disabled:opacity-50`}
-      >
-        {children}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-    </div>
-  );
-}
 
 // ─── Existing bill item ───────────────────────────────────────────────────────
 
@@ -215,11 +192,10 @@ function ExistingBillItem({
 
   return (
     <div
-      className={`group relative flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all duration-200 ${
-        markedForDelete
-          ? "border-destructive/40 bg-destructive/5 opacity-60"
-          : "border-border/60 bg-background/40 hover:border-border hover:bg-background/70"
-      }`}
+      className={`group relative flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all duration-200 ${markedForDelete
+        ? "border-destructive/40 bg-destructive/5 opacity-60"
+        : "border-border/60 bg-background/40 hover:border-border hover:bg-background/70"
+        }`}
     >
       {/* Thumbnail */}
       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border/50 bg-muted/30">
@@ -245,9 +221,8 @@ function ExistingBillItem({
       {/* Info */}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <p
-          className={`truncate text-[13px] font-medium transition-colors ${
-            markedForDelete ? "line-through text-muted-foreground" : "text-foreground"
-          }`}
+          className={`truncate text-[13px] font-medium transition-colors ${markedForDelete ? "line-through text-muted-foreground" : "text-foreground"
+            }`}
           title={bill.file_name}
         >
           {bill.file_name}
@@ -262,11 +237,10 @@ function ExistingBillItem({
         type="button"
         onClick={onToggleDelete}
         title={markedForDelete ? "Restore" : "Remove on save"}
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-all ${
-          markedForDelete
-            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-            : "border-border/60 bg-background text-muted-foreground opacity-0 group-hover:opacity-100 hover:border-destructive/40 hover:bg-destructive/8 hover:text-destructive"
-        }`}
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-all ${markedForDelete
+          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+          : "border-border/60 bg-background text-muted-foreground opacity-0 group-hover:opacity-100 hover:border-destructive/40 hover:bg-destructive/8 hover:text-destructive"
+          }`}
       >
         {markedForDelete ? (
           <CheckCircle2 className="h-3.5 w-3.5" />
@@ -356,16 +330,14 @@ function DropZone({ onFiles }: { onFiles: (files: File[]) => void }) {
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
       onClick={() => inputRef.current?.click()}
-      className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed px-4 py-4 transition-all duration-200 ${
-        dragging
-          ? "border-primary bg-primary/8 scale-[1.01]"
-          : "border-border/50 bg-background/20 hover:border-primary/40 hover:bg-background/40"
-      }`}
+      className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed px-4 py-4 transition-all duration-200 ${dragging
+        ? "border-primary bg-primary/8 scale-[1.01]"
+        : "border-border/50 bg-background/20 hover:border-primary/40 hover:bg-background/40"
+        }`}
     >
       <div
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all ${
-          dragging ? "bg-primary/20 text-primary" : "bg-muted/60 text-muted-foreground"
-        }`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all ${dragging ? "bg-primary/20 text-primary" : "bg-muted/60 text-muted-foreground"
+          }`}
       >
         <Upload className="h-4 w-4" />
       </div>
@@ -410,18 +382,16 @@ function TabBtn({
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all duration-150 ${
-        active
-          ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
-          : "text-muted-foreground hover:text-foreground"
-      }`}
+      className={`relative flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all duration-150 ${active
+        ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
+        : "text-muted-foreground hover:text-foreground"
+        }`}
     >
       {children}
       {badge !== undefined && badge > 0 && (
         <span
-          className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums leading-none ${
-            active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
-          }`}
+          className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums leading-none ${active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+            }`}
         >
           {badge}
         </span>
@@ -636,8 +606,8 @@ export default function TransactionEditModal({
     <Modal open={open} onClose={onClose} maxWidthClass="max-w-2xl">
       <div className="flex flex-col">
         {/* ── Header ────────────────────────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4">
-          <div className="flex items-center gap-3">
+        <div className="flex items-start justify-between gap-3 px-4 pb-4 pt-4 sm:px-5 sm:pt-5">
+          <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
               <Pencil className="h-4 w-4" />
             </div>
@@ -645,7 +615,7 @@ export default function TransactionEditModal({
               <h2 className="text-base font-semibold text-foreground">
                 Edit Transaction
               </h2>
-              <p className="mt-0.5 max-w-xs truncate text-xs text-muted-foreground">
+              <p className="mt-0.5 max-w-[200px] truncate text-xs text-muted-foreground sm:max-w-xs">
                 {transaction.description?.trim() || "No description"}
                 {formattedDate ? (
                   <span className="text-border"> · </span>
@@ -657,14 +627,14 @@ export default function TransactionEditModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* ── Tabs ──────────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-1 border-b border-border/60 bg-muted/20 px-5 py-2">
+        <div className="flex items-center gap-1 border-b border-border/60 bg-muted/20 px-4 py-2 sm:px-5">
           <TabBtn active={tab === "details"} onClick={() => setTab("details")}>
             <Pencil className="h-3 w-3" />
             Details
@@ -684,7 +654,7 @@ export default function TransactionEditModal({
 
         {/* ── Error ─────────────────────────────────────────────────────── */}
         {(localError || errorMessage) && (
-          <div className="px-5 pt-4">
+          <div className="px-4 pt-4 sm:px-5">
             <StatusMessage
               type="error"
               message={localError || errorMessage}
@@ -696,7 +666,7 @@ export default function TransactionEditModal({
 
         {/* ── Details tab ───────────────────────────────────────────────── */}
         {tab === "details" && (
-          <div className="space-y-4 px-5 py-5">
+          <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
             {/* Type */}
             <Field label="Type" required>
               <TypeSelector
@@ -709,7 +679,7 @@ export default function TransactionEditModal({
             </Field>
 
             {/* Amount + Category */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Amount" required>
                 <div className="relative">
                   <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
@@ -728,39 +698,55 @@ export default function TransactionEditModal({
               </Field>
 
               <Field label="Category" required>
-                <SelectField
-                  value={effectiveCategoryId}
-                  onChange={setCategoryId}
+                <Select
+                  value={effectiveCategoryId || ""}
+                  onValueChange={setCategoryId}
                 >
-                  <option value="" disabled>
-                    Select…
-                  </option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </SelectField>
+                  <SelectTrigger
+                    className={`${inputCls} bg-transparent! hover:bg-transparent! focus:bg-transparent! data-[state=open]:bg-transparent!`}
+                  >
+                    <SelectValue placeholder="Select…" />
+                  </SelectTrigger>
+
+                  <SelectContent position="popper" className="z-[60]">
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
             </div>
 
             {/* From + To */}
-            <div className={`grid gap-3 ${type === "transfer" ? "grid-cols-2" : "grid-cols-1"}`}>
+            <div
+              className={`grid grid-cols-1 gap-3 ${type === "transfer" ? "sm:grid-cols-2" : ""
+                }`}
+            >
               <Field label="From account" required>
-                <SelectField
-                  value={fromAccountId}
-                  onChange={(v) => {
-                    setFromAccountId(v);
+                <Select
+                  value={fromAccountId || ""}
+                  onValueChange={(value) => {
+                    setFromAccountId(value);
                     setToAccountId("");
                   }}
                   disabled={accounts.length < 1}
                 >
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} · {a.currency_code}
-                    </option>
-                  ))}
-                </SelectField>
+                  <SelectTrigger
+                    className={`${inputCls} bg-transparent! hover:bg-transparent! focus:bg-transparent! data-[state=open]:bg-transparent!`}
+                  >
+                    <SelectValue placeholder="Select account…" />
+                  </SelectTrigger>
+
+                  <SelectContent position="popper" className="z-[60]">
+                    {accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.name} · {account.currency_code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
 
               {type === "transfer" && (
@@ -773,16 +759,24 @@ export default function TransactionEditModal({
                       </span>
                     </div>
                   ) : (
-                    <SelectField
-                      value={effectiveToAccountId}
-                      onChange={setToAccountId}
+                    <Select
+                      value={effectiveToAccountId || ""}
+                      onValueChange={setToAccountId}
                     >
-                      {transferOptions.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name} · {a.currency_code}
-                        </option>
-                      ))}
-                    </SelectField>
+                      <SelectTrigger
+                        className={`${inputCls} bg-transparent! hover:bg-transparent! focus:bg-transparent! data-[state=open]:bg-transparent!`}
+                      >
+                        <SelectValue placeholder="Select destination account…" />
+                      </SelectTrigger>
+
+                      <SelectContent position="popper" className="z-[60]">
+                        {transferOptions.map((account) => (
+                          <SelectItem key={account.id} value={account.id}>
+                            {account.name} · {account.currency_code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
                 </Field>
               )}
@@ -822,48 +816,48 @@ export default function TransactionEditModal({
 
         {/* ── Attachments tab ────────────────────────────────────────────── */}
         {tab === "attachments" && (
-          <div className="space-y-4 px-5 py-5">
+          <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
 
-          <div
+            <div
               className={
                 needsScroll
-                  ? "max-h-72 overflow-y-auto flex flex-col gap-2 scrollbar-thin"
+                  ? "max-h-56 overflow-y-auto flex flex-col gap-2 scrollbar-thin sm:max-h-72"
                   : "flex flex-col gap-2"
               }
             >
-            {/* Existing bills */}
-            {existingBills.length > 0 ? (
-              <div>
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Attached ({existingBills.length})
-                </p>
-                <div className="space-y-2">
-                  {existingBills.map((bill) => (
-                    <ExistingBillItem
-                      key={bill.id}
-                      bill={bill}
-                      markedForDelete={billsToDelete.has(bill.id)}
-                      onToggleDelete={() => toggleDelete(bill.id)}
-                    />
-                  ))}
-                </div>
-                {billsToDelete.size > 0 && (
-                  <p className="mt-2 flex items-center gap-1.5 text-[11px] text-amber-400">
-                    <AlertCircle className="h-3 w-3 shrink-0" />
-                    {billsToDelete.size} file
-                    {billsToDelete.size > 1 ? "s" : ""} will be permanently
-                    removed on save.
+              {/* Existing bills */}
+              {existingBills.length > 0 ? (
+                <div>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Attached ({existingBills.length})
                   </p>
-                )}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed border-border/50 bg-background/20 px-4 py-5 text-center">
-                <Paperclip className="mx-auto h-6 w-6 text-muted-foreground/40" />
-                <p className="mt-2 text-xs text-muted-foreground">
-                  No files attached yet.
-                </p>
-              </div>
-            )}
+                  <div className="space-y-2">
+                    {existingBills.map((bill) => (
+                      <ExistingBillItem
+                        key={bill.id}
+                        bill={bill}
+                        markedForDelete={billsToDelete.has(bill.id)}
+                        onToggleDelete={() => toggleDelete(bill.id)}
+                      />
+                    ))}
+                  </div>
+                  {billsToDelete.size > 0 && (
+                    <p className="mt-2 flex items-center gap-1.5 text-[11px] text-amber-400">
+                      <AlertCircle className="h-3 w-3 shrink-0" />
+                      {billsToDelete.size} file
+                      {billsToDelete.size > 1 ? "s" : ""} will be permanently
+                      removed on save.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-border/50 bg-background/20 px-4 py-5 text-center">
+                  <Paperclip className="mx-auto h-6 w-6 text-muted-foreground/40" />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    No files attached yet.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Pending new files */}
@@ -876,7 +870,7 @@ export default function TransactionEditModal({
                 <div
                   className={
                     needsPendingScroll
-                      ? "max-h-55 overflow-y-auto flex flex-col gap-2 scrollbar-thin"
+                      ? "max-h-44 overflow-y-auto flex flex-col gap-2 scrollbar-thin sm:max-h-55"
                       : "flex flex-col gap-2"
                   }
                 >
@@ -905,9 +899,9 @@ export default function TransactionEditModal({
         )}
 
         {/* ── Footer ────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between gap-3 border-t border-border/60 bg-background/40 px-5 py-4">
+        <div className="flex flex-col gap-3 border-t border-border/60 bg-background/40 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           {/* Change summary pill */}
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <div className="flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
             {hasChanged ? (
               <span className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/8 px-2.5 py-1 text-amber-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
@@ -921,12 +915,12 @@ export default function TransactionEditModal({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-transparent px-4 text-xs font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-border bg-transparent px-4 text-xs font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:flex-none"
             >
               Cancel
             </button>
@@ -934,7 +928,7 @@ export default function TransactionEditModal({
               type="button"
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="inline-flex h-9 min-w-[110px] items-center justify-center gap-1.5 rounded-lg bg-primary px-5 text-xs font-semibold text-white shadow-sm shadow-primary/20 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-semibold text-white shadow-sm shadow-primary/20 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:min-w-[110px] sm:flex-none sm:px-5"
             >
               {loading ? (
                 <>
@@ -952,7 +946,7 @@ export default function TransactionEditModal({
                   Save changes
                 </>
               )}
-         
+
             </button>
           </div>
         </div>

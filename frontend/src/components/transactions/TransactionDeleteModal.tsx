@@ -8,9 +8,9 @@ type TransactionDeleteModalProps = {
   open: boolean;
   onClose: () => void;
   transaction: Transaction | null;
-  onConfirm: (payload: { 
-    tranId: string; 
-    fromAccountId: string ;
+  onConfirm: (payload: {
+    tranId: string;
+    fromAccountId: string;
   }) => Promise<void> | void;
   loading?: boolean;
   errorMessage?: string | null;
@@ -39,32 +39,32 @@ export default function TransactionDeleteModal({
     confirmationText.trim() === "DELETE" && !loading;
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="space-y-6 p-6 text-white">
-        <div className="flex items-start gap-4">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive/15 text-destructive ring-1 ring-destructive/20">
+      <div className="space-y-5 p-4 sm:space-y-6 sm:p-6">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/15 text-destructive ring-1 ring-destructive/20 sm:h-11 sm:w-11 sm:rounded-2xl">
             <Trash2 className="h-5 w-5" />
           </div>
 
           <div className="min-w-0">
-            <h2 className="text-xl font-semibold text-foreground">Delete Transaction</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <h2 className="text-lg font-semibold text-foreground sm:text-xl">Delete Transaction</h2>
+            <p className="mt-1.5 text-sm leading-6 text-muted-foreground sm:mt-2">
               This transaction will be marked as deleted and balances will be reversed.
             </p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card/70 p-4">
+        <div className="rounded-2xl border border-border bg-card/70 p-3 sm:p-4">
           <p className="text-lg font-semibold text-foreground">
             {transaction.type.replace(/_/g, " ")}
           </p>
           <div className="mt-2 flex flex-wrap gap-2 text-sm text-muted-foreground">
-            <span className="rounded-full border border-border px-3 py-1 font-mono">
+            <span className="max-w-full break-words rounded-xl border border-border px-3 py-1 font-mono sm:rounded-full">
               {(transaction.description && transaction.description.length > 60)
                 ? transaction.description.slice(0, 30) + "…"
                 : (transaction.description ?? "No description provided")}
-         
+
             </span>
-            <span className="rounded-full border border-border px-3 py-1">
+            <span className="whitespace-nowrap rounded-full border border-border px-3 py-1">
               Amount: {formatSignedAmount(transaction.type, transaction.amount)}
             </span>
           </div>
@@ -74,15 +74,24 @@ export default function TransactionDeleteModal({
           type="error"
           message={errorMessage ?? null}
           compact
-          onClose={() => {}}
+          onClose={() => { }}
         />
 
-        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4">
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 sm:p-4">
           <p className="font-semibold text-destructive">Please review before deletion</p>
           <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
-            <li>• Reverses net balance impact for the transaction</li>
-            <li>• Transaction will be marked as deleted</li>
-            <li>• Any attached bills will also be deleted from this transaction</li>       
+            <li className="flex gap-2">
+              <span className="shrink-0">•</span>
+              <span>Reverses net balance impact for the transaction</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="shrink-0">•</span>
+              <span>Transaction will be marked as deleted</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="shrink-0">•</span>
+              <span>Any attached bills will also be deleted from this transaction</span>
+            </li>
           </ul>
         </div>
 
@@ -106,7 +115,7 @@ export default function TransactionDeleteModal({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             Cancel
           </button>
@@ -114,11 +123,11 @@ export default function TransactionDeleteModal({
           <button
             type="button"
             disabled={!canDelete}
-            onClick={() => onConfirm({ 
-              tranId: transaction.id, 
+            onClick={() => onConfirm({
+              tranId: transaction.id,
               fromAccountId: transaction.from_account_id
             })}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-destructive px-5 text-sm font-medium text-white transition hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-destructive px-5 text-sm font-medium text-white transition hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {loading ? (
               <>

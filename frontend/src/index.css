@@ -31,15 +31,21 @@
   --color-accent-foreground: #0F172A;
 
   /* Chart Colors */
-  --color-chart-1: #6366F1; /* Primary/Indigo */
-  --color-chart-2: #10B981; /* Success/Emerald */
-  --color-chart-3: #F43F5E; /* Destructive/Rose */
-  --color-chart-4: #F59E0B; /* Warning/Amber */
-  --color-chart-5: #8B5CF6; /* Violet */
+  --color-chart-1: #6366F1;
+  /* Primary/Indigo */
+  --color-chart-2: #10B981;
+  /* Success/Emerald */
+  --color-chart-3: #F43F5E;
+  /* Destructive/Rose */
+  --color-chart-4: #F59E0B;
+  /* Warning/Amber */
+  --color-chart-5: #8B5CF6;
+  /* Violet */
 
   /* Fonts */
   --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace; /* for money values */
+  --font-mono: 'JetBrains Mono', monospace;
+  /* for money values */
 }
 
 /* Dark mode overrides: applied when `.dark` class is on <html> */

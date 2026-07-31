@@ -59,7 +59,7 @@ export default function DashboardPage() {
   const expenseSpark = toSparkData(monthly_trend, "total_expense");
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
+    <div className="min-h-full bg-background p-4 sm:p-6 lg:p-8">
       {/* ── Page header ── */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6 sm:mb-8">
         <div>

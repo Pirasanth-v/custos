@@ -1,4 +1,11 @@
-import Dropdown from "@/components/dropdown/Dropdown";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ChevronDown, Plus, Loader2 } from "lucide-react";
 import useOrgStore from "@/store/orgStore";
 import { useMemo, useCallback, useEffect } from "react";
@@ -49,64 +56,78 @@ export function OrganizationDropdown() {
   }, [navigate]);
 
   return (
-    <Dropdown
-      widthClass="w-72"
-      trigger={
-        <button className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition group">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="group flex items-center gap-2 text-sm font-medium text-foreground transition hover:text-primary"
+        >
           {isLoading ? (
-            <Loader2 size={16} className="animate-spin text-muted-foreground" />
+            <Loader2
+              size={16}
+              className="animate-spin text-muted-foreground"
+            />
           ) : (
-            <span>{current?.name ?? "Choose Organization"}</span>
+            <span className="max-w-44 truncate">
+              {current?.name ?? "Choose Organization"}
+            </span>
           )}
+
           <ChevronDown
             size={16}
-            className="text-muted-foreground group-hover:text-primary transition"
+            className="shrink-0 text-muted-foreground transition group-hover:text-primary"
           />
         </button>
-      }
-    >
-      <div className="border-b border-border px-4 py-3 text-sm font-medium text-foreground">
-        Switch Organization
-      </div>
+      </DropdownMenuTrigger>
 
-      <div className="p-2">
+      <DropdownMenuContent
+        side="top"
+        align="start"
+        sideOffset={8}
+        className="w-64 max-w-[calc(100vw-2rem)]"
+      >
+        <DropdownMenuLabel className="px-3 py-2 text-sm font-medium">
+          Switch Organization
+        </DropdownMenuLabel>
+
+        <DropdownMenuSeparator />
+
         {orgs.map((org) => {
           const active = org.id === current?.id;
+
           return (
-            <button
+            <DropdownMenuItem
               key={org.id}
-              type="button"
-              onClick={() => handleOrgSelect(org)}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition ${
-                active ? "bg-muted-foreground/30" : "hover:bg-foreground/5"
-              }`}
+              onSelect={() => handleOrgSelect(org)}
+              className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 ${active ? "bg-muted-foreground/30" : ""
+                }`}
             >
               <div
-                className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold ${
-                  active
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-semibold ${active
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+                  }`}
               >
                 {getNameInitial(org.name)}
               </div>
-              <div className="flex flex-col">
-                <span className="font-medium text-foreground">{org.name}</span>
-              </div>
-            </button>
+
+              <span className="min-w-0 truncate font-medium text-foreground">
+                {org.name}
+              </span>
+            </DropdownMenuItem>
           );
         })}
-      </div>
-      <div className="border-t border-border">
-        <button
-          type="button"
-          onClick={handleCreateOrg}
-          className="flex w-full items-center gap-3 px-4 py-3 text-left text-primary hover:bg-accent/60 transition"
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem
+          onSelect={handleCreateOrg}
+          className="cursor-pointer gap-3 px-3 py-2 text-primary focus:text-primary"
         >
           <Plus size={16} />
           <span>Create Organization</span>
-        </button>
-      </div>
-    </Dropdown>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

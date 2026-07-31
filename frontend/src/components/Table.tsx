@@ -24,7 +24,7 @@ const Table: React.FC<TableProps> = ({
         <thead className="bg-card text-xs uppercase text-muted-foreground">
           <tr>
             {headers.map((header, idx) => (
-              <th key={idx} className="px-4 py-3 font-semibold tracking-wide">
+              <th key={idx} className="px-4 py-3.5 font-semibold tracking-wide">
                 {header}
               </th>
             ))}

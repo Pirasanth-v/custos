@@ -25,7 +25,7 @@ export default function Modal({ open, onClose, children, maxWidthClass }: ModalP
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4">
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -36,9 +36,8 @@ export default function Modal({ open, onClose, children, maxWidthClass }: ModalP
 
       {/* Modal content */}
       <div
-        className={`relative z-10 w-full ${
-          maxWidthClass || "max-w-xl"
-        } rounded-2xl border border-white/10 bg-card shadow-2xl animate-in fade-in zoom-in-95 duration-200`}
+        className={`relative z-10 w-full ${maxWidthClass || "max-w-xl"
+          } max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-2xl border border-white/10 bg-card shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:max-h-[calc(100dvh-2rem)]`}
         role="dialog"
         aria-modal="true"
       >
