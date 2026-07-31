@@ -76,7 +76,7 @@ export function RecentActivity({ data, orgId, loading = false }: RecentActivityP
   const navigate = useNavigate();
 
   return (
-    <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-6 flex flex-col gap-4 shadow-sm group/card transition-all duration-300">
+    <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-4 sm:p-6 flex flex-col gap-4 shadow-sm group/card transition-all duration-300">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground group-hover/card:text-primary transition-colors">Recent Activity</h3>

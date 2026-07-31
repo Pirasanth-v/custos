@@ -77,7 +77,7 @@ import {
     }));
   
     return (
-      <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-6 flex flex-col gap-5 h-[400px]">
+      <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
         {/* header */}
         <div className="flex items-center justify-between">
           <div>
@@ -108,7 +108,7 @@ import {
         {loading ? (
           <div className="h-64 rounded-xl bg-muted-foreground/10 animate-pulse" />
         ) : (
-          <div className="h-64 -mx-2">
+          <div className="h-48 sm:h-64 -mx-2">
             {/* Defensive: Only render chart if chartData is a valid non-empty array */}
             {Array.isArray(chartData) && chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">

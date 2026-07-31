@@ -80,8 +80,8 @@ export function CashFlowAnalysis({ data, loading = false }: CashFlowAnalysisProp
   }));
 
   return (
-    <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-6 flex flex-col gap-5">
-      <div className="flex items-center justify-between">
+    <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold text-foreground">Cash Flow Analysis</h3>
           <p className="text-[12px] text-muted-foreground mt-0.5">Income vs expenses comparison</p>
@@ -102,7 +102,7 @@ export function CashFlowAnalysis({ data, loading = false }: CashFlowAnalysisProp
       {loading ? (
         <div className="h-56 rounded-xl bg-muted-foreground/10 animate-pulse" />
       ) : (
-        <div className="h-56 -mx-2">
+        <div className="h-44 sm:h-56 -mx-2">
           {/* Defensive: Only render chart if chartData is a valid non-empty array */}
           {Array.isArray(chartData) && chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
