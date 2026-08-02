@@ -10,7 +10,6 @@ import {
   RoleViewerID,
 } from "@/features/roles/types";
 import axios from "axios";
-import { toast } from "@/lib/toast";
 
 type Props = {
   open: boolean;
@@ -50,6 +49,7 @@ export default function InviteMembersModal({ open, onClose }: Props) {
     { email: "", role: RoleViewerID },
   ]);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
 
   // Get current org ID from orgStore
   const currentOrg = useOrgStore((s) => s.currentOrg);
@@ -74,6 +74,7 @@ export default function InviteMembersModal({ open, onClose }: Props) {
 
   const handleSendInvitations = async () => {
     setError(null);
+    setSuccess(false);
 
     // Validate all fields filled and emails valid
     const emailsInvalid = invites.some(
@@ -109,10 +110,13 @@ export default function InviteMembersModal({ open, onClose }: Props) {
           }),
         ),
       );
-      toast.success("Invitations sent!");
+      setSuccess(true);
       // Optionally: clear invites/reset to single input
       setInvites([{ email: "", role: RoleViewerID }]);
-      onClose();
+      setTimeout(() => {
+        setSuccess(false);
+        onClose();
+      }, 1200);
     } catch (error) {
       let message = "Something went wrong. Try again later";
 
