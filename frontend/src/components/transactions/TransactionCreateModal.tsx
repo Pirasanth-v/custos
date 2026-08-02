@@ -9,9 +9,6 @@ import {
   X,
   FileText,
   Image,
-  //Tag,
-  Calendar,
-  ChevronDown,
   Receipt,
   Info,
 } from "lucide-react";
@@ -23,6 +20,24 @@ import type {
   CreateTransactionRequest,
   TransactionType,
 } from "@/features/transaction/types";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format, parseISO } from "date-fns";
 
 // ─── Local types ──────────────────────────────────────────────────────────────
 
@@ -138,7 +153,7 @@ function TypeSelector({
   onChange: (t: TransactionType) => void;
 }) {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 gap-1 sm:gap-2">
       {(["income", "expense", "transfer"] as TransactionType[]).map((t) => {
         const cfg = TYPE_CONFIG[t];
         const Icon = cfg.icon;
@@ -148,79 +163,19 @@ function TypeSelector({
             key={t}
             type="button"
             onClick={() => onChange(t)}
-            className={`group flex items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-medium transition-all duration-200 ${
-              active
-                ? cfg.activeClass
-                : "border-border bg-background/40 text-muted-foreground hover:border-border/80 hover:bg-background/80 hover:text-foreground"
-            }`}
+            className={`group flex min-w-0 items-center justify-center gap-1 rounded-xl border px-1 py-2 text-xs font-medium transition-all duration-200 sm:gap-2 sm:px-2 sm:py-2.5 sm:text-sm ${active
+              ? cfg.activeClass
+              : "border-border bg-background/40 text-muted-foreground hover:border-border/80 hover:bg-background/80 hover:text-foreground"
+              }`}
           >
-            <Icon className="h-4 w-4" />
-            {cfg.label}
+            <Icon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+            <span className="min-w-0 truncate">{cfg.label}</span>
           </button>
         );
       })}
     </div>
   );
 }
-
-// // ─── Tag Input ────────────────────────────────────────────────────────────────
-
-// function TagInput({
-//   tags,
-//   onChange,
-// }: {
-//   tags: string[];
-//   onChange: (tags: string[]) => void;
-// }) {
-//   const [draft, setDraft] = useState("");
-
-//   function commit() {
-//     const val = draft.trim().toLowerCase().replace(/\s+/g, "-");
-//     if (val && !tags.includes(val)) onChange([...tags, val]);
-//     setDraft("");
-//   }
-
-//   return (
-//     <div className="min-h-[40px] w-full rounded-lg border border-border bg-background/60 px-2 py-1.5 transition focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary/60">
-//       <div className="flex flex-wrap items-center gap-1.5">
-//         {tags.map((tag) => (
-//           <span
-//             key={tag}
-//             className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
-//           >
-//             #{tag}
-//             <button
-//               type="button"
-//               onClick={() => onChange(tags.filter((t) => t !== tag))}
-//               className="hover:text-destructive transition-colors"
-//             >
-//               <X className="h-3 w-3" />
-//             </button>
-//           </span>
-//         ))}
-//         <input
-//           type="text"
-//           value={draft}
-//           onChange={(e) => setDraft(e.target.value)}
-//           onKeyDown={(e) => {
-//             if (e.key === "Enter" || e.key === ",") {
-//               e.preventDefault();
-//               commit();
-//             }
-//             if (e.key === "Backspace" && !draft && tags.length) {
-//               onChange(tags.slice(0, -1));
-//             }
-//           }}
-//           onBlur={commit}
-//           placeholder={tags.length === 0 ? "Add tags, press Enter…" : ""}
-//           className="flex-1 min-w-[120px] bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
-//         />
-//       </div>
-//     </div>
-//   );
-// }
-
-// ─── Bills Drop Zone ──────────────────────────────────────────────────────────
 
 function BillsZone({
   bills,
@@ -257,16 +212,14 @@ function BillsZone({
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-5 transition-all duration-200 ${
-          dragging
-            ? "border-primary bg-primary/8 scale-[1.01]"
-            : "border-border/60 bg-background/30 hover:border-primary/50 hover:bg-background/50"
-        }`}
+        className={`relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-5 transition-all duration-200 ${dragging
+          ? "border-primary bg-primary/8 scale-[1.01]"
+          : "border-border/60 bg-background/30 hover:border-primary/50 hover:bg-background/50"
+          }`}
       >
         <div
-          className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
-            dragging ? "bg-primary/20 text-primary" : "bg-muted/60 text-muted-foreground"
-          }`}
+          className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${dragging ? "bg-primary/20 text-primary" : "bg-muted/60 text-muted-foreground"
+            }`}
         >
           <Upload className="h-4 w-4" />
         </div>
@@ -438,6 +391,8 @@ export default function TransactionCreateModal({
 
   const currencySymbol = fromAccount?.currency_code ?? "¤";
 
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+
   const amountNum = parseFloat(amount);
   const amountValid =
     amount.trim().length > 0 && Number.isFinite(amountNum) && amountNum > 0;
@@ -481,7 +436,7 @@ export default function TransactionCreateModal({
           status,
           //tags: tags.length > 0 ? tags : undefined,
         } as CreateTransactionRequest,
-        files: bills.map((b) => b.file),   
+        files: bills.map((b) => b.file),
       });
     } catch (e: unknown) {
       if (e instanceof Error) setLocalError(e.message);
@@ -496,19 +451,18 @@ export default function TransactionCreateModal({
     <Modal open={open} onClose={onClose} maxWidthClass="max-w-3xl">
       <div className="flex flex-col">
         {/* ── Header ── */}
-        <div className="relative overflow-hidden rounded-t-2xl border-b border-border/60 bg-background/80 px-6 pb-5 pt-6">
+        <div className="relative overflow-hidden rounded-t-2xl border-b border-border/60 bg-background/80 px-4 pb-4 pt-5 sm:px-6 sm:pb-5 sm:pt-6">
           {/* Ambient glow behind type */}
           <div
-            className={`pointer-events-none absolute inset-x-0 -top-10 h-28 opacity-30 blur-3xl transition-all duration-500 ${
-              type === "income"
-                ? "bg-emerald-500"
-                : type === "expense"
-                  ? "bg-rose-500"
-                  : "bg-primary"
-            }`}
+            className={`pointer-events-none absolute inset-x-0 -top-10 h-28 opacity-30 blur-3xl transition-all duration-500 ${type === "income"
+              ? "bg-emerald-500"
+              : type === "expense"
+                ? "bg-rose-500"
+                : "bg-primary"
+              }`}
           />
-          <div className="relative flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <div className="relative flex min-w-0 items-start justify-between gap-3 sm:items-center sm:gap-4">
+            <div className="flex min-w-0 items-center gap-3">
               <div
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 ${typeCfg.activeClass}`}
               >
@@ -530,7 +484,7 @@ export default function TransactionCreateModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground"
+              className="flex h-8 w-8 items-center shrink-0 justify-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </button>
@@ -543,7 +497,7 @@ export default function TransactionCreateModal({
         {/* ── Body ── */}
         <div className="flex flex-col gap-0 lg:flex-row">
           {/* Left: Core fields */}
-          <div className="flex-1 space-y-4 px-6 py-5">
+          <div className="min-w-0 flex-1 space-y-4 px-4 py-4 sm:px-6 sm:py-5">
             {/* Error */}
             <StatusMessage
               type="error"
@@ -553,21 +507,26 @@ export default function TransactionCreateModal({
             />
 
             {/* Account row */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="From account" required>
                 <div className="relative">
-                  <select
-                    value={effectiveFromId}
-                    onChange={(e) => setFromAccountId(e.target.value)}
-                    className={selectCls}
+                  <Select
+                    value={effectiveFromId || undefined}
+                    onValueChange={setFromAccountId}
                   >
-                    {accounts.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name} · {a.currency_code}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <SelectTrigger className={`${selectCls} bg-transparent!`}>
+                      <SelectValue placeholder="Select account..." />
+                    </SelectTrigger>
+
+                    <SelectContent position="popper">
+                      {accounts.map((account) => (
+                        <SelectItem key={account.id} value={account.id}>
+                          {account.name} · {account.currency_code}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
                 </div>
               </Field>
 
@@ -580,18 +539,23 @@ export default function TransactionCreateModal({
                       </div>
                     ) : (
                       <>
-                        <select
-                          value={effectiveToId}
-                          onChange={(e) => setToAccountId(e.target.value)}
-                          className={selectCls}
+                        <Select
+                          value={effectiveToId || undefined}
+                          onValueChange={setToAccountId}
                         >
-                          {toAccountOptions.map((a) => (
-                            <option key={a.id} value={a.id}>
-                              {a.name} · {a.currency_code}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                          <SelectTrigger className={`${selectCls} bg-transparent!`}>
+                            <SelectValue placeholder="Select destination account..." />
+                          </SelectTrigger>
+
+                          <SelectContent position="popper">
+                            {toAccountOptions.map((account) => (
+                              <SelectItem key={account.id} value={account.id}>
+                                {account.name} · {account.currency_code}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
                       </>
                     )}
                   </div>
@@ -599,21 +563,23 @@ export default function TransactionCreateModal({
               ) : (
                 <Field label="Category" required>
                   <div className="relative">
-                    <select
-                      value={effectiveCategoryId}
-                      onChange={(e) => setCategoryId(e.target.value)}
-                      className={selectCls}
+                    <Select
+                      value={effectiveCategoryId || undefined}
+                      onValueChange={setCategoryId}
                     >
-                      <option value="" disabled>
-                        Select…
-                      </option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                      <SelectTrigger className={`${selectCls} bg-transparent!`}>
+                        <SelectValue placeholder="Select category..." />
+                      </SelectTrigger>
+
+                      <SelectContent position="popper">
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
                   </div>
                 </Field>
               )}
@@ -637,13 +603,12 @@ export default function TransactionCreateModal({
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 </div>
               </Field>
             )}
 
             {/* Amount + Date */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Amount" required>
                 <AmountInput
                   value={amount}
@@ -652,50 +617,44 @@ export default function TransactionCreateModal({
                 />
               </Field>
               <Field label="Date" required>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={transactionDate}
-                    max={today()}
-                    onChange={(e) => setTransactionDate(e.target.value)}
-                    className={inputCls}
-                  />
-                  <Calendar className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                </div>
-              </Field>
-        
-            </div>
+                <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={`${inputCls} flex items-center justify-between text-left font-normal`}
+                    >
+                      <span className={transactionDate ? "text-foreground" : "text-muted-foreground"}>
+                        {transactionDate
+                          ? format(parseISO(transactionDate), "MMM d, yyyy")
+                          : "Select date"}
+                      </span>
 
-            {/* Status */}
-            {/* <Field label="Status">
-              <div className="grid grid-cols-2 gap-2">
-                {(["posted", "pending"] as TransactionStatus[]).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setStatus(s)}
-                    className={`flex items-center justify-center gap-2 rounded-lg border py-2 text-xs font-medium capitalize transition-all ${
-                      status === s
-                        ? s === "posted"
-                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                          : "border-amber-500/40 bg-amber-500/10 text-amber-400"
-                        : "border-border bg-background/40 text-muted-foreground hover:bg-background/80 hover:text-foreground"
-                    }`}
+                      <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+
+                  <PopoverContent
+                    align="start"
+                    className="z-[60] w-auto p-0"
                   >
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        status === s
-                          ? s === "posted"
-                            ? "bg-emerald-400"
-                            : "bg-amber-400"
-                          : "bg-muted-foreground"
-                      }`}
+                    <Calendar
+                      mode="single"
+                      selected={
+                        transactionDate ? parseISO(transactionDate) : undefined
+                      }
+                      onSelect={(date) => {
+                        if (!date) return;
+
+                        setTransactionDate(format(date, "yyyy-MM-dd"));
+                        setDatePickerOpen(false);
+                      }}
+                      disabled={{ after: new Date() }}
                     />
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </Field> */}
+                  </PopoverContent>
+                </Popover>
+              </Field>
+
+            </div>
 
             {/* Description */}
             <Field label="Description">
@@ -708,10 +667,6 @@ export default function TransactionCreateModal({
               />
             </Field>
 
-            {/* Tags
-            <Field label="Tags">
-              <TagInput tags={tags} onChange={setTags} />
-            </Field> */}
           </div>
 
           {/* Divider */}
@@ -719,7 +674,7 @@ export default function TransactionCreateModal({
           <div className="h-px bg-border/60 lg:hidden" />
 
           {/* Right: Bills + summary */}
-          <div className="flex w-full flex-col gap-4 px-6 py-5 lg:w-64 lg:shrink-0">
+          <div className="flex w-full min-w-0 flex-col gap-4 px-4 py-4 sm:px-6 sm:py-5 lg:w-64 lg:shrink-0">
             {/* Bills */}
             <div>
               <div className="mb-2 flex items-center gap-1.5">
@@ -787,12 +742,12 @@ export default function TransactionCreateModal({
         </div>
 
         {/* ── Footer ── */}
-        <div className="flex items-center justify-end gap-2.5 border-t border-border/60 bg-background/50 px-6 py-4">
+        <div className="flex flex-col-reverse gap-2.5 border-t border-border/60 bg-background/50 px-4 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-6">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-transparent px-4 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-border bg-transparent px-4 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:w-auto"
           >
             Cancel
           </button>
@@ -800,13 +755,12 @@ export default function TransactionCreateModal({
             type="button"
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className={`inline-flex h-9 min-w-[120px] items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold text-white shadow-sm transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
-              type === "income"
-                ? "bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20"
-                : type === "expense"
-                  ? "bg-rose-500 hover:bg-rose-400 shadow-rose-500/20"
-                  : "bg-primary hover:opacity-90 shadow-primary/20"
-            }`}
+            className={`inline-flex h-10 w-full min-w-[120px] items-center sm:h-9 sm:w-auto justify-center gap-2 rounded-lg px-5 text-sm font-semibold text-white shadow-sm transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${type === "income"
+              ? "bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20"
+              : type === "expense"
+                ? "bg-rose-500 hover:bg-rose-400 shadow-rose-500/20"
+                : "bg-primary hover:opacity-90 shadow-primary/20"
+              }`}
           >
             {loading ? (
               <>

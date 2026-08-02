@@ -50,37 +50,44 @@ export default function TransactionDetailModal({
   return (
     <>
       <Modal open={open} onClose={onClose} maxWidthClass="max-w-lg">
-        <div className="flex flex-col">
+        <div className="flex min-w-0 flex-col">
           {/* Close button — floating top-right */}
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 z-10 flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            aria-label="Close transaction details"
+            className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground sm:right-4 sm:top-4"
           >
             <X className="h-4 w-4" />
           </button>
 
           {/* ── Amount hero + status ──────────────────────────────── */}
-          <TxDetailHeader
-            transaction={transaction}
-            currencyCode={currencyCode}
-          />
+          <div className="min-w-0 pr-10 sm:pr-12">
+            <TxDetailHeader
+              transaction={transaction}
+              currencyCode={currencyCode}
+            />
+          </div>
 
           {/* ── Metadata grid ─────────────────────────────────────── */}
-          <TxDetailMeta
-            transaction={transaction}
-            accounts={accounts}
-            categories={categories}
-          />
+          <div className="min-w-0">
+            <TxDetailMeta
+              transaction={transaction}
+              accounts={accounts}
+              categories={categories}
+            />
+          </div>
 
           {/* ── Bills ─────────────────────────────────────────────── */}
-          <TxDetailBills
-            bills={bills}
-            isLoading={billsLoading}
-            onPreview={(i) => setPreviewIndex(i)}
-            onDownload={download}
-            downloadingId={downloadingId}
-          />
+          <div className="min-w-0">
+            <TxDetailBills
+              bills={bills}
+              isLoading={billsLoading}
+              onPreview={(i) => setPreviewIndex(i)}
+              onDownload={download}
+              downloadingId={downloadingId}
+            />
+          </div>
         </div>
       </Modal>
 

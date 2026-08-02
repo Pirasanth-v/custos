@@ -59,9 +59,9 @@ export default function DashboardPage() {
   const expenseSpark = toSparkData(monthly_trend, "total_expense");
 
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-8">
+    <div className="min-h-full bg-background p-4 sm:p-6 lg:p-8">
       {/* ── Page header ── */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6 sm:mb-8">
         <div>
           <h1 className="text-xl font-bold text-foreground tracking-tight">
             Dashboard
@@ -72,7 +72,7 @@ export default function DashboardPage() {
         </div>
         <button
           onClick={() => navigate(`/transactions`)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors self-start sm:self-auto min-h-[44px]"
         >
           <Plus className="w-4 h-4" />
           New Transaction
@@ -80,7 +80,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Stat cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <StatCard
           title="Total Balance"
           value={formatCurrency(data?.net_balance ?? "0")}
@@ -125,8 +125,8 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Charts row ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
-        {/* Net balance trend — takes 2 cols */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
+        {/* Net balance trend — takes 2 cols on xl */}
         <div className="xl:col-span-2">
           <NetBalanceTrend data={monthly_trend} loading={isLoading} />
         </div>
@@ -136,8 +136,8 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Bottom row ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        {/* Cash flow — 2 cols */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4">
+        {/* Cash flow — 2 cols on xl */}
         <div className="xl:col-span-2">
           <CashFlowAnalysis data={monthly_trend} loading={isLoading} />
         </div>

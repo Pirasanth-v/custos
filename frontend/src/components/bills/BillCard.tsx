@@ -58,7 +58,7 @@ export function BillCard({
 
         {/* Hover overlay */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-200 group-hover:bg-black/40">
-          <div className="flex scale-90 items-center gap-2 opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
+          <div className="flex scale-100 items-center gap-2 opacity-100 transition-all duration-200 [@media(hover:hover)]:scale-90 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:scale-100 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:scale-100 [@media(hover:hover)]:group-focus-within:opacity-100">
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onPreview(); }}
@@ -110,7 +110,7 @@ export function BillCard({
           {bill.created_at && !isNaN(Date.parse(bill.created_at))
             ? format(new Date(bill.created_at), "d MMM yyyy")
             : "Invalid date"}
-     
+
         </p>
       </div>
     </div>

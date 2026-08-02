@@ -4,8 +4,15 @@ import type {
   TransactionType,
   TransactionFilters,
 } from "@/features/transaction/types";
-import { Search, ArrowUpDown, X, CreditCard, Tag, Filter } from "lucide-react";
+import { Search, X, CreditCard, Tag, Filter } from "lucide-react";
 import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type TransactionsToolbarProps = {
   filters: TransactionFilters;
@@ -60,7 +67,7 @@ export default function TransactionsToolbar({
     <div className="mb-8 space-y-4">
       {/* Search and Quick Filters */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
           <input
             type="text"
@@ -79,17 +86,16 @@ export default function TransactionsToolbar({
           )}
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-          <div className="h-10 flex p-1 bg-muted/50 rounded-xl border border-border/40">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="grid h-10 w-full grid-cols-4 rounded-xl border border-border/40 bg-muted/50 p-1 sm:flex sm:w-auto">
             {TYPE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => onFiltersChange({ type: opt.value })}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  filters.type === opt.value
-                    ? "bg-card text-primary shadow-sm ring-1 ring-black/5"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`min-w-0 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-semibold transition-all sm:px-4 ${filters.type === opt.value
+                  ? "bg-card text-primary shadow-sm ring-1 ring-black/5"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {opt.label}
               </button>
@@ -100,34 +106,45 @@ export default function TransactionsToolbar({
 
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-bold transition-all border ${
-              showFilters || (filters.account_ids?.length || 0) > 0 || (filters.category_ids?.length || 0) > 0
-                ? "bg-primary/5 border-primary/20 text-primary"
-                : "bg-card border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-            }`}
+            className={`flex h-10 shrink-0 items-center gap-2 rounded-xl border px-4 text-xs font-bold transition-all ${showFilters || (filters.account_ids?.length || 0) > 0 || (filters.category_ids?.length || 0) > 0
+              ? "bg-primary/5 border-primary/20 text-primary"
+              : "bg-card border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+              }`}
           >
             <Filter className={`h-3.5 w-3.5 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             Filters
             {(filters.account_ids?.length || 0) + (filters.category_ids?.length || 0) > 0 && (
-               <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
-                 {(filters.account_ids?.length || 0) + (filters.category_ids?.length || 0)}
-               </span>
+              <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
+                {(filters.account_ids?.length || 0) + (filters.category_ids?.length || 0)}
+              </span>
             )}
           </button>
 
-          <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-card px-3 h-10 shadow-sm">
-            <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/60" />
-            <select
+          <div className="flex h-10 min-w-0 flex-1 items-center gap-1 rounded-xl border border-border/60 bg-card px-3 shadow-sm sm:flex-none">
+
+            <Select
               value={filters.sort_key}
-              onChange={(e) => onFiltersChange({ sort_key: e.target.value })}
-              className="bg-transparent text-xs font-bold text-muted-foreground focus:outline-none h-full pr-1 cursor-pointer appearance-none"
+              onValueChange={(value) => onFiltersChange({ sort_key: value })}
             >
-              {SORT_OPTIONS.map((o) => (
-                <option className="bg-background" key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                aria-label="Sort transactions"
+                className="h-full min-w-0 flex-1 border-0 bg-transparent! px-0 text-xs font-bold text-muted-foreground shadow-none focus-visible:ring-0 sm:w-auto sm:flex-none"
+              >
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+
+              <SelectContent
+                position="popper"
+                align="start"
+                sideOffset={6}
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <button
               onClick={() =>
                 onFiltersChange({
@@ -150,12 +167,12 @@ export default function TransactionsToolbar({
                   category_ids: [],
                 })
               }
-              className="flex h-10 items-center gap-2 rounded-xl bg-destructive/5 px-4 text-xs font-bold text-destructive transition-all hover:bg-destructive/10"
+              className="flex h-10 shrink-0 items-center gap-2 rounded-xl bg-destructive/5 px-4 text-xs font-bold text-destructive transition-all hover:bg-destructive/10"
             >
               Reset
             </button>
           ) : null}
-     
+
         </div>
       </div>
 
@@ -174,11 +191,10 @@ export default function TransactionsToolbar({
                   <button
                     key={acc.id}
                     onClick={() => toggleAccountId(acc.id)}
-                    className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                      active
-                        ? "bg-primary border-primary text-white shadow-md shadow-primary/20 scale-[1.02]"
-                        : "bg-card border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary"
-                    }`}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${active
+                      ? "bg-primary border-primary text-white shadow-md shadow-primary/20 scale-[1.02]"
+                      : "bg-card border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary"
+                      }`}
                   >
                     {acc.name}
                   </button>
@@ -199,11 +215,10 @@ export default function TransactionsToolbar({
                   <button
                     key={cat.id}
                     onClick={() => toggleCategoryId(cat.id)}
-                    className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                      active
-                        ? "bg-primary border-primary text-white shadow-md shadow-primary/20 scale-[1.02]"
-                        : "bg-card border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary"
-                    }`}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${active
+                      ? "bg-primary border-primary text-white shadow-md shadow-primary/20 scale-[1.02]"
+                      : "bg-card border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary"
+                      }`}
                   >
                     {cat.name}
                   </button>

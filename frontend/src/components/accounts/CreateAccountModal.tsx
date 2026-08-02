@@ -9,10 +9,18 @@ import {
   MoreHorizontal,
   WalletCards,
 } from "lucide-react";
-import Modal from "./ui/modal";
-import StatusMessage from "./StatusMessage";
+import Modal from "../ui/modal";
+import StatusMessage from "../StatusMessage";
 import type { Currency } from "@/features/currency/types";
 import type { AccountType, CreateAccount } from "@/features/account/types";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type CreateAccountModalProps = {
   open: boolean;
@@ -29,43 +37,43 @@ const accountTypes: {
   description: string;
   icon: React.ReactNode;
 }[] = [
-  {
-    value: "cash",
-    label: "Cash",
-    description: "Physical cash, petty cash, tills",
-    icon: <Wallet className="h-5 w-5" />,
-  },
-  {
-    value: "bank",
-    label: "Bank",
-    description: "Business checking and bank accounts",
-    icon: <Landmark className="h-5 w-5" />,
-  },
-  {
-    value: "credit",
-    label: "Credit",
-    description: "Credit cards and credit liabilities",
-    icon: <CreditCard className="h-5 w-5" />,
-  },
-  {
-    value: "savings",
-    label: "Savings",
-    description: "Reserved or savings accounts",
-    icon: <PiggyBank className="h-5 w-5" />,
-  },
-  {
-    value: "wallet",
-    label: "Wallet",
-    description: "Digital or physical wallets",
-    icon: <WalletCards className="h-5 w-5" />,
-  },
-  {
-    value: "other",
-    label: "Other",
-    description: "Miscellaneous accounts",
-    icon: <MoreHorizontal className="h-5 w-5" />,
-  },
-];
+    {
+      value: "cash",
+      label: "Cash",
+      description: "Physical cash, petty cash, tills",
+      icon: <Wallet className="h-5 w-5" />,
+    },
+    {
+      value: "bank",
+      label: "Bank",
+      description: "Business checking and bank accounts",
+      icon: <Landmark className="h-5 w-5" />,
+    },
+    {
+      value: "credit",
+      label: "Credit",
+      description: "Credit cards and credit liabilities",
+      icon: <CreditCard className="h-5 w-5" />,
+    },
+    {
+      value: "savings",
+      label: "Savings",
+      description: "Reserved or savings accounts",
+      icon: <PiggyBank className="h-5 w-5" />,
+    },
+    {
+      value: "wallet",
+      label: "Wallet",
+      description: "Digital or physical wallets",
+      icon: <WalletCards className="h-5 w-5" />,
+    },
+    {
+      value: "other",
+      label: "Other",
+      description: "Miscellaneous accounts",
+      icon: <MoreHorizontal className="h-5 w-5" />,
+    },
+  ];
 
 export default function CreateAccountModal({
   open,
@@ -160,18 +168,18 @@ function CreateAccountModalContent({
 
   return (
     <Modal open={open} onClose={onClose} maxWidthClass="max-w-4xl">
-      <div className="space-y-6 p-6 text-white">
+      <div className="space-y-5 p-4 text-white sm:space-y-6 sm:p-6">
         {/* Header */}
-        <div className="flex items-start gap-4">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/20">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/20 sm:h-11 sm:w-11 sm:rounded-2xl">
             <Plus className="h-5 w-5" />
           </div>
 
           <div className="min-w-0">
-            <h2 className="text-xl font-semibold text-foreground">
+            <h2 className="text-lg font-semibold text-foreground sm:text-xl">
               Create Account
             </h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <p className="mt-1.5 text-sm leading-6 text-muted-foreground sm:mt-2">
               Add a new account to track balances, transactions, and reporting
               accurately across your organization.
             </p>
@@ -183,11 +191,11 @@ function CreateAccountModalContent({
           type="error"
           message={localError || errorMessage}
           compact
-          onClose={() => {}}
+          onClose={() => { }}
         />
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-8">
           {/* LEFT COLUMN */}
           <div className="space-y-4">
             <FormField label="Account Name" required>
@@ -201,17 +209,32 @@ function CreateAccountModalContent({
             </FormField>
 
             <FormField label="Currency" required>
-              <select
-                value={form.currency_id}
-                onChange={(e) => handleChange("currency_id", e.target.value)}
-                className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              <Select
+                value={form.currency_id || undefined}
+                onValueChange={(value) => handleChange("currency_id", value)}
               >
-                {currencies?.map((currency) => (
-                  <option key={currency.id} value={currency.id}>
-                    {currency.code} ({currency.symbol}) — {currency.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  aria-label="Select currency"
+                  className="h-11 w-full rounded-xl border border-input bg-transparent! px-3 text-sm text-foreground shadow-none hover:bg-transparent! focus:bg-transparent! focus-visible:ring-2 focus-visible:ring-ring/60 data-[state=open]:bg-transparent!"
+                >
+                  <SelectValue placeholder="Select currency…" />
+                </SelectTrigger>
+
+                <SelectContent position="popper" className="z-[60]">
+                  {currencies?.map((currency) => (
+                    <SelectItem key={currency.id} value={currency.id}>
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="shrink-0 font-medium">
+                          {currency.code} ({currency.symbol})
+                        </span>
+                        <span className="truncate text-muted-foreground">
+                          — {currency.name}
+                        </span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </FormField>
 
             <div className="space-y-2">
@@ -219,7 +242,7 @@ function CreateAccountModalContent({
                 Account Type <span className="text-destructive">*</span>
               </label>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 {accountTypes.map((type) => {
                   const active = form.type === type.value;
 
@@ -228,28 +251,26 @@ function CreateAccountModalContent({
                       key={type.value}
                       type="button"
                       onClick={() => handleChange("type", type.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${
-                        active
-                          ? "border-primary bg-primary/10 shadow-sm"
-                          : "border-border bg-card/50 hover:border-primary/40 hover:bg-card"
-                      }`}
+                      className={`min-w-0 rounded-xl border p-3 text-left transition sm:rounded-2xl sm:p-4 ${active
+                        ? "border-primary bg-primary/10 shadow-sm"
+                        : "border-border bg-card/50 hover:border-primary/40 hover:bg-card"
+                        }`}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex min-w-0 items-center gap-2 sm:items-start sm:gap-3">
                         <div
-                          className={`mt-0.5 flex h-10 w-12 items-center justify-center rounded-xl ${
-                            active
-                              ? "bg-primary/15 text-primary"
-                              : "bg-muted text-muted-foreground"
-                          }`}
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:mt-0.5 sm:h-10 sm:w-10 sm:rounded-xl ${active
+                            ? "bg-primary/15 text-primary"
+                            : "bg-muted text-muted-foreground"
+                            }`}
                         >
                           {type.icon}
                         </div>
 
                         <div className="min-w-0">
-                          <p className="font-medium text-foreground">
+                          <p className="break-words text-sm font-medium leading-tight text-foreground sm:text-base">
                             {type.label}
                           </p>
-                          <p className="mt-1 text-sm text-muted-foreground">
+                          <p className="mt-1 hidden text-sm text-muted-foreground sm:block">
                             {type.description}
                           </p>
                         </div>
@@ -262,7 +283,7 @@ function CreateAccountModalContent({
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="flex flex-col h-full gap-4">
+          <div className="flex h-full min-w-0 flex-col gap-4">
             <FormField
               label="Initial Balance"
               required
@@ -298,17 +319,22 @@ function CreateAccountModalContent({
               />
             </FormField>
 
-            <div className="rounded-2xl border border-border bg-card/60 p-4">
+            <div className="rounded-2xl border border-border bg-card/60 p-3 sm:p-4">
               <p className="text-sm font-medium text-foreground">
                 Quick guidance
               </p>
               <ul className="mt-2 space-y-1.5 text-sm leading-6 text-muted-foreground">
-                <li>
-                  • Choose the type carefully to preserve reporting accuracy
+                <li className="flex gap-2">
+                  <span className="shrink-0">•</span>
+                  <span>Choose the type carefully to preserve reporting accuracy</span>
                 </li>
-                <li>• Currency cannot usually be changed casually later</li>
-                <li>
-                  • Initial balance is your opening value for this account
+                <li className="flex gap-2">
+                  <span className="shrink-0">•</span>
+                  <span>Currency cannot usually be changed casually later</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="shrink-0">•</span>
+                  <span>Initial balance is your opening value for this account</span>
                 </li>
               </ul>
             </div>
@@ -321,7 +347,7 @@ function CreateAccountModalContent({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             Cancel
           </button>
@@ -330,7 +356,7 @@ function CreateAccountModalContent({
             type="button"
             disabled={!canSubmit}
             onClick={handleSubmit}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {loading ? (
               <>

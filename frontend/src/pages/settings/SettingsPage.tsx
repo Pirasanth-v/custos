@@ -149,21 +149,21 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-full bg-background text-foreground">
-      <div className="mx-auto w-full max-w-7xl px-6 py-8 md:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-8 md:px-8">
         {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Settings</h1>
           <p className="mt-2 text-sm text-muted-foreground md:text-base">
             Manage organization settings and preferences.
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="mb-8 overflow-x-auto">
+        <div className="mb-6 sm:mb-8">
           <div
             role="tablist"
             aria-label="Settings sections"
-            className="inline-flex min-w-max items-center gap-2 rounded-2xl border border-border bg-card/70 p-1.5"
+            className="grid w-full grid-cols-2 gap-1.5 rounded-2xl border border-border bg-card/70 p-1.5 sm:flex sm:w-fit sm:flex-wrap sm:items-center sm:gap-2"
           >
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -175,14 +175,13 @@ export default function SettingsPage() {
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => setSearchParams({ tab: tab.key })}
-                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                  }`}
+                  className={`inline-flex min-w-0 items-center justify-center gap-2 rounded-xl px-2.5 py-2.5 text-xs font-medium transition-all sm:px-4 sm:text-sm ${isActive
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    }`}
                 >
-                  <Icon size={16} />
-                  <span>{tab.label}</span>
+                  <Icon size={16} className="shrink-0" />
+                  <span className="min-w-0 truncate">{tab.label}</span>
                 </button>
               );
             })}
@@ -190,27 +189,29 @@ export default function SettingsPage() {
         </div>
 
         {/* Tab content */}
-        {activeTab === "general" ? (
-          <GeneralSettings
-            register={register}
-            handleSubmit={handleSubmit}
-            onSubmit={onSubmit}
-            onCancel={onCancel}
-            errors={errors}
-            isDirty={isDirty}
-            isSaving={isSaving}
-            isSubmitting={isSubmitting}
-            saveSuccess={saveSuccess}
-          />
-        ) : activeTab === "members" ? (
-          <MembersSettings />
-        ) : activeTab === "roles" ? (
-          <RolesPermissionsSettings />
-        ) : activeTab === "categories" ? (
-          <CategoriesSettings />
-        ) : (
-          <SettingsPlaceholder activeTab={activeTab} />
-        )}
+        <div className="min-w-0">
+          {activeTab === "general" ? (
+            <GeneralSettings
+              register={register}
+              handleSubmit={handleSubmit}
+              onSubmit={onSubmit}
+              onCancel={onCancel}
+              errors={errors}
+              isDirty={isDirty}
+              isSaving={isSaving}
+              isSubmitting={isSubmitting}
+              saveSuccess={saveSuccess}
+            />
+          ) : activeTab === "members" ? (
+            <MembersSettings />
+          ) : activeTab === "roles" ? (
+            <RolesPermissionsSettings />
+          ) : activeTab === "categories" ? (
+            <CategoriesSettings />
+          ) : (
+            <SettingsPlaceholder activeTab={activeTab} />
+          )}
+        </div>
       </div>
     </div>
   );

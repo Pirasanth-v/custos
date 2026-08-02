@@ -65,19 +65,19 @@ export default function TransactionsTable({
 
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-left">
+    <div className="w-full overflow-hidden">
+      <table className="w-full table-auto text-left">
         <thead className="border-b border-border">
           <tr className="text-sm text-muted-foreground">
-            <th className="px-6 py-4 font-medium md:px-8">Date</th>
-            <th className="px-6 py-4 font-medium">Type</th>
-            <th className="px-6 py-4 font-medium">Amount</th>
-            <th className="hidden px-6 py-4 font-medium lg:table-cell">
+            <th className="px-4 py-3.5 font-medium sm:px-6 md:px-8">Date</th>
+            <th className="hidden px-4 py-3.5 font-medium sm:table-cell sm:px-6">Type</th>
+            <th className="px-4 py-3.5 font-medium sm:px-6">Amount</th>
+            <th className="hidden px-6 py-3.5 font-medium xl:table-cell">
               Description
             </th>
-            <th className="px-6 py-4 font-medium">Accounts</th>
-            <th className="px-6 py-4 font-medium">Status</th>
-            <th className="px-6 py-4 font-medium text-center">
+            <th className="hidden px-6 py-3.5 font-medium lg:table-cell">Accounts</th>
+            <th className="hidden px-6 py-3.5 font-medium md:table-cell">Status</th>
+            <th className="px-4 py-3.5 font-medium text-center sm:px-6 md:px-8">
               Actions
             </th>
           </tr>
@@ -104,7 +104,7 @@ export default function TransactionsTable({
                 key={t.id}
                 className="group cursor-default border-b border-border/60 transition hover:bg-muted/40"
               >
-                <td className="px-6 py-4 md:px-8">
+                <td className="px-4 py-3.5 sm:px-4 md:px-6">
                   <div className="text-sm font-medium text-foreground">
                     {formatDate(t.created_at)}
                   </div>
@@ -113,11 +113,11 @@ export default function TransactionsTable({
                   </div>
                 </td>
 
-                <td className="px-6 py-4">
+                <td className="hidden px-4 py-3.5 sm:table-cell sm:px-6">
                   <TransactionTypeBadge type={t.type} />
                 </td>
 
-                <td className="px-6 py-4">
+                <td className="whitespace-nowrap px-2 py-3.5 sm:px-4 md:px-6">
                   <span
                     className={[
                       "text-sm font-semibold",
@@ -128,7 +128,7 @@ export default function TransactionsTable({
                   </span>
                 </td>
 
-                <td className="hidden px-6 py-4 text-sm text-muted-foreground lg:table-cell">
+                <td className="hidden px-6 py-3.5 text-sm text-muted-foreground xl:table-cell">
                   <div className="max-w-[520px] truncate">
                     {t.description && t.description.trim()
                       ? t.description.trim().length > 60
@@ -141,7 +141,7 @@ export default function TransactionsTable({
                   </div>
                 </td>
 
-                <td className="px-6 py-4">
+                <td className="hidden px-6 py-3.5 lg:table-cell">
                   <div className="text-sm font-medium text-foreground">
                     {fromAcc?.name ?? t.from_account_id}
                   </div>
@@ -152,11 +152,11 @@ export default function TransactionsTable({
                   ) : null}
                 </td>
 
-                <td className="px-6 py-4">
+                <td className="hidden px-6 py-3.5 md:table-cell">
                   <TransactionStatusBadge status={t.status} />
                 </td>
 
-                <td className="px-6 py-4 text-right md:px-8">
+                <td className="whitespace-nowrap px-2 py-3.5 text-right sm:px-4 md:px-6">
                   <TransactionActionsMenu
                     onView={() => onView(t)}
                     onEdit={() => onEdit(t)}

@@ -1,21 +1,21 @@
 package main
 
 import (
+	"context"
 	"log"
 	"log/slog"
-	"context"
 	"net/http"
 	"os"
 	"fmt"
 
 	"github.com/pirasanth-v/custos/internal/config"
 	"github.com/pirasanth-v/custos/internal/database"
-	"github.com/pirasanth-v/custos/internal/storage"
-	"github.com/pirasanth-v/custos/internal/server"
 	"github.com/pirasanth-v/custos/internal/handler"
-	"github.com/pirasanth-v/custos/internal/service"
-	"github.com/pirasanth-v/custos/internal/repository"
 	"github.com/pirasanth-v/custos/internal/middleware"
+	"github.com/pirasanth-v/custos/internal/repository"
+	"github.com/pirasanth-v/custos/internal/server"
+	"github.com/pirasanth-v/custos/internal/service"
+	"github.com/pirasanth-v/custos/internal/storage"
 )
 
 func main() {
@@ -47,7 +47,7 @@ func main() {
 	slog.Info("db connection created successfully")
 	defer db.Close()
 
-	// DB healthcheck 
+	// DB healthcheck
 	if err := db.Ping(context.Background()); err != nil {
 		db.Close()
 		log.Fatalf("Unable to ping database: %v", err)
@@ -74,7 +74,7 @@ func main() {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel() 
+	defer cancel()
 
 	database.StartViewRefresher(ctx, db)
 
@@ -119,11 +119,11 @@ func main() {
 
 	// Server
 	router := server.New(
-		authMiddleware, 
-		orgMiddleware, 
-		authHandler, 
-		OrgHandler, 
-		accHandler, 
+		authMiddleware,
+		orgMiddleware,
+		authHandler,
+		OrgHandler,
+		accHandler,
 		currencyHandler,
 		tranHandler,
 		categoryHandler,
@@ -133,6 +133,5 @@ func main() {
 	if err := http.ListenAndServe(":"+cfg.App.Port, router); err != nil {
 		log.Fatalf("Server failed :%v", err)
 	}
-	
-}
 
+}

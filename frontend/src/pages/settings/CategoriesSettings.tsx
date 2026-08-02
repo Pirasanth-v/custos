@@ -16,7 +16,7 @@ const CategoriesSettings = () => {
   const { data: categories = [], loading: isLoading, error } = useGetCategoriesByOrgId(orgId);
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  
+
   const [ellipsisMenuOpen, setEllipsisMenuOpen] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
@@ -85,31 +85,31 @@ const CategoriesSettings = () => {
   const activeCategories = categories.filter((c) => !c.deleted_at);
 
   return (
-    <div className="py-2">
-      <div className="flex justify-between mb-6 items-center">
+    <div className="min-w-0 py-2">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl text-foreground font-semibold">Categories</h2>
-          <p className="text-sm text-muted-foreground mt-1">Manage categories for your organization's transactions.</p>
+          <h2 className="text-lg font-semibold text-foreground sm:text-xl">Categories</h2>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">Manage categories for your organization's transactions.</p>
         </div>
         <button
           onClick={() => setCreateModalOpen(true)}
-          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition shadow-sm text-sm font-medium"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-white shadow-sm transition hover:bg-primary/90 sm:w-auto"
         >
           <Plus size={16} />
           Create Category
         </button>
       </div>
-
-      <Table
-        headers={headers}
-        data={activeCategories}
-        renderRow={(row) => renderRow(row as Category)}
-        onRowClick={() => {}}
-      />
-
+      <div className="min-w-0 overflow-hidden">
+        <Table
+          headers={headers}
+          data={activeCategories}
+          renderRow={(row) => renderRow(row as Category)}
+          onRowClick={() => { }}
+        />
+      </div>
       {activeCategories.length === 0 && (
-        <div className="text-center py-10 rounded-2xl border border-dashed border-border mt-4">
-          <p className="text-muted-foreground">No categories found. Create one to get started.</p>
+        <div className="mt-4 rounded-2xl border border-dashed border-border px-4 py-8 text-center sm:py-10">
+          <p className="text-sm leading-6 text-muted-foreground">No categories found. Create one to get started.</p>
         </div>
       )}
 
@@ -119,7 +119,7 @@ const CategoriesSettings = () => {
       />
 
       <EditCategoryModal
-        key={`${editModalOpen}-${categories.length}`}   
+        key={`${editModalOpen}-${categories.length}`}
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         category={selectedCategory}

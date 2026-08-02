@@ -7,12 +7,13 @@ type TableProps<T> = {
 
 const Table = <T,>({ headers, data, renderRow, onRowClick }: TableProps<T>) => {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full table-auto text-sm text-left text-muted-foreground bg-card rounded-xl overflow-hidden">
+    <div className="w-full overflow-hidden">
+      <table className="w-full table-auto text-left text-sm text-muted-foreground bg-card">
+        {/* Table Header */}
         <thead className="bg-card text-xs uppercase text-muted-foreground">
           <tr>
             {headers.map((header, idx) => (
-              <th key={idx} className="px-4 py-3 font-semibold tracking-wide">
+              <th key={idx} className="px-4 py-3.5 font-semibold tracking-wide">
                 {header}
               </th>
             ))}

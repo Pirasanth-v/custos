@@ -164,11 +164,11 @@ export default function BillsPage() {
   // ── Render ──
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-full min-w-0 flex-col bg-background">
       {/* Page header */}
-      <div className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-5 sm:px-6 sm:pt-8 lg:px-8">
         <div className="mb-3">
-          <h1 className="text-3xl font-semibold text-foreground tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Bills & Receipts
           </h1>
           <p className="mt-2 text-sm text-muted-foreground md:text-base">
@@ -178,18 +178,18 @@ export default function BillsPage() {
       </div>
 
       {/* Body */}
-      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
+      <div className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         {/* Error */}
         {isError && (
-          <div className="mb-6 flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/8 px-4 py-3.5">
+          <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/8 px-3 py-3.5 sm:flex-nowrap sm:px-4">
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
-            <p className="flex-1 text-sm text-foreground">
+            <p className="min-w-0 flex-1 text-sm text-foreground">
               Failed to load bills.
             </p>
             <button
               type="button"
               onClick={() => refetch()}
-              className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-accent"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-accent"
             >
               <RefreshCw className="h-3 w-3" />
               Retry
@@ -199,7 +199,7 @@ export default function BillsPage() {
 
         {/* Stats row */}
         {!isLoading && bills.length > 0 && (
-          <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
             <StatCard
               label="Total files"
               value={String(stats?.total_bills ?? "—")}
@@ -218,7 +218,7 @@ export default function BillsPage() {
 
         {/* Toolbar */}
         {!isLoading && bills.length > 0 && (
-          <div className="mb-5">
+          <div className="mb-5 min-w-0">
             <BillToolbar
               filters={filters}
               onFiltersChange={(patch) =>
@@ -255,24 +255,24 @@ export default function BillsPage() {
             />
 
             {/* Pagination Controls */}
-            <div className="mt-8 flex flex-col items-center justify-end gap-4 border-t border-border/40 pt-6 sm:flex-row">
-              <div className="flex items-center gap-3">
+            <div className="mt-6 flex flex-col items-center gap-4 border-t border-border/40 pt-5 sm:mt-8 sm:flex-row sm:justify-end sm:pt-6">
+              <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:flex sm:w-auto sm:gap-3">
                 <button
                   type="button"
                   onClick={handlePrevPage}
                   disabled={cursorStack.length === 0 || isLoading}
-                  className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-[12px] font-medium text-foreground transition hover:bg-accent disabled:opacity-40"
+                  className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 text-xs font-medium text-foreground transition hover:bg-accent disabled:opacity-40 sm:h-8"
                 >
                   Previous
                 </button>
-                <div className="text-[12px] font-medium text-muted-foreground">
+                <div className="whitespace-nowrap text-center text-xs font-medium text-muted-foreground">
                   Page {cursorStack.length + 1}
                 </div>
                 <button
                   type="button"
                   onClick={handleNextPage}
                   disabled={!hasNext || isLoading}
-                  className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-[12px] font-medium text-foreground transition hover:bg-accent disabled:opacity-40"
+                  className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 text-xs font-medium text-foreground transition hover:bg-accent disabled:opacity-40 sm:h-8"
                 >
                   Next
                 </button>

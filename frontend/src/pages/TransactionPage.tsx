@@ -32,6 +32,13 @@ import { useConfirmUploads } from "@/features/bills/hooks/useConfirmUploads";
 import { useBillsByTransaction } from "@/features/bills/hooks/useGetBillsByTransaction";
 import { useDeleteBill } from "@/features/bills/hooks/useDeleteBill";
 import TransactionDetailModal from "@/components/transactions/detail/TransactionDetailModal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/lib/toast";
 
 function SkeletonRow() {
@@ -177,31 +184,33 @@ export default function TransactionPage() {
   };
 
   return (
-    <div className="min-h-full bg-background text-foreground">
-      <div className="mx-auto w-full max-w-7xl px-6 py-8 md:px-8">
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="min-h-full min-w-0 bg-background text-foreground">
+      <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <div className="mb-6 flex flex-col gap-4 sm:mb-8 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Transactions
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground md:text-base">
+            <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground sm:mt-2 md:text-base">
               Track financial activity across your organization
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {accountsLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading accounts...
-              </>
-            ) : null}
-            {categoriesLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading categories...
-              </>
-            ) : null}
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:w-auto lg:justify-end">
+            <div className="flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground sm:text-sm">
+              {accountsLoading ? (
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                  Loading accounts...
+                </span>
+              ) : null}
+              {categoriesLoading ? (
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                  Loading categories...
+                </span>
+              ) : null}
+            </div>
 
             <button
               type="button"
@@ -216,7 +225,7 @@ export default function TransactionPage() {
                 (accountsList?.length ?? 0) === 0 ||
                 (categoriesList?.length ?? 0) === 0
               }
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-primary px-4 text-sm font-medium text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-5"
             >
               <Plus className="h-4 w-4" />
               Create Transaction
@@ -257,21 +266,21 @@ export default function TransactionPage() {
         ) : null}
 
         {!accountsLoading && (accountsList?.length ?? 0) === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-dashed border-border/60 bg-card/40 px-6 py-20 text-center shadow-sm backdrop-blur-sm md:px-8">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 text-primary transition-transform duration-500 hover:rotate-12">
-              <Plus className="h-10 w-10" />
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/60 bg-card/40 px-4 py-12 text-center shadow-sm backdrop-blur-sm sm:rounded-[2.5rem] sm:px-6 sm:py-16 md:px-8 lg:py-20">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform duration-500 hover:rotate-12 sm:h-20 sm:w-20 sm:rounded-3xl">
+              <Plus className="h-8 w-8 sm:h-10 sm:w-10" />
             </div>
-            <h3 className="mt-6 text-2xl font-bold tracking-tight text-foreground">
+            <h3 className="mt-5 text-xl font-bold tracking-tight text-foreground sm:mt-6 sm:text-2xl">
               No accounts found
             </h3>
-            <p className="mt-3 max-w-sm text-base text-muted-foreground leading-relaxed">
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground sm:text-base">
               You need to create at least one account before you can start
               recording transactions. It only takes a minute!
             </p>
-            <div className="mt-10">
+            <div className="mt-8 w-full sm:mt-10 sm:w-auto">
               <Link
                 to="/accounts"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-8 text-base font-semibold text-white transition-all hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98]"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 text-sm font-semibold text-white transition-all hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98] sm:w-auto sm:px-8 sm:text-base"
               >
                 <Plus className="h-5 w-5" />
                 Create First Account
@@ -290,64 +299,80 @@ export default function TransactionPage() {
               categories={categoriesList}
             />
 
-            <div className="rounded-3xl border border-border bg-card/80 shadow-sm">
-              <div className="border-b border-border px-6 py-5 md:px-8">
-                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card/80 shadow-sm sm:rounded-3xl">
+              <div className="border-b border-border px-4 py-4 sm:px-6 sm:py-5 md:px-8">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-xl font-semibold">Transaction Feed</h2>
+                    <h2 className="text-lg font-semibold sm:text-xl">
+                      Transaction Feed
+                    </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Showing your most recent transactions first.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex w-full items-center justify-between gap-3 text-sm text-muted-foreground sm:w-auto sm:justify-start">
                     <span>Page size</span>
-                    <select
-                      value={pageSize}
-                      onChange={(e) => {
-                        setPageSize(Number(e.target.value));
+                    <Select
+                      value={String(pageSize)}
+                      onValueChange={(value) => {
+                        setPageSize(Number(value));
                         setCurrentPage(1);
                       }}
-                      className="h-10 rounded-xl border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                     >
-                      {[10, 25, 50].map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger
+                        aria-label="Page size"
+                        className="h-10 w-20 min-w-20 rounded-xl border border-input bg-background! px-3 text-sm text-foreground"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+
+                      <SelectContent
+                        position="popper"
+                        align="end"
+                        sideOffset={6}
+                      >
+                        {[10, 25, 50].map((size) => (
+                          <SelectItem key={size} value={String(size)}>
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
 
               {isLoading ? (
-                <div className="space-y-3 px-6 py-6 md:px-8">
+                <div className="space-y-3 px-4 py-5 sm:px-6 sm:py-6 md:px-8">
                   <SkeletonRow />
                   <SkeletonRow />
                   <SkeletonRow />
                 </div>
               ) : transactions.length === 0 ? (
-                <div className="px-6 py-16 text-center md:px-8">
+                <div className="px-4 py-12 text-center sm:px-6 sm:py-16 md:px-8">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                     <RotateCcw className="h-6 w-6" />
                   </div>
-                  <h3 className="mt-4 text-xl font-semibold text-foreground">
+                  <h3 className="mt-4 text-lg font-semibold text-foreground sm:text-xl">
                     No transactions found
                   </h3>
-                  <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground flex justify-center items-center text-center mx-auto">
+                  <p className="mx-auto mt-3 max-w-md text-center text-sm leading-6 text-muted-foreground">
                     Try adjusting your search/filter, or load more results to
                     continue browsing.
                   </p>
                 </div>
               ) : (
-                <div className="px-6 py-6 md:px-8">
-                  <TransactionsTable
-                    transactions={paginatedTransactions}
-                    accountsById={accountsById}
-                    categoriesById={categoriesById}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onView={handleView}
-                  />
+                <div className="min-w-0 px-3 py-3 sm:px-6 sm:py-4 md:px-8">
+                  <div className="-mx-3 overflow-x-auto overscroll-x-contain sm:mx-0">
+                    <TransactionsTable
+                      transactions={paginatedTransactions}
+                      accountsById={accountsById}
+                      categoriesById={categoriesById}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onView={handleView}
+                    />
+                  </div>
 
                   <TransactionsPagination
                     totalLoaded={transactions.length}

@@ -68,7 +68,7 @@ export function ExpenseBreakdown({ data, loading = false }: ExpenseBreakdownProp
   }));
 
   return (
-    <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-5 flex flex-col gap-4 h-[400px]">
+    <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-4 sm:p-5 flex flex-col gap-3 sm:gap-4">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-foreground leading-none">Expense Breakdown</h3>
         <p className="text-[11px] text-muted-foreground mt-1 tracking-tight">By category distribution</p>
@@ -83,7 +83,7 @@ export function ExpenseBreakdown({ data, loading = false }: ExpenseBreakdownProp
       ) : (
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* donut area - fixed height to prevent pushing legend too far */}
-          <div className="relative w-full h-[180px] shrink-0 flex items-center justify-center -mt-2">
+          <div className="relative w-full h-[160px] sm:h-[180px] shrink-0 flex items-center justify-center -mt-2">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie

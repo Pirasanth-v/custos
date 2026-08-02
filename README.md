@@ -55,6 +55,18 @@ docker compose up -d
 # Stop
 docker compose down
 
+# Start server
+go run cmd/server/main.go
+
+# Start frontend
+bun run dev
+
+# Migrations
+make migrate-up
+
+# Seed
+make seed
+
 # lint for backend
 golangci-lint run
 ```

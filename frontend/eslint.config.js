@@ -21,9 +21,16 @@ export default defineConfig([
     },
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-      }]
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      }],
+      'react-refresh/only-export-components': [
+        'error',
+        {
+          allowConstantExport: true,
+          allowExportNames: ['buttonVariants'],
+        },
+      ],
     }
   },
 ])
