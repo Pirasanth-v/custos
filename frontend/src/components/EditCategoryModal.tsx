@@ -6,6 +6,7 @@ import type { Category } from "@/features/category/types";
 import useOrgStore from "@/store/orgStore";
 import axios from "axios";
 import StatusMessage from "./StatusMessage";
+import { toast } from "@/lib/toast";
 
 type Props = {
   open: boolean;
@@ -30,6 +31,7 @@ export default function EditCategoryModal({ open, onClose, category }: Props) {
 
     try {
       await updateCategory({ categoryId: category.id, name: name.trim() });
+      toast.success("Category updated");
       onClose();
     } catch (err) {
       let message = "Something went wrong. Try again later.";

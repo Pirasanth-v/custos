@@ -57,6 +57,8 @@ export default function RegisterPage() {
         const status = error.response?.status;
         if (status == 409) {
           setServerError("Email already in use");
+        } else if (status === 429) {
+          setServerError("Too many requests, please try again later");
         } else {
           setServerError("Registration failed. Please try again.");
         }

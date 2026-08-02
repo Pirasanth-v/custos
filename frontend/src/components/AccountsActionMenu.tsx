@@ -4,7 +4,7 @@ import { Pencil, Trash2 } from "lucide-react";
 
 type Props = {
   open: boolean;
-  anchorRef: React.RefObject<HTMLButtonElement>;
+  anchorRef: React.RefObject<HTMLButtonElement | null>;
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;

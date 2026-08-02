@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"fmt"
 
 	"github.com/pirasanth-v/custos/internal/config"
 	"github.com/pirasanth-v/custos/internal/database"
@@ -24,6 +25,19 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 	slog.Info("Cfg is loaded and ready to use")
+
+	// Build the database URL from config
+	databaseURL := fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.DB.User, cfg.DB.Password,
+		cfg.DB.Host, cfg.DB.Port,
+		cfg.DB.Name, cfg.DB.SSLmode,
+	)
+
+	if err := database.RunMigrations(databaseURL); err != nil {
+        slog.Error("migration failed", "err", err)
+        os.Exit(1)
+    }
 
 	// Connect to DB
 	db, err := database.Connect(cfg.DB)
@@ -90,7 +104,7 @@ func main() {
 	dashboardService := service.NewDashboardService(dashboardRepo)
 
 	// Handlers
-	authHandler := handler.NewAuthHandler(authService, cfg.Security)
+	authHandler := handler.NewAuthHandler(authService, cfg.Security, cfg.App)
 	OrgHandler := handler.NewOrgHandler(orgService)
 	accHandler := handler.NewAccountHandler(accService)
 	currencyHandler := handler.NewCurrencyHandler(currencyService)

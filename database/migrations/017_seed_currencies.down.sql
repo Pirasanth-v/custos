@@ -1,0 +1,1 @@
+DELETE FROM currencies WHERE code IN ('USD', 'EUR', 'GBP', 'LKR', 'INR');

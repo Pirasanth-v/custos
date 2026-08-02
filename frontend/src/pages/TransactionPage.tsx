@@ -39,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "@/lib/toast";
 
 function SkeletonRow() {
   return <div className="h-16 animate-pulse rounded-2xl bg-muted/50" />;
@@ -508,6 +509,7 @@ export default function TransactionPage() {
               queryClient.invalidateQueries({
                 queryKey: ["org", orgId, "transactions"],
               });
+              toast.success("Transaction updated");
               setEditOpen(false);
             } catch (err) {
               let message = "Something went wrong, try again";
@@ -595,6 +597,7 @@ export default function TransactionPage() {
                 queryKey: ["org", orgId, "transactions"],
               });
 
+              toast.success("Transaction created");
               setCreateOpen(false);
             } catch (err) {
               let message = "Something went wrong, try again";
@@ -629,6 +632,7 @@ export default function TransactionPage() {
               queryClient.invalidateQueries({
                 queryKey: ["org", orgId, "transactions"],
               });
+              toast.success("Transaction deleted");
               setDeleteOpen(false);
             } catch (err) {
               let message = "Something went wrong, try again";

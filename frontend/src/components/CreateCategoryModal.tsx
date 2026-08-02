@@ -5,6 +5,7 @@ import { useCreateCategory } from "@/features/category/hooks/useCreateCategory";
 import useOrgStore from "@/store/orgStore";
 import axios from "axios";
 import StatusMessage from "./StatusMessage";
+import { toast } from "@/lib/toast";
 
 type Props = {
   open: boolean;
@@ -28,6 +29,7 @@ export default function CreateCategoryModal({ open, onClose }: Props) {
 
     try {
       await createCategory(name.trim());
+      toast.success("Category created");
       setName("");
       onClose();
     } catch (err) {

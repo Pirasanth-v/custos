@@ -15,12 +15,14 @@ import (
 type AuthHandler struct {
 	authService *service.AuthService
 	cfg config.SecurityConfig
+	cfgApp config.AppConfig
 }
 
-func NewAuthHandler(authService *service.AuthService, cfg config.SecurityConfig) *AuthHandler {
+func NewAuthHandler(authService *service.AuthService, cfg config.SecurityConfig, cfgApp config.AppConfig) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
 		cfg: cfg,
+		cfgApp: cfgApp,
 	}
 }
 
@@ -125,12 +127,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	isProd := h.cfgApp.Env == "production"
 	// Set cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    token,
 		HttpOnly: true, // JS cannot access it - XSS protection
-		Secure:   true, // HTTPs only
+		Secure:   isProd, // HTTPs only
 		Expires:  time.Now().Add(time.Duration(h.cfg.SessionExpiryHours) * time.Hour),
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
