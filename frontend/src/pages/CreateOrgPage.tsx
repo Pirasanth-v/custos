@@ -1,6 +1,6 @@
 import { createOrganization } from "@/features/organization/api";
 import { useState } from "react";
-import { Building, ArrowRight, AlertCircle } from "lucide-react";
+import { Building, ArrowRight, AlertCircle, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -96,7 +96,7 @@ export default function CreateOrganizationPage() {
           </h2>
           <p className="mt-6 text-lg text-white/80 leading-relaxed">
             Organizations in Custos allow you to collaborate with teammates,
-            track shared expenses, and manage organization-wide budgets with
+            track shared expenses, and manage organization wide budgets with
             unmatched clarity.
           </p>
 
@@ -105,10 +105,6 @@ export default function CreateOrganizationPage() {
               {
                 title: "Shared Ledgers",
                 desc: "Real-time visibility into every transaction.",
-              },
-              {
-                title: "Smart Approvals",
-                desc: "Set up workflows for multi-user authorization.",
               },
               {
                 title: "Detailed Analytics",
@@ -134,13 +130,21 @@ export default function CreateOrganizationPage() {
       </div>
 
       {/* Right Column: The Form */}
-      <div className="flex w-full items-center justify-center p-8 lg:w-1/2">
+      <div className="flex w-full items-start justify-center px-4 py-6 sm:px-6 sm:py-8 lg:w-1/2 lg:items-center lg:p-8">
         <div className="w-full max-w-md space-y-8">
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="inline-flex h-10 items-center gap-2 rounded-lg px-1 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
           <div className="flex flex-col gap-2 lg:hidden">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white mb-2">
               <Building className="h-6 w-6" />
             </div>
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
               Create Organization
             </h1>
           </div>
@@ -156,7 +160,7 @@ export default function CreateOrganizationPage() {
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="mt-10 space-y-6"
+            className="mt-6 space-y-6 sm:mt-10"
             noValidate
           >
             <div className="space-y-4">
@@ -231,7 +235,7 @@ export default function CreateOrganizationPage() {
 
             {serverError && (
               <div className="flex items-center gap-3 rounded-xl bg-danger/10 p-4 text-sm font-medium text-danger border border-danger/20 animate-in fade-in zoom-in-95 duration-200">
-                <AlertCircle className="h-4 w-4" />
+                <AlertCircle className="h-4 w-4 shrink-0" />
                 {serverError}
               </div>
             )}
@@ -255,7 +259,7 @@ export default function CreateOrganizationPage() {
           </form>
 
           <footer className="mt-12 text-center text-xs text-muted-foreground lg:hidden">
-            © 2024 Custos Inc. All rights reserved.
+            © 2026 Custos Inc. All rights reserved.
           </footer>
         </div>
       </div>
