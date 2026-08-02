@@ -48,15 +48,15 @@ export default function DeleteCategoryModal({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="space-y-6 p-6 text-white">
+      <div className="space-y-5 p-4 text-white sm:space-y-6 sm:p-6">
         <div>
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/15 text-destructive">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-destructive/15 text-destructive sm:h-10 sm:w-10">
               <Tags size={20} />
             </div>
 
             <div className="min-w-0">
-              <h2 className="text-xl text-foreground font-semibold">
+              <h2 className="text-lg font-semibold text-foreground sm:text-xl">
                 Delete Category
               </h2>
             </div>
@@ -65,26 +65,32 @@ export default function DeleteCategoryModal({
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             This action cannot be undone. This will permanently delete the
             category{" "}
-            <span className="font-semibold text-foreground">
+            <span className="break-words font-semibold text-foreground">
               {category.name}
             </span>{" "}
             from your organization.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4">
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 sm:p-4">
           <div className="flex items-start gap-3">
             <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
-            <div>
+            <div className="min-w-0">
               <p className="font-semibold text-destructive">
                 Warning: Permanent Action
               </p>
               <ul className="mt-3 space-y-1.5 text-sm leading-6 text-muted-foreground">
-                <li>
-                  • You cannot delete a category if it is currently assigned to
-                  any transactions.
+                <li className="flex gap-2">
+                  <span className="shrink-0">•</span>
+                  <span>
+                    You cannot delete a category if it is currently assigned to
+                    any transactions.
+                  </span>
                 </li>
-                <li>• All category configurations will be removed.</li>
+                <li className="flex gap-2">
+                  <span className="shrink-0">•</span>
+                  <span>All category configurations will be removed.</span>
+                </li>
               </ul>
             </div>
           </div>
@@ -117,12 +123,12 @@ export default function DeleteCategoryModal({
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={isPending}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             Cancel
           </button>
@@ -131,7 +137,7 @@ export default function DeleteCategoryModal({
             type="button"
             disabled={!canRemove}
             onClick={handleConfirm}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-destructive px-5 text-sm font-medium text-white transition hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-destructive px-5 text-sm font-medium text-white transition hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {isPending ? (
               <>

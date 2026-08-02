@@ -69,12 +69,12 @@ export default function EditRoleModal({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="p-6 space-y-6 text-foreground">
+      <div className="space-y-5 p-4 text-foreground sm:space-y-6 sm:p-6">
         {/* Header */}
-        <div className="flex justify-between items-start">
+        <div className="flex min-w-0 items-start justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold">Edit Role</h2>
-            <p className="text-sm text-foreground/60 mt-1">
+            <h2 className="text-lg font-semibold sm:text-xl">Edit Role</h2>
+            <p className="mt-1 break-words text-sm leading-6 text-foreground/60">
               Update role for{" "}
               <span className="font-medium text-foreground">
                 {member.first_name} {member.last_name}
@@ -83,8 +83,10 @@ export default function EditRoleModal({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="text-foreground/60 hover:text-foreground"
+            aria-label="Close edit role modal"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-foreground/60 transition hover:bg-accent hover:text-foreground"
           >
             <X size={20} />
           </button>
@@ -100,7 +102,7 @@ export default function EditRoleModal({
         )}
 
         {/* Role Selection */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
           {roles.map((role) => {
             const isCurrent = member.role_id === role.id;
             const isSelected = selectedRole === role.id;
@@ -113,7 +115,7 @@ export default function EditRoleModal({
                 onClick={() => {
                   if (!isCurrent) setSelectedRole(role.id);
                 }}
-                className={`relative text-left rounded-xl border p-4 transition ${
+                className={`relative min-w-0 rounded-xl border p-3 text-left transition sm:p-4 ${
                   isCurrent
                     ? "border-primary bg-primary/10 opacity-70 cursor-not-allowed"
                     : isSelected
@@ -128,13 +130,15 @@ export default function EditRoleModal({
                 )}
 
                 {isCurrent && (
-                  <div className="absolute top-2 right-2 text-xs text-primary font-medium">
+                  <div className="absolute right-2 top-2 whitespace-nowrap text-xs font-medium text-primary">
                     Current
                   </div>
                 )}
 
-                <p className="font-medium">{role.name}</p>
-                <p className="text-xs text-foreground/60 mt-1">
+                <p className="break-words pr-16 font-medium text-foreground">
+                  {role.name}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-foreground/60">
                   {role.description}
                 </p>
               </button>
@@ -143,18 +147,20 @@ export default function EditRoleModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end sm:gap-3 sm:pt-4">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 h-10 rounded-lg border border-foreground/10 hover:bg-foreground/5"
+            className="h-11 w-full rounded-xl border border-foreground/10 px-4 text-sm font-medium transition hover:bg-foreground/5 sm:h-10 sm:w-auto"
           >
             Cancel
           </button>
 
           <button
+            type="button"
             disabled={!hasChanged}
             onClick={() => selectedRole && onSave(selectedRole)}
-            className={`px-5 h-10 rounded-lg text-white font-medium transition ${
+            className={`h-11 w-full rounded-xl px-5 text-sm font-medium text-white transition sm:h-10 sm:w-auto ${
               hasChanged
                 ? "bg-primary hover:bg-primary/90"
                 : "bg-primary/30 cursor-not-allowed"

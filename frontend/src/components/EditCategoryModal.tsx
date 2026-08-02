@@ -44,18 +44,22 @@ export default function EditCategoryModal({ open, onClose, category }: Props) {
 
   return (
     <Modal open={open} onClose={onClose}>
-      <form onSubmit={handleSubmit} className="p-6 space-y-6 text-foreground">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-xl font-semibold">Edit Category</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5 p-4 text-foreground sm:space-y-6 sm:p-6"
+      >
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold sm:text-xl">Edit Category</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
               Update the name of this category.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground"
+            aria-label="Close edit category modal"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
             <X size={20} />
           </button>
@@ -72,13 +76,13 @@ export default function EditCategoryModal({ open, onClose, category }: Props) {
           <label className="text-sm font-medium text-foreground">
             Category Name
           </label>
-          <div className="mt-1.5 flex items-center gap-2 border border-border rounded-xl px-3 h-11 bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+          <div className="mt-1.5 flex h-11 min-w-0 items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Software Subscriptions"
-              className="bg-transparent outline-none w-full text-sm"
+              className="min-w-0 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               autoComplete="off"
               required
               disabled={isPending}
@@ -86,11 +90,11 @@ export default function EditCategoryModal({ open, onClose, category }: Props) {
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end sm:gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 h-11 rounded-xl border border-border bg-background hover:bg-accent text-sm font-medium transition-colors"
+            className="h-11 w-full rounded-xl border border-border bg-background px-5 text-sm font-medium transition-colors hover:bg-accent sm:w-auto"
             disabled={isPending}
           >
             Cancel
@@ -98,7 +102,7 @@ export default function EditCategoryModal({ open, onClose, category }: Props) {
 
           <button
             type="submit"
-            className="px-5 h-11 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             disabled={
               isPending || !name.trim() || name.trim() === category.name
             }

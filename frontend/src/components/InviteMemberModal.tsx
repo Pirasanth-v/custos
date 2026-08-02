@@ -130,19 +130,23 @@ export default function InviteMembersModal({ open, onClose }: Props) {
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="p-6 space-y-6 text-foreground">
+      <div className="space-y-5 p-4 text-foreground sm:space-y-6 sm:p-6">
         {/* Header */}
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-xl font-semibold">Invite Team Members</h2>
-            <p className="text-sm text-foreground/60 mt-1">
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold sm:text-xl">
+              Invite Team Members
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-foreground/60">
               Send invitations to add new members to your organization.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="text-foreground/60 hover:text-foreground"
+            aria-label="Close invite members modal"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-foreground/60 transition hover:bg-accent hover:text-foreground"
           >
             <X size={20} />
           </button>
@@ -150,32 +154,35 @@ export default function InviteMembersModal({ open, onClose }: Props) {
 
         {/* Error/success */}
         {error && (
-          <div className="bg-red-500/20 text-destructive px-3 py-2 rounded text-sm">
+          <div className="break-words rounded-lg bg-red-500/20 px-3 py-2.5 text-sm text-destructive">
             {error}
           </div>
         )}
         {success && (
-          <div className="bg-green-600/20 text-success px-3 py-2 rounded text-sm">
+          <div className="break-words rounded-lg bg-green-600/20 px-3 py-2.5 text-sm text-success">
             Invitations sent!
           </div>
         )}
 
         {/* Invite List */}
         {invites.map((invite, index) => (
-          <div key={index} className="space-y-4 border-b border-border/10 pb-4">
+          <div
+            key={index}
+            className="min-w-0 space-y-4 border-b border-border/10 pb-4"
+          >
             {/* Email */}
             <div>
-              <label className="text-sm text-foreground/80">
+              <label className="text-sm font-medium text-foreground/80">
                 Email Address
               </label>
-              <div className="mt-1 flex items-center gap-2 border border-border rounded-lg px-3 h-11 bg-background focus-within:ring-2 focus-within:ring-primary">
+              <div className="mt-1 flex h-11 min-w-0 items-center gap-2 rounded-xl border border-border bg-background px-3 focus-within:ring-2 focus-within:ring-primary/40">
                 <Mail size={16} className="text-foreground/50" />
                 <input
                   type="email"
                   value={invite.email}
                   onChange={(e) => updateInvite(index, "email", e.target.value)}
                   placeholder="colleague@example.com"
-                  className="bg-transparent outline-none w-full text-sm"
+                  className="min-w-0 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                   autoComplete="off"
                   required
                   disabled={isLoading}
@@ -187,21 +194,21 @@ export default function InviteMembersModal({ open, onClose }: Props) {
             <div>
               <label className="text-sm text-foreground/80">Role</label>
 
-              <div className="grid grid-cols-2 gap-3 mt-2">
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
                 {roles.map((role) => (
                   <button
                     key={role.key}
                     onClick={() => updateInvite(index, "role", role.key)}
                     type="button"
                     disabled={isLoading}
-                    className={`text-left rounded-xl border p-3 transition ${
+                    className={`min-w-0 rounded-xl border p-3 text-left transition sm:p-4 ${
                       invite.role === role.key
                         ? "border-primary bg-primary/10"
                         : "border-foreground/10 hover:border-foreground/30"
                     }`}
                   >
-                    <p className="font-medium">{role.title}</p>
-                    <p className="text-xs text-foreground/60 mt-1">
+                    <p className="font-medium text-foreground">{role.title}</p>
+                    <p className="mt-1 text-xs leading-5 text-foreground/60">
                       {role.desc}
                     </p>
                   </button>
@@ -214,7 +221,7 @@ export default function InviteMembersModal({ open, onClose }: Props) {
               <button
                 type="button"
                 onClick={() => removeInvite(index)}
-                className="text-xs text-destructive hover:text-destructive"
+                className="inline-flex min-h-9 items-center rounded-lg px-2 text-xs font-medium text-destructive transition hover:bg-destructive/10"
                 disabled={isLoading}
               >
                 Remove
@@ -227,7 +234,7 @@ export default function InviteMembersModal({ open, onClose }: Props) {
         <button
           type="button"
           onClick={addInvite}
-          className="w-full border border-dashed border-foreground/40 rounded-lg py-3 text-sm text-foreground/70 hover:border-foreground/60 hover:text-foreground flex items-center justify-center gap-2"
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-foreground/40 px-3 py-2.5 text-sm text-foreground/70 transition hover:border-foreground/60 hover:bg-accent/40 hover:text-foreground"
           disabled={isLoading}
         >
           <UserPlus size={16} />
@@ -235,15 +242,15 @@ export default function InviteMembersModal({ open, onClose }: Props) {
         </button>
 
         {/* Footer */}
-        <div className="flex justify-between items-center pt-4">
+        <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between sm:pt-4">
           <p className="text-sm text-foreground/50">
             {invites.length} invitation(s) ready
           </p>
 
-          <div className="flex gap-3">
+          <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row sm:gap-3">
             <button
               onClick={onClose}
-              className="px-4 h-10 rounded-lg border border-border hover:bg-foreground/5"
+              className="h-11 w-full rounded-xl border border-border px-4 text-sm font-medium transition hover:bg-foreground/5 sm:h-10 sm:w-auto"
               type="button"
               disabled={isLoading}
             >
@@ -251,7 +258,7 @@ export default function InviteMembersModal({ open, onClose }: Props) {
             </button>
 
             <button
-              className="px-5 h-10 rounded-lg bg-primary hover:bg-primary/90 font-medium text-white flex items-center"
+              className="flex h-11 w-full items-center justify-center rounded-xl bg-primary px-5 text-sm font-medium text-white transition hover:bg-primary/90 sm:h-10 sm:w-auto"
               type="button"
               onClick={handleSendInvitations}
               disabled={isLoading || invites.length === 0}

@@ -56,16 +56,27 @@ const RolesPermissionsSettings = () => {
   );
 
   return (
-    <div className="px-6 py-8">
-      <h1 className="text-2xl font-semibold mb-6">Roles & Permissions</h1>
+    <div className="min-w-0 px-4 py-5 sm:px-6 sm:py-8">
+      <h1 className="mb-5 text-xl font-semibold sm:mb-6 sm:text-2xl">Roles & Permissions</h1>
 
       {/* Roles Table */}
-      <Table
-        headers={headers}
-        data={data}
-        renderRow={renderRow}
-        onRowClick={(row) => console.log("Row clicked:", row)}
-      />
+      <div
+        className="
+    min-w-0 max-w-full
+    [&>div]:overflow-x-auto
+    [&>div]:overscroll-x-contain
+    [&>div]:touch-pan-x
+    [&_table]:w-full
+    [&_table]:min-w-[680px]
+  "
+      >
+        <Table
+          headers={headers}
+          data={data}
+          renderRow={renderRow}
+          onRowClick={(row) => console.log("Row clicked:", row)}
+        />
+      </div>
     </div>
   );
 };

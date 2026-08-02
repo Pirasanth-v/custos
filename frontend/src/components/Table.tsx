@@ -18,8 +18,8 @@ const Table: React.FC<TableProps> = ({
   onRowClick,
 }) => {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full table-auto text-sm text-left text-muted-foreground bg-card rounded-xl overflow-hidden">
+    <div className="w-full overflow-hidden">
+      <table className="w-full table-auto text-left text-sm text-muted-foreground bg-card">
         {/* Table Header */}
         <thead className="bg-card text-xs uppercase text-muted-foreground">
           <tr>
