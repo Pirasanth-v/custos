@@ -15,7 +15,6 @@ import {
 } from "lucide-react"
 import logo from "@/assets/logo_crop.png"
 import useThemeStore from "@/store/themeStore"
-import { CurrencyDropdown } from "../dropdown/CurrencyDropdown"
 import { OrganizationDropdown } from "../dropdown/OrganizationDropdown"
 
 type SidebarItem = {
@@ -40,7 +39,6 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const { isDark, toggle } = useThemeStore()
-  const [currency, setCurrency] = useState("USD")
 
   useEffect(() => {
     const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY)
@@ -84,11 +82,9 @@ export function Sidebar() {
       <aside
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className={`fixed inset-y-0 left-0 z-50 h-screen w-64 transform border-r border-border bg-card text-foreground transition-all duration-300 ease-in-out md:static md:translate-x-0 md:h-screen md:shrink-0 md:transition-all ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
-        } ${
-          expanded ? "md:w-64" : "md:w-20"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 h-screen w-64 transform border-r border-border bg-card text-foreground transition-all duration-300 ease-in-out md:static md:translate-x-0 md:h-screen md:shrink-0 md:transition-all ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+          } ${expanded ? "md:w-64" : "md:w-20"
+          }`}
       >
         <div className="flex h-full flex-col">
           {/* Top section */}
@@ -109,9 +105,8 @@ export function Sidebar() {
               <button
                 type="button"
                 onClick={() => setPinned((prev) => !prev)}
-                className={`hidden rounded-lg p-2 text-foreground hover:bg-foreground/10 lg:flex ${
-                  expanded ? "opacity-100" : "opacity-0 pointer-events-none"
-                }`}
+                className={`hidden rounded-lg p-2 text-foreground hover:bg-foreground/10 lg:flex ${expanded ? "opacity-100" : "opacity-0 pointer-events-none"
+                  }`}
                 aria-label={pinned ? "Unpin sidebar" : "Pin sidebar"}
                 title={pinned ? "Unpin sidebar" : "Pin sidebar"}
               >
@@ -141,13 +136,7 @@ export function Sidebar() {
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Organization</span>
               <OrganizationDropdown />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Currency</span>
-              <CurrencyDropdown
-                selectedCurrency={currency}
-                onSelect={setCurrency}
-              />
-            </div>
+
             <div className="flex items-center justify-between pt-2 border-t border-border">
               <span className="text-sm font-medium text-foreground">Theme</span>
               <button
@@ -212,11 +201,10 @@ function SidebarNavItem({
           </span>
 
           <span
-            className={`ml-4 whitespace-nowrap text-[15px] font-medium transition-all duration-200 ${
-              expanded
-                ? "translate-x-0 opacity-100"
-                : "pointer-events-none -translate-x-2 opacity-0 md:pointer-events-none md:-translate-x-2 md:opacity-0 max-md:pointer-events-auto max-md:translate-x-0 max-md:opacity-100"
-            }`}
+            className={`ml-4 whitespace-nowrap text-[15px] font-medium transition-all duration-200 ${expanded
+              ? "translate-x-0 opacity-100"
+              : "pointer-events-none -translate-x-2 opacity-0 md:pointer-events-none md:-translate-x-2 md:opacity-0 max-md:pointer-events-auto max-md:translate-x-0 max-md:opacity-100"
+              }`}
           >
             {item.label}
           </span>

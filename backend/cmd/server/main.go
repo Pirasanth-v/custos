@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
-	"fmt"
 
 	"github.com/pirasanth-v/custos/internal/config"
 	"github.com/pirasanth-v/custos/internal/database"
@@ -26,18 +26,20 @@ func main() {
 	}
 	slog.Info("Cfg is loaded and ready to use")
 
-	// Build the database URL from config
-	databaseURL := fmt.Sprintf(
-		"postgresql://%s:%s@%s:%s/%s?sslmode=%s",
-		cfg.DB.User, cfg.DB.Password,
-		cfg.DB.Host, cfg.DB.Port,
-		cfg.DB.Name, cfg.DB.SSLmode,
-	)
+	if cfg.App.Env == "production" {
+		// Build the database URL from config
+		databaseURL := fmt.Sprintf(
+			"postgresql://%s:%s@%s:%s/%s?sslmode=%s",
+			cfg.DB.User, cfg.DB.Password,
+			cfg.DB.Host, cfg.DB.Port,
+			cfg.DB.Name, cfg.DB.SSLmode,
+		)
 
-	if err := database.RunMigrations(databaseURL); err != nil {
-        slog.Error("migration failed", "err", err)
-        os.Exit(1)
-    }
+		if err := database.RunMigrations(databaseURL); err != nil {
+			slog.Error("migration failed", "err", err)
+			os.Exit(1)
+		}
+	}
 
 	// Connect to DB
 	db, err := database.Connect(cfg.DB)

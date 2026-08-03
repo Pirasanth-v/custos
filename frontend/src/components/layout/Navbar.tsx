@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { logout } from "@/features/auth/api";
 import { useState } from "react";
 import useThemeStore from "@/store/themeStore";
-import { CurrencyDropdown } from "../dropdown/CurrencyDropdown";
 import { OrganizationDropdown } from "../dropdown/OrganizationDropdown";
 import Notifications from "../notification/NotificationDropDown";
 
@@ -17,8 +16,6 @@ export function Navbar() {
   const [error, setError] = useState("");
 
   const { isDark, toggle } = useThemeStore();
-
-  const [currency, setCurrency] = useState("USD");
 
   // Handle sign-out logic
   const handleSignOut = async () => {
@@ -53,12 +50,6 @@ export function Navbar() {
 
         {/* Right Section: Currency, Theme, Notifications, Profile */}
         <div className="flex gap-5 items-center">
-          <div className="hidden md:block">
-            <CurrencyDropdown
-              selectedCurrency={currency}
-              onSelect={setCurrency}
-            />
-          </div>
 
           <button
             onClick={toggle}
