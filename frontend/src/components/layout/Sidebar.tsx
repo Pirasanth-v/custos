@@ -97,7 +97,7 @@ export function Sidebar() {
       <aside
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className={`fixed inset-y-0 left-0 z-50 h-screen w-64 transform border-r border-border bg-card text-foreground transition-all duration-300 ease-in-out md:static md:translate-x-0 md:h-screen md:shrink-0 md:transition-all ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-50 h-dvh w-64 transform border-r border-border bg-card text-foreground transition-all duration-300 ease-in-out md:static md:translate-x-0 md:h-screen md:shrink-0 md:transition-all ${mobileOpen ? "translate-x-0" : "-translate-x-full"
           } ${expanded ? "md:w-64" : "md:w-20"
           }`}
       >
