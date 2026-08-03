@@ -15,7 +15,6 @@ import {
 } from "lucide-react"
 import logo from "@/assets/logo_crop.png"
 import useThemeStore from "@/store/themeStore"
-import { CurrencyDropdown } from "../dropdown/CurrencyDropdown"
 import { OrganizationDropdown } from "../dropdown/OrganizationDropdown"
 
 type SidebarItem = {
@@ -40,7 +39,6 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const { isDark, toggle } = useThemeStore()
-  const [currency, setCurrency] = useState("USD")
 
   useEffect(() => {
     const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY)
@@ -99,7 +97,7 @@ export function Sidebar() {
       <aside
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className={`fixed inset-y-0 left-0 z-50 h-dvh w-64 transform border-r border-border bg-card text-foreground transition-all duration-300 ease-in-out md:static md:translate-x-0 md:h-screen md:shrink-0 md:transition-all ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-50 h-screen w-64 transform border-r border-border bg-card text-foreground transition-all duration-300 ease-in-out md:static md:translate-x-0 md:h-screen md:shrink-0 md:transition-all ${mobileOpen ? "translate-x-0" : "-translate-x-full"
           } ${expanded ? "md:w-64" : "md:w-20"
           }`}
       >
@@ -153,13 +151,7 @@ export function Sidebar() {
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Organization</span>
               <OrganizationDropdown />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Currency</span>
-              <CurrencyDropdown
-                selectedCurrency={currency}
-                onSelect={setCurrency}
-              />
-            </div>
+
             <div className="flex items-center justify-between pt-2 border-t border-border">
               <span className="text-sm font-medium text-foreground">Theme</span>
               <button
