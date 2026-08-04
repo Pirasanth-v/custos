@@ -3,6 +3,7 @@ import UserMenu from "../dropdown/UserMenu";
 import useAuthStore from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
 import { logout } from "@/features/auth/api";
+import { resetSession } from "@/lib/resetSession";
 import { useState } from "react";
 import useThemeStore from "@/store/themeStore";
 import { OrganizationDropdown } from "../dropdown/OrganizationDropdown";
@@ -21,9 +22,11 @@ export function Navbar() {
   const handleSignOut = async () => {
     try {
       await logout();
+      resetSession();
       navigate("/login");
     } catch {
-      setError("Error");
+      resetSession();
+      navigate("/login");
     }
   };
 
