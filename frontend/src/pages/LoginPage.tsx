@@ -1,14 +1,17 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { login, me } from "@/features/auth/api";
-import useAuthStore from "@/store/authStore";
+import { login } from "@/features/auth/api";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo_crop.png";
-import google_icon from "@/assets/google-icon.svg";
 import { Copyright, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import axios from "axios";
+import { GoogleLogin } from "@react-oauth/google";
+import { useGoogleAuth } from "@/features/auth/hooks/useGoogleAuth";
+import { toast } from "sonner";
+import { resetSession } from "@/lib/resetSession";
+import { queryClient } from "@/lib/queryClient";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -20,8 +23,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
-
-  const { setUser } = useAuthStore();
+  const googleAuth = useGoogleAuth();
 
   const {
     register,
@@ -35,8 +37,9 @@ export default function LoginPage() {
     try {
       setServerError("");
       await login(data);
-      const user = await me();
-      setUser(user);
+      resetSession();
+      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      await queryClient.invalidateQueries({ queryKey: ["orgs"] });
       navigate("/dashboard");
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -184,10 +187,20 @@ export default function LoginPage() {
           </div>
 
           {/* Google signup */}
-          <button className="text-foreground text-sm flex gap-3 h-11 w-full justify-center items-center rounded-lg border bg-border/50  hover:bg-border">
-            <img src={google_icon} alt="google logo" className="w-5" />
-            Continue with google
-          </button>
+          <div className="flex justify-center w-full">
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                if (credentialResponse.credential) {
+                  googleAuth.mutate(credentialResponse.credential);
+                }
+              }}
+              onError={() => toast.error("Google sign in failed.")}
+              useOneTap={false}
+              shape="rectangular"
+              size="large"
+              width="100%"
+            />
+          </div>
 
           {/* Signup */}
           <p className="text-center text-sm text-muted-foreground">

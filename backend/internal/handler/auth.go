@@ -1,28 +1,30 @@
 package handler
 
 import (
-	"net/http"
-	"log/slog"
 	"encoding/json"
+	"log/slog"
+	"net/http"
 	"time"
 
-	"github.com/pirasanth-v/custos/internal/service"
-	"github.com/pirasanth-v/custos/internal/dto"
 	"github.com/pirasanth-v/custos/internal/config"
+	"github.com/pirasanth-v/custos/internal/dto"
 	"github.com/pirasanth-v/custos/internal/middleware"
+	"github.com/pirasanth-v/custos/internal/service"
 )
 
 type AuthHandler struct {
 	authService *service.AuthService
-	cfg config.SecurityConfig
-	cfgApp config.AppConfig
+	cfg         config.SecurityConfig
+	cfgApp      config.AppConfig
+	cfgGoogle   config.GoogleAuthConfig
 }
 
-func NewAuthHandler(authService *service.AuthService, cfg config.SecurityConfig, cfgApp config.AppConfig) *AuthHandler {
+func NewAuthHandler(authService *service.AuthService, cfg config.SecurityConfig, cfgApp config.AppConfig, cfgGoogle config.GoogleAuthConfig) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
-		cfg: cfg,
-		cfgApp: cfgApp,
+		cfg:         cfg,
+		cfgApp:      cfgApp,
+		cfgGoogle:   cfgGoogle,
 	}
 }
 
@@ -33,13 +35,13 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		if err := json.NewEncoder(w).Encode(map[string]string{
-			"error" : "invalid request body",
+			"error": "invalid request body",
 		}); err != nil {
 			slog.Error("failed to write error response", "error", err)
 		}
 
 		return
-	}	
+	}
 
 	// 2. Call service
 	if err := h.authService.Register(r.Context(), &req); err != nil {
@@ -69,9 +71,9 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	// 3. Success response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	if err:= json.NewEncoder(w).Encode(map[string]string{
+	if err := json.NewEncoder(w).Encode(map[string]string{
 		"message": "user registered successfully",
-	}); err !=nil {
+	}); err != nil {
 		slog.Error("Failed to write error response", "error", err)
 	}
 }
@@ -80,12 +82,12 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req dto.LoginRequest
 
 	// handle request
-	err := json.NewDecoder(r.Body).Decode(&req) 					// 1. decode request body into dto
+	err := json.NewDecoder(r.Body).Decode(&req) // 1. decode request body into dto
 	if err != nil {
-		w.Header().Set("content-type", "application/json") 			// 2. set header
-		w.WriteHeader(http.StatusBadRequest)               			// 3. write header
+		w.Header().Set("content-type", "application/json") // 2. set header
+		w.WriteHeader(http.StatusBadRequest)               // 3. write header
 
-		if err := json.NewEncoder(w).Encode( 						// 4. encode body to send 
+		if err := json.NewEncoder(w).Encode( // 4. encode body to send
 			map[string]string{
 				"error": "invalid request body",
 			},
@@ -97,8 +99,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// call service
-	token, err := h.authService.Login(r.Context(), &req) 
-	if err != nil { 
+	token, err := h.authService.Login(r.Context(), &req)
+	if err != nil {
 		switch err.Error() {
 		case "invalid email", "invalid password":
 			w.Header().Set("content-type", "application/json")
@@ -132,7 +134,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    token,
-		HttpOnly: true, // JS cannot access it - XSS protection
+		HttpOnly: true,   // JS cannot access it - XSS protection
 		Secure:   isProd, // HTTPs only
 		Expires:  time.Now().Add(time.Duration(h.cfg.SessionExpiryHours) * time.Hour),
 		SameSite: http.SameSiteLaxMode,
@@ -140,7 +142,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// success response
-	w.Header().Set("content-type", "application/json") 
+	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(map[string]string{
 		"message": "login success",
@@ -158,7 +160,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		if err := json.NewEncoder(w).Encode(
 			map[string]string{
-				"error" : "unauthorized",
+				"error": "unauthorized",
 			},
 		); err != nil {
 			slog.Error("failed to write response", "error", err)
@@ -175,7 +177,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		if err := json.NewEncoder(w).Encode(
 			map[string]string{
-				"error" : "internal server error",
+				"error": "internal server error",
 			},
 		); err != nil {
 			slog.Error("failed to write response", "error", err)
@@ -184,14 +186,14 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// clear the cookie
-	http.SetCookie(w, &http.Cookie {
+	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
-        Value:    "",
-        HttpOnly: true,
-        Secure:   true,
-        SameSite: http.SameSiteLaxMode,
-        Path:     "/",
-        MaxAge:   -1, // tells browser to delete the cookie immediately
+		Value:    "",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		MaxAge:   -1, // tells browser to delete the cookie immediately
 	})
 
 	// success response
@@ -199,7 +201,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(
 		map[string]string{
-			"message" : "logged out successfully",
+			"message": "logged out successfully",
 		},
 	); err != nil {
 		slog.Error("failed to write response", "error", err)
@@ -213,7 +215,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		slog.Error("failed to read a value from cookie")
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		if err := json.NewEncoder(w).Encode(map[string]string{"error" : "unauthorized"}); err != nil {
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"}); err != nil {
 			slog.Error("failed to write response", "error", err)
 		}
 		return
@@ -225,7 +227,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		slog.Error("get user by id failed", "error", err)
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		if err := json.NewEncoder(w).Encode(map[string]string{"error" : "internal server error"}); err != nil {
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"}); err != nil {
 			slog.Error("failed to write response", "error", err)
 		}
 		return

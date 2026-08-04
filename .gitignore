@@ -17,3 +17,5 @@ docker-volumes/
 
 # Research
 Research/
+
+client_secret.json

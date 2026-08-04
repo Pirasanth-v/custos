@@ -24,6 +24,7 @@ func New(
 	categoryHandler *handler.CategoryHandler,
 	billHandler *handler.BillHandler,
 	dashboardHandler *handler.DashboardHandler,
+	authGoogleHandler *handler.AuthGoogleHandler,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -64,6 +65,7 @@ func New(
 			r.Use(m.RateLimit(authLimiter))
 			r.Post("/auth/register", authHandler.Register)
 			r.Post("/auth/login", authHandler.Login)
+			r.Post("/auth/google/signin", authGoogleHandler.GoogleSignIn)
 		})
 
 		// Currency
