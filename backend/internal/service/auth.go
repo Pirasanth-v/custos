@@ -2,28 +2,28 @@ package service
 
 import (
 	"context"
-	"errors"
-	"time"
-	"fmt"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
+	"fmt"
+	"time"
 
-	"github.com/pirasanth-v/custos/internal/repository"
-	"github.com/pirasanth-v/custos/internal/dto"
-	Config "github.com/pirasanth-v/custos/internal/config"
-	"github.com/pirasanth-v/custos/internal/model"
-	"golang.org/x/crypto/bcrypt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	Config "github.com/pirasanth-v/custos/internal/config"
+	"github.com/pirasanth-v/custos/internal/dto"
+	"github.com/pirasanth-v/custos/internal/model"
+	"github.com/pirasanth-v/custos/internal/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
-	userRepo *repository.UserRepository
-	orgRepo *repository.OrganizationRepository
-	memberRepo *repository.OrganizationMemberRepository
+	userRepo    *repository.UserRepository
+	orgRepo     *repository.OrganizationRepository
+	memberRepo  *repository.OrganizationMemberRepository
 	sessionRepo *repository.SessionRepository
-	cfg Config.SecurityConfig
-	db *pgxpool.Pool
+	cfg         Config.SecurityConfig
+	db          *pgxpool.Pool
 }
 
 func NewAuthService(
@@ -46,74 +46,74 @@ func NewAuthService(
 
 // Register a new user
 func (s *AuthService) Register(ctx context.Context, req *dto.RegisterRequest) error {
-    // begin transaction
-    tx, err := s.db.Begin(ctx)
-    if err != nil {
-        return fmt.Errorf("failed to begin transaction: %w", err)
-    }
-    defer func() {
-        _ = tx.Rollback(ctx)
-    }()
+	// begin transaction
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
 
-    // tx-scoped repos
-    userRepo   := s.userRepo.WithTx(tx)
-    orgRepo    := s.orgRepo.WithTx(tx)
-    memberRepo := s.memberRepo.WithTx(tx)
+	// tx-scoped repos
+	userRepo := s.userRepo.WithTx(tx)
+	orgRepo := s.orgRepo.WithTx(tx)
+	memberRepo := s.memberRepo.WithTx(tx)
 
-    // check email inside transaction
-    exists, err := userRepo.IsEmailExists(ctx, req.Email)
-    if err != nil {
-        return err
-    }
-    if exists {
-        return errors.New("email already used")
-    }
+	// check email inside transaction
+	exists, err := userRepo.IsEmailExists(ctx, req.Email)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.New("email already used")
+	}
 
-    // hash password
-    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), s.cfg.BcryptCost)
-    if err != nil {
-        return fmt.Errorf("failed to hash password: %w", err)
-    }
+	// hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), s.cfg.BcryptCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
 
-    // create user
-    user := model.User{
-        Id:           uuid.New().String(),
-        FirstName:    req.FirstName,
-        LastName:     req.LastName,
-        Email:        req.Email,
-        PasswordHash: string(hashedPassword),
-    }
-    if err := userRepo.CreateUser(ctx, user); err != nil {
-        return fmt.Errorf("failed to create user: %w", err)
-    }
+	// create user
+	user := model.User{
+		Id:           uuid.New().String(),
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
+		Email:        req.Email,
+		PasswordHash: string(hashedPassword),
+	}
+	if err := userRepo.CreateUser(ctx, user); err != nil {
+		return fmt.Errorf("failed to create user: %w", err)
+	}
 
-    // create personal org
-    orgID := uuid.New().String()
-    org := model.Organization{
-        Id:         orgID,
-        Name:       req.FirstName + "'s Personal",
-        IsPersonal: true,
-        CreatedBy:  user.Id,
-    }
-    if err := orgRepo.CreateOrganization(ctx, org); err != nil {
-        return fmt.Errorf("failed to create organization: %w", err)
-    }
+	// create personal org
+	orgID := uuid.New().String()
+	org := model.Organization{
+		Id:         orgID,
+		Name:       req.FirstName + "'s Personal",
+		IsPersonal: true,
+		CreatedBy:  user.Id,
+	}
+	if err := orgRepo.CreateOrganization(ctx, org); err != nil {
+		return fmt.Errorf("failed to create organization: %w", err)
+	}
 
-    // add user as owner
-    now := time.Now().UTC()
-    member := model.OrganizationMember{
-        OrgID:     orgID,
-        UserID:    user.Id,
-        RoleID:    model.RoleOwnerID,
-        Status:    "active",
-        AddedBy:   &user.Id,
-        JoinedAt:  &now,
-    }
-    if err := memberRepo.AddMember(ctx, member); err != nil {
-        return fmt.Errorf("failed to add owner: %w", err)
-    }
+	// add user as owner
+	now := time.Now().UTC()
+	member := model.OrganizationMember{
+		OrgID:    orgID,
+		UserID:   user.Id,
+		RoleID:   model.RoleOwnerID,
+		Status:   "active",
+		AddedBy:  &user.Id,
+		JoinedAt: &now,
+	}
+	if err := memberRepo.AddMember(ctx, member); err != nil {
+		return fmt.Errorf("failed to add owner: %w", err)
+	}
 
-    return tx.Commit(ctx)
+	return tx.Commit(ctx)
 }
 
 func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest) (string, error) {

@@ -34,3 +34,13 @@ React+TS+Tailwind+Bun/Vite frontend in /frontend. Go backend in /backend. Monore
 - Tailwind breakpoints: sm=640px md=768px lg=1024px xl=1280px
 - recharts charts already use recharts — wrap in ResponsiveContainer where missing
 - All components in /frontend/src/components and /frontend/src/pages
+
+## Google Auth integration rules
+- Backend endpoint POST /auth/google already complete — accepts {id_token: string}, sets session_token cookie, returns {message: "ok"}
+- Do NOT build any backend code
+- Follow exact same pattern as existing login mutation (hook file, useMutation, api.post, navigate to /dashboard on success, toast on error)
+- Use GoogleLogin component from @react-oauth/google — NOT useGoogleLogin (we need credential/id_token not access_token)
+- The Google sign in button UI already exists in the login page — find it and replace only that button with the real component
+- Do not change anything else on the login or register page
+- Do not change layout, colors, sizing, or surrounding elements
+- Match existing code style exactly (same import order, same error handling, same file structure)
