@@ -9,11 +9,16 @@ import SettingsPage from "./pages/settings/SettingsPage"
 import AccountsPage from "./pages/AccountsPage"
 import TransactionPage from "./pages/TransactionPage"
 import BillsPage from "./pages/BillsPage"
+import PrivacyPolicy from "./pages/PrivacyPolicy"
 
-export const router = createBrowserRouter ([
+export const router = createBrowserRouter([
     {
         path: '/',
         element: <Navigate to="/dashboard" replace />
+    },
+    {
+        path: '/privacy-policy',
+        element: <PrivacyPolicy />
     },
     {
         path: '/login',
