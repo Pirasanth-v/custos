@@ -2,14 +2,15 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"errors"
+	"fmt"
+	"strings"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5"
-	"github.com/pirasanth-v/custos/internal/model"
-	"github.com/pirasanth-v/custos/internal/dto"
+	"github.com/jackc/pgx/v5/pgxpool"
 	db "github.com/pirasanth-v/custos/internal/database"
+	"github.com/pirasanth-v/custos/internal/dto"
+	"github.com/pirasanth-v/custos/internal/model"
 )
 
 // UserRepository provides methods for DB operations related to users.
@@ -119,4 +120,84 @@ func (r *UserRepository) GetUserById(ctx context.Context, userID string) (*dto.U
 	}
 
 	return user, nil
+}
+
+// Find user by google_id
+func (r *UserRepository) GetByGoogleID(ctx context.Context, googleID string) (*model.User, error) {
+	query := `
+		SELECT id, email, first_name, last_name, created_at
+		FROM users
+		WHERE google_id = $1
+		AND deleted_at IS NULL
+	`
+
+	user := model.User{}
+	err := r.db.QueryRow(ctx, query, googleID).Scan(
+		&user.Id,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errors.New("user not found")
+		}
+		return nil, fmt.Errorf("failed to get user by google id: %w", err)
+	}
+
+	return &user, nil
+}
+
+// Link google_id to existing user
+func (r *UserRepository) LinkGoogleID(ctx context.Context, userID, googleID string) error {
+	query := `
+		UPDATE users
+		SET google_id = $1, updated_at = NOW()
+		WHERE id = $2
+	`
+
+	_, err := r.db.Exec(ctx, query, googleID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to link google id to user: %w", err)
+	}
+
+	return nil
+}
+
+// Create new user from Google
+func (r *UserRepository) CreateFromGoogle(ctx context.Context, g *model.GoogleUser) (*model.User, error) {
+	query := `
+		INSERT INTO users (id, email, first_name, last_name, google_id, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+		RETURNING id, email, first_name, last_name, created_at, updated_at, deleted_at
+	`
+
+	parts := strings.Fields(g.Name)
+	firstName := ""
+	lastName := ""
+	if len(parts) > 0 {
+		firstName = parts[0]
+	}
+	if len(parts) > 1 {
+		lastName = strings.Join(parts[1:], " ")
+	}
+
+	_, err := r.db.Exec(ctx, query,
+		g.UserID,
+		g.Email,
+		firstName,
+		lastName,
+		g.GoogleID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user from google: %w", err)
+	}
+
+	return &model.User{
+		Id:        g.UserID,
+		Email:     g.Email,
+		FirstName: firstName,
+		LastName:  lastName,
+	}, nil
 }

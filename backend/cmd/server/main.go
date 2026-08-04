@@ -106,7 +106,8 @@ func main() {
 	dashboardService := service.NewDashboardService(dashboardRepo)
 
 	// Handlers
-	authHandler := handler.NewAuthHandler(authService, cfg.Security, cfg.App)
+	authHandler := handler.NewAuthHandler(authService, cfg.Security, cfg.App, cfg.GoogleAuth)
+	authGoogleHandler := handler.NewAuthGoogleHandler(authService, cfg.Security, cfg.App, cfg.GoogleAuth)
 	OrgHandler := handler.NewOrgHandler(orgService)
 	accHandler := handler.NewAccountHandler(accService)
 	currencyHandler := handler.NewCurrencyHandler(currencyService)
@@ -131,6 +132,7 @@ func main() {
 		categoryHandler,
 		billHandler,
 		dashboardHandler,
+		authGoogleHandler,
 	)
 	if err := http.ListenAndServe(":"+cfg.App.Port, router); err != nil {
 		log.Fatalf("Server failed :%v", err)

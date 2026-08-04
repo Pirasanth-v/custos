@@ -9,39 +9,46 @@ import (
 )
 
 type Config struct {
-	App AppConfig
-	DB DBconfig
-	Storage StorageConfig
-	Security SecurityConfig 
+	App        AppConfig
+	DB         DBconfig
+	Storage    StorageConfig
+	Security   SecurityConfig
+	GoogleAuth GoogleAuthConfig
 }
 
 type AppConfig struct {
-	Env string
+	Env  string
 	Port string
-} 
+}
 
 type DBconfig struct {
-	User string
+	User     string
 	Password string
-	Host string
-	Port string
-	Name string
-	SSLmode string
+	Host     string
+	Port     string
+	Name     string
+	SSLmode  string
 }
 
 type StorageConfig struct {
-	Endpoint string
-	AccessKey string
-	SecretKey string
-	Bucket string
-	UseSSL bool
-	PublicHost string	// e.g. "files.yourdomain.com" in prod, "localhost:9000" in dev
+	Endpoint   string
+	AccessKey  string
+	SecretKey  string
+	Bucket     string
+	UseSSL     bool
+	PublicHost string // e.g. "files.yourdomain.com" in prod, "localhost:9000" in dev
 }
 
 type SecurityConfig struct {
-	TokenSecret string	// secret key for signing tokens
-	BcryptCost int	// difficulty level for password hashing
+	TokenSecret        string // secret key for signing tokens
+	BcryptCost         int    // difficulty level for password hashing
 	SessionExpiryHours int
+}
+
+type GoogleAuthConfig struct {
+	ClientID     string
+	ClientSecret string
+	RedirectURL  string
 }
 
 func Load() (*Config, error) {
@@ -51,20 +58,20 @@ func Load() (*Config, error) {
 	}
 
 	// initiate an empty config struct
-	cfg := Config{}	
+	cfg := Config{}
 	var missing []string
 
 	// helper for required variable
-	require := func(key string) (string) {
+	require := func(key string) string {
 		val := os.Getenv(key)
 		if val == "" {
 			missing = append(missing, key)
 		}
 		return val
-	} 
+	}
 
 	// helper for optional variable
-	optional := func(key,backup string) string {
+	optional := func(key, backup string) string {
 		val := os.Getenv(key)
 		if val == "" {
 			return backup
@@ -72,44 +79,50 @@ func Load() (*Config, error) {
 		return val
 	}
 
-	cfg.App = AppConfig {
-		Env: optional("APP_ENV", "development"),
+	cfg.App = AppConfig{
+		Env:  optional("APP_ENV", "development"),
 		Port: optional("APP_PORT", "8080"),
 	}
 
-	cfg.DB = DBconfig {
-		User: require("DB_USER"),
+	cfg.DB = DBconfig{
+		User:     require("DB_USER"),
 		Password: require("DB_PASSWORD"),
-		Host: optional("DB_HOST", "localhost"),
-		Name: require("DB_NAME"),
-		Port: optional("DB_PORT", "5432"),
-		SSLmode: optional("DB_SSLMODE", "disable") ,
-	} 
+		Host:     optional("DB_HOST", "localhost"),
+		Name:     require("DB_NAME"),
+		Port:     optional("DB_PORT", "5432"),
+		SSLmode:  optional("DB_SSLMODE", "disable"),
+	}
 
-	cfg.Storage = StorageConfig {
-		Endpoint: require("STORAGE_ENDPOINT"),
-		AccessKey: require("STORAGE_ACCESS_KEY"),
-		SecretKey: require("STORAGE_SECRET_KEY"),
-		Bucket: optional("STORAGE_BUCKET", "custos"),
-		UseSSL: os.Getenv("STORAGE_USE_SSL") == "true",
+	cfg.Storage = StorageConfig{
+		Endpoint:   require("STORAGE_ENDPOINT"),
+		AccessKey:  require("STORAGE_ACCESS_KEY"),
+		SecretKey:  require("STORAGE_SECRET_KEY"),
+		Bucket:     optional("STORAGE_BUCKET", "custos"),
+		UseSSL:     os.Getenv("STORAGE_USE_SSL") == "true",
 		PublicHost: optional("MINIO_PUBLIC_HOST", "localhost:9000"),
 	}
 
-	cfg.Security = SecurityConfig {
-		TokenSecret: require("TOKEN_SECRET"),
-		BcryptCost: 12,	// default value
+	cfg.Security = SecurityConfig{
+		TokenSecret:        require("TOKEN_SECRET"),
+		BcryptCost:         12, // default value
 		SessionExpiryHours: 48,
 	}
-	
+
+	cfg.GoogleAuth = GoogleAuthConfig{
+		ClientID:     require("GOOGLE_CLIENT_ID"),
+		ClientSecret: require("GOOGLE_CLIENT_SECRET"),
+		RedirectURL:  require("GOOGLE_REDIRECT_URL"),
+	}
+
 	// override the default if it sets in .env
-	cost:= os.Getenv("BCRYPT_COST")
+	cost := os.Getenv("BCRYPT_COST")
 	if cost != "" {
 		cost_int, err := strconv.Atoi(cost)
 		if err == nil {
 			cfg.Security.BcryptCost = cost_int
 		}
 	}
-	
+
 	// overrides the default if it sets in .env
 	expiry := os.Getenv("SESSION_EXPIRY_HOURS")
 	if expiry != "" {
@@ -118,7 +131,7 @@ func Load() (*Config, error) {
 			cfg.Security.SessionExpiryHours = expiry_int
 		}
 	}
-	
+
 	// fail fast, if any env vars are missing
 	if len(missing) > 0 {
 		return nil, fmt.Errorf("missing required env varibales: %v", missing)
